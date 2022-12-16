@@ -1,0 +1,34 @@
+.background {
+  background: url("../image/login/snowMountain.jpeg");
+  background-size: 100%;
+}
+.login-outer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+.login-title  {
+  text-align: center;
+  vertical-align: text-bottom;
+  font-size: 30px;
+  font-weight: 600;
+  color: blue;
+  background-image: linear-gradient(-20deg, #11cec9, #c088d3);
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  line-height: 80px;
+}
+.login-title small  {
+  font-size: 20px;
+}
+
+.login-form {
+  width: 350px;
+  padding: 35px 35px 35px;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 0 25px #cac6c6;
+}

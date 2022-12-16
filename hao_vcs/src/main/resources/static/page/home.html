@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hao_VCS</title>
+    <script src="../js/outService.js"></script>
+</head>
+<body>
+<div id="home">
+    <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+        <el-menu-item index="1">个人中心</el-menu-item>
+        <!--        <el-submenu index="2">-->
+        <!--            <template slot="title">班级管理</template>-->
+        <!--            <el-menu-item index="2-1">学生信息</el-menu-item>-->
+        <!--            <el-menu-item index="2-2">下载记录</el-menu-item>-->
+        <!--            &lt;!&ndash;      <el-submenu index="2-4">&ndash;&gt;-->
+        <!--            &lt;!&ndash;        <template slot="title">选项4</template>&ndash;&gt;-->
+        <!--            &lt;!&ndash;        <el-menu-item index="2-4-1">选项1</el-menu-item>&ndash;&gt;-->
+        <!--            &lt;!&ndash;        <el-menu-item index="2-4-2">选项2</el-menu-item>&ndash;&gt;-->
+        <!--            &lt;!&ndash;        <el-menu-item index="2-4-3">选项3</el-menu-item>&ndash;&gt;-->
+        <!--            &lt;!&ndash;      </el-submenu>&ndash;&gt;-->
+        <!--        </el-submenu>-->
+        <!--        <el-menu-item index="3">消息中心</el-menu-item>-->
+        <!--        <el-menu-item index="4"><a href="https://192.168.10.7:8080/main" target="_blank">云盘</a></el-menu-item>-->
+    </el-menu>
+    <div v-show=true>
+        <section>
+            <img v-if="!refresh" class="head-img" :src="imageUrl"/>
+            <div v-show="refresh" class="head-img">
+                <el-progress type="circle" :percentage="progressPercent"></el-progress>
+            </div>
+            <el-upload  action="#"
+                       :show-file-list="false" :before-upload="beforeAvatarUpload"
+                       :http-request="uploadHead"
+            >
+                <el-button type="success" plain round size="mini">{{headNotice}}</el-button>
+            </el-upload>
+        </section>
+
+<!--        <form action="/head" method="post" enctype="multipart/form-data">-->
+<!--            <div><input type="file" multiple="multiple" accept="image/*" name="image" id="image"></div>-->
+<!--            <div><input type="submit" value="上传"></div>-->
+<!--        </form>-->
+
+        </el-descriptions>
+    </div>
+
+</div>
+
+</body>
+<script>
+    var vm = new Vue({
+        el: "#home",
+        data() {
+            return {
+                refresh: false,
+                headNotice: '上传头像',
+                imageUrl: '../image/defaultHead.png',
+                progressPercent: 0
+            }
+        },
+        created() {
+            this.getHeadUrl()
+        },
+        methods: {
+            async getHeadUrl(){
+                axios.get('/file/head').then(res => {
+                    if(res.data.code === 20000){
+                        this.imageUrl = res.data.msg
+                        this.headNotice = '修改头像'
+                    }
+                })
+            },
+            uploadHead (f) {
+                this.refresh = true
+                let formData = new FormData()
+                formData.append('image', f.file)
+                axios({
+                    url: '/file/head',
+                    method: 'post',
+                    data: formData,
+                    headers: {'Content-Type': 'multipart/form-data'},
+                    onUploadProgress: progressEvent => {
+                        this.progressPercent = (progressEvent.loaded / progressEvent.total * 100)
+                    }
+                }).then(res => {
+                    if(res.data.code === 20000){
+                        this.imageUrl = res.data.data
+                        console.log(this.imageUrl)
+                    }
+                    this.refresh = false
+                    this.progressPercent = 0
+                    if(res.data.code === 40000) {
+                        this.$message({
+                            message: res.data.msg,
+                            type: 'warn'
+                        });
+                    }
+                }).then(error => {
+                    console.log(error)
+                })
+            },
+            // 上传图片前的过滤
+            beforeAvatarUpload (file) {
+                const isLt2M = (file.size / 1024 / 1024) < 2
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!')
+                }
+                return isLt2M
+            }
+
+        }
+    })
+</script>
+<style scoped>
+    .head-img {
+        width: 128px;
+        height: 128px;
+        border: 1px dashed #d9d9d9;
+        border-radius: 100%;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+
+
+</style>
+</html>

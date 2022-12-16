@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>login</title>
+    <!-- 引入样式 -->
+<!--    <link rel="stylesheet" type="text/css" href="../styles/common.css">-->
+    <link rel="stylesheet" type="text/css" href="../styles/login.css">
+<!--    <link rel="stylesheet" type="text/css" href="../plugins/element-ui/element.css"/>-->
+<!--    <script src="../plugins/vue/vue.js"></script>-->
+<!--    <script src="../plugins/element-ui/element.js"></script>-->
+<!--    &lt;!&ndash; 引入axios &ndash;&gt;-->
+<!--    <script src="../plugins/axios/axios.min.js"></script>-->
+    <script src="../js/outService.js"></script>
+</head>
+
+<body class="background">
+
+<div class="login-outer" id="app">
+    <el-form :model="loginForm" ref="loginForm" :model="loginForm" :rules="rules"
+             status-icon
+             class="login-form">
+        <div class="login-title box animate__animated animate__fadeIn">
+            Hao_VCS
+            <small>用户登录</small>
+        </div>
+        <el-form-item prop="email" class="box animate__animated animate__fadeInUp">
+            <el-input type="text"
+                      prefix-icon="el-icon-user"
+                      v-model.trim="loginForm.email"
+                      auto-complete="off"
+                      maxlength="20"
+                      show-word-limit
+                      placeholder="邮箱">
+            </el-input>
+        </el-form-item>
+        <el-form-item prop="password" class="box animate__animated animate__fadeInUp">
+            <el-input type="password"
+                      prefix-icon="el-icon-key"
+                      v-model.trim="loginForm.password"
+                      auto-complete="off"
+                      maxlength="20"
+                      show-word-limit
+                      @keyup.enter.native="tryLogin"
+                      show-password
+                      placeholder="密码">
+            </el-input>
+        </el-form-item>
+
+        <div align="right">
+            <el-form-item>
+                <el-link icon="el-icon-question" :underline="false" href="/page/reset.html">忘记密码</el-link>
+            </el-form-item>
+        </div>
+
+        <el-form-item>
+            <el-button type="primary" class="el-col-24"
+                       @click.native.prevent="tryLogin"
+                       :loading="loginLoading">
+                <span v-if="!loginLoading">登录</span>
+                <span v-else>登录中...</span>
+            </el-button>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" class="el-col-24"
+                       @click.native.prevent="tryRegister"
+            >注册
+            </el-button>
+        </el-form-item>
+    </el-form>
+</div>
+
+<script>
+    var vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                parameter: '',
+                loginForm: {
+                    email:''
+                },
+                loginLoading: false,
+                rules: {
+                    email: [{required: true, message: '账号不能为空', trigger: 'blur'}],
+                    password: [{required: true, message: '密码不能为空', trigger: 'blur'}]
+                }
+            }
+        },
+        mounted(){
+            let str = decodeURI(window.location.href.split("=")[1])
+            console.log(str)
+            if (str !== 'undefined'){
+                console.log(str)
+                this.loginForm.email = str
+            }
+        },
+        methods: {
+            tryLogin() {
+                this.$refs.loginForm.validate((valid) => {
+                    if (valid) {
+                        this.loginLoading = true
+                        axios.post('/doLogin', this.loginForm).then(results => {
+                            if(results.data.code === 20000){
+                                this.$message({
+                                    message: results.data.msg,
+                                    type: 'success'
+                                });
+                                this.loginLoading = false
+                                this.loginForm.password = ''
+                                setTimeout(function () {
+                                    window.location.href = '/page/home.html'
+                                    grid.api.reloadData();
+                                }, 1000);
+                            }else{
+                                this.loginLoading = false
+                                this.$message({
+                                    message: results.data.msg,
+                                    type: 'warning'
+                                })
+                            }
+                        })
+                    }
+                })
+            },
+            tryRegister() {
+                window.location.href = '/page/sign_up.html'
+            }
+        }
+    })
+</script>
+</body>
+
+</html>

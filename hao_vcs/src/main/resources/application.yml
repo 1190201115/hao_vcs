@@ -1,0 +1,47 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: hao_vcs
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/finaljob?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 0
+  cache:
+    redis:
+      time-to-live: 1800000
+  mail:
+    username: 1561739463@qq.com
+    password: rzktqbtgxshfghhe
+    host: smtp.qq.com
+    port: 465
+    properties:
+      mail:
+        transport:
+          protocol: smtp
+        smtp:
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+          port: ${spring.mail.port}
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+mybatis-plus:
+  configuration:
+    #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+qiniu:
+  accessKey: DHgeADKh_hSn8vo-Y8Hz5lUtsWBfGpoC2-kp3JFt
+  secretKey: uWE_mCqr5FMoDYP_GGqHbhP-pxqOeTiy_wd-0T74
+  bucket: head-pic-cyh
+  cdns: rm79el5e3.hb-bkt.clouddn.com

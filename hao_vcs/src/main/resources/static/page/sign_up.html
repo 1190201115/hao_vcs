@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hao_VCS</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" type="text/css" href="../styles/sign_up.css">
+    <script src="../js/validator.js"></script>
+    <script src="../js/outService.js"></script>
+</head>
+
+<body class="background">
+<div class="sign-up-outer" id="sign_up">
+    <el-form :model="signUpForm" ref="signUpForm" :model="signUpForm" :rules="rules"
+             status-icon
+             class="login-form">
+        <div class="login-title box animate__animated animate__fadeIn">
+            Hao_VCS
+            <small>用户注册</small>
+        </div>
+        <el-form-item prop="username" class="box animate__animated animate__fadeInUp">
+            <el-input type="text"
+                      prefix-icon="el-icon-user"
+                      v-model.trim="signUpForm.username"
+                      auto-complete="off"
+                      maxlength="20"
+                      show-word-limit
+                      placeholder="昵称">
+            </el-input>
+        </el-form-item>
+        <el-form-item prop="email" class="box animate__animated animate__fadeInUp">
+            <el-input type="text"
+                      prefix-icon="el-icon-message"
+                      v-model.trim="signUpForm.email"
+                      auto-complete="off"
+                      maxlength="20"
+                      show-word-limit
+                      placeholder="邮箱">
+            </el-input>
+        </el-form-item>
+        <el-form-item prop="password" class="box animate__animated animate__fadeInUp">
+            <el-input type="password"
+                      prefix-icon="el-icon-key"
+                      v-model.trim="signUpForm.password"
+                      auto-complete="off"
+                      maxlength="20"
+                      show-word-limit
+                      show-password
+                      @keyup.enter.native="getVerifyCode"
+                      placeholder="密码">
+            </el-input>
+        </el-form-item>
+        <el-form-item prop="code" class="box animate__animated animate__fadeInUp">
+            <el-input type="text"
+                      v-model.trim="signUpForm.code"
+                      auto-complete="off"
+                      maxlength="6"
+                      @keyup.enter.native="getVerifyCode"
+                      placeholder="请输入验证码">
+                <el-button slot="append" @click.native.prevent="getVerifyCode" :disabled="hasSent">{{content}}
+                </el-button>
+            </el-input>
+        </el-form-item>
+
+        <div align="right">
+            <el-form-item>
+                <el-row>
+                    <el-link disabled="">已有帐号？</el-link>
+                    <el-link type="primary" href="/page/login.html">登录</el-link>
+                </el-row>
+
+            </el-form-item>
+        </div>
+
+        <el-form-item>
+            <el-button type="primary" class="el-col-24"
+                       @click.native.prevent="tryRegister">
+                注册
+            </el-button>
+        </el-form-item>
+    </el-form>
+</div>
+<!-- 引入axios -->
+<script src="../plugins/axios/axios.min.js"></script>
+<script>
+    var vm = new Vue({
+        el: "#sign_up",
+        data() {
+            return {
+                content: '获取验证码',
+                signUpForm: {
+                    email: '',
+                    username:'',
+                    password:'',
+                    code:''
+                },
+                loginLoading: false,
+                totalTime: 10,
+                hasSent: false,
+                rules: {
+                    password: [{required: true, message: '密码不能为空', trigger: 'blur'}],
+                    email: [{validator: checkEmail, trigger: 'blur'}],
+                }
+            }
+        },
+        methods: {
+            tryRegister() {
+                this.$refs.signUpForm.validate((valid) => {
+                    if (valid) {
+                        axios.post('/doSignUp', {
+                            username : this.signUpForm.username,
+                            email : this.signUpForm.email,
+                            password: this.signUpForm.password,
+                            code: this.signUpForm.code
+                        }).then(results => {
+                            if (results.data.code === 20000) {
+                                console.log(results)
+                                this.$message({
+                                    message: results.data.msg,
+                                    type: 'success'
+                                });
+                                let email = this.signUpForm.email
+                                setTimeout(function () {
+                                    window.location.href = '/page/login.html?email='+email
+                                    grid.api.reloadData();
+                                }, 1000);
+                            } else {
+                                this.$message({
+                                    message: results.data.msg,
+                                    type: 'warning'
+                                });
+                                this.signUpForm.code=''
+                            }
+                        })
+                    }
+                })
+            },
+            async getVerifyCode() {
+                this.$refs.signUpForm.validate(async (valid) => {
+                    if (valid) {
+                        if (this.hasSent) return
+                        this.hasSent = true
+                        this.content = this.totalTime + 's后重新发送'
+                        let clock = window.setInterval(() => {
+                            this.totalTime--
+                            this.content = this.totalTime + 's后重新发送'
+                            if (this.totalTime <= 0) {
+                                window.clearInterval(clock)
+                                this.content = '重新发送短信'
+                                this.totalTime = 10
+                                this.hasSent = false
+                            }
+                        }, 1000)
+                        axios.get('/doSignUp', {params: {'email': this.signUpForm.email}}).then(results => {
+                            if (results.data.code === 20000) {
+                                this.$message({
+                                    message: results.data.msg,
+                                    type: 'success'
+                                })
+                            } else {
+                                this.$message({
+                                    message: '验证码发送失败！请检查联网情况后重试',
+                                    type: 'warning'
+                                });
+                            }
+                        })
+                    }
+                })
+            }
+        }
+    })
+</script>
+
+</body>
+
+</html>
