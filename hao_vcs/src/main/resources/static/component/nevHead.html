@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/outService.js"></script>
+</head>
+<body >
+<div id="app" style="width: 80%; margin:0 auto;">
+<el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect" style="height: 62px">
+    <el-menu-item index="logo" style=" margin-left: 10px">
+        <a href="../page/home.html">
+            <el-image
+                    style="width: 100%; height: 100%;margin-bottom: 1px"
+                    :src="logo_url"
+                    :fit="fit">
+            </el-image>
+        </a>
+    </el-menu-item>
+
+    <el-col style="margin-left: 40%;margin-top: 10px; width: 20%;">
+        <el-input
+                type="text"
+                v-model="search_key"
+                placeholder="搜索项目"
+                style="width: 100%; cursor: pointer"
+                @keyup.enter.native="searchProject"
+        ></el-input>
+    </el-col>
+
+    <el-menu-item index="workspace" style="margin-left: 3%">我的工作台</el-menu-item>
+    <el-menu-item index="settings">配置中心</el-menu-item>
+    <el-menu-item index="workshop"><a href="../page/home.html" target="_blank">加工坊</a></el-menu-item>
+    <el-menu-item index="self-space">
+        <img class="head-img" :src="headUrl"/>
+    </el-menu-item>
+
+</el-menu>
+</div>
+<script>
+    let vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                headUrl: '../image/defaultHead.png',
+                fit: 'scale-down',
+                logo_url: '../image/local/logo.png',
+                search_key: ''
+            }
+        },
+        methods: {
+
+        }
+    })
+</script>
+
+<style scoped>
+    .head-img {
+        height: 65%;
+        width: 40px;
+        border-radius: 100%;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+
+</style>
+</body>
+</html>

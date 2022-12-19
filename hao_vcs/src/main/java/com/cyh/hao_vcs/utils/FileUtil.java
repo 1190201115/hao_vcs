@@ -4,8 +4,12 @@ import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.qiniu.util.Auth;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class FileUtil {
@@ -22,6 +26,7 @@ public class FileUtil {
         return false;
     }
 
+    //七牛云文件路径
     public static String getFileUrl(String fileName) {
         String encodedFileName = null;
         try {
@@ -44,5 +49,19 @@ public class FileUtil {
 
     public static boolean fileIsNotExists(MultipartFile file) {
         return Objects.isNull(file) || file.isEmpty();
+    }
+
+    public static boolean saveFile(String path, String content){
+        try {
+            FileOutputStream fos = new FileOutputStream(path);
+            OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+            writer.write(content);
+            writer.flush();
+            fos.close();
+        } catch (Exception e) {
+            System.out.println(e);
+            return false;
+        }
+        return true;
     }
 }

@@ -5,6 +5,7 @@ import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.service.TextService;
 import com.cyh.hao_vcs.utils.Converter;
+import com.cyh.hao_vcs.utils.FileUtil;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -14,11 +15,9 @@ import java.util.Objects;
 public class TextServiceImpl implements TextService {
     @Override
     public String getDoc(String fileName) {
-        Integer kind = Converter.textClassifier(fileName);
         String resFileName = fileName.substring(0, fileName.indexOf(".")) + ".html";
-        if(Converter.fileExists(resFileName, kind)){
-            return FileConfig.pathMap.get(kind) + resFileName;
-
+        if(Converter.fileExists(resFileName)){
+            return Converter.getFilePath(resFileName);
         }
         return Converter.wordToHtml(fileName);
     }
@@ -31,5 +30,12 @@ public class TextServiceImpl implements TextService {
     @Override
     public String getTxt(String fileName) {
         return null;
+    }
+
+    @Override
+    public boolean saveDoc(String fileName, String content) {
+        if(Objects.equals(Converter.textClassifier(fileName), FileConfig.UNKNOWN_FILE))
+            return false;
+        return FileUtil.saveFile(Converter.getFilePath(fileName),content);
     }
 }

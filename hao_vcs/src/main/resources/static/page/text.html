@@ -19,32 +19,54 @@
         el: "#app",
         data() {
             return {
-                editor: null
+                editor: null,
+                text: 'if you see this, please refresh',
             }
         },
         mounted() {
             this.initCKEditor()
+            this.getContent()
         },
         methods: {
             initCKEditor() {
-                this.editor = CKEDITOR.replace( 'textEditor',{
-                    uiColor: '#FFFFFF',
+                this.editor = CKEDITOR.replace('textEditor', {
+                    uiColor: '#3a9edc',
                     width: '100%',
-                    height: '600'
-                    // toolbar: [
-                    //     ['Save', 'Cut', 'Copy', 'Paste', 'PasteFromWord', '-', 'Undo', 'Redo', '-', 'Scayt'],
-                    //     '/',
-                    //     ['Bold', 'Italic', 'Underline', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Smiley', 'oembed']
-                    //
-                    // ]
+                    height: screen.height * 0.77,
+                    toolbar: [
+                        ['Source', 'Save', 'Preview'],
+                        ['Find', 'Scayt'],
+                        ['Bold', 'Italic', 'Underline', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Smiley', 'oembed']
+                    ]
                 });
-                axios.get('/text/doc', {params:{'fileName': '1190201115陈宇豪.doc'}}).then(results => {
-                    console.log(results)
-                    console.log(results.data.data)
-                    CKEDITOR.instances.textEditor.setData(results.data.data)
+                CKEDITOR.plugins.registered['save'] =
+                    {
+                        init : function( editor )
+                        {
+                            editor.addCommand( 'save',
+                                {
+                                    modes : { wysiwyg:1, source:1 },
+                                    exec : function( editor ) {
+                                        let content =editor.getData();
+                                        axios.post('/text/doc', {fileName: 'test.doc', content: content}).then(results => {
+                                            alert(results.data.msg)
+                                        })
+                                    }
+                                }
+                            );
+                            editor.ui.addButton( 'Save', {label : '保存', command : 'save'} );
+                        }
+                    }
+
+            },
+            getContent(){
+                axios.get('/text/doc', {params: {'fileName': '1190201115陈宇豪.doc'}}).then(results => {
+                    this.text = results.data.data
+                    CKEDITOR.instances.textEditor.setData(this.text)
                 })
             }
-        }
+        },
+
     })
 </script>
 </body>

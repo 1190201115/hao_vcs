@@ -7,4 +7,5 @@ public interface TextService {
     String getDoc(String fileName);
     String getDocx(String fileName);
     String getTxt(String fileName);
+    boolean saveDoc(String fileName, String content);
 }

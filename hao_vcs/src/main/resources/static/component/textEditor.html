@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/outService.js"></script>
+</head>
+<body>
+<div id="app" style="width: 100%;height: 100%; margin:0 auto;">
+    <el-col :span="2">
+        <el-menu
+                default-active="title"
+                @select="handleSelect">
+            <el-menu-item index="textEditor">
+                <span slot="title">文本编辑</span>
+            </el-menu-item>
+            <el-menu-item index="picEditor">
+                <span slot="title">图像编辑</span>
+            </el-menu-item>
+            <el-menu-item index="audioEditor">
+                <span slot="title">音频编辑</span>
+            </el-menu-item>
+            <el-menu-item index="videoEditor">
+                <span slot="title">视频编辑</span>
+            </el-menu-item>
+        </el-menu>
+    </el-col>
+    <div v-show="showText">
+        showText
+    </div>
+    <div v-show="showPic">
+        showPic
+    </div>
+    <div v-show="showAudio">
+        showAudio
+    </div>
+    <div v-show="showVideo">
+        showVideo
+    </div>
+</div>
+<script>
+    let vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                showText: false,
+                showPic: false,
+                showAudio: false,
+                showVideo: false
+            }
+        },
+        methods: {
+            handleSelect(key, keyPath) {
+                console.log(key);
+                console.log(keyPath);
+                this.hideAll();
+                if (key === 'textEditor') {
+                    this.showText = true
+                }
+                if (key === 'picEditor') {
+                    this.showPic = true
+                }
+                if (key === 'audioEditor') {
+                    this.showAudio = true
+                }
+                if (key === 'videoEditor') {
+                    this.showVideo = true
+                }
+            },
+            hideAll() {
+                this.showText = false
+                this.showPic = false
+                this.showSettings = false
+                this.showAudio = false
+                this.showVideo = false
+            },
+
+        }
+    })
+</script>
+
+<style scoped>
+
+
+</style>
+</body>
+</html>

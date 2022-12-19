@@ -1,6 +1,7 @@
 package com.cyh.hao_vcs.config;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 
@@ -25,5 +26,6 @@ public class FileConfig {
         pathMap.put(FileConfig.DOCX_FILE, DOCX_PATH);
         pathMap.put(FileConfig.TXT_FILE, TXT_PATH);
         pathMap.put(FileConfig.PDF_FILE, PDF_PATH);
+        pathMap.put(FileConfig.UNKNOWN_FILE, "");
     }
 }

@@ -8,9 +8,56 @@
     <script src="../js/outService.js"></script>
 </head>
 <body>
-<div id="home">
-    <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
-        <el-menu-item index="1">个人中心</el-menu-item>
+<div id="home" style="width: 80%; margin:0 auto">
+    <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect" style="height: 62px">
+        <el-menu-item index="logo" style=" margin-left: 10px">
+            <a href="./home.html">
+                <el-image
+                        style="width: 100%; height: 100%;margin-bottom: 5px"
+                        :src="logo_url"
+                        :fit="fit">
+                </el-image>
+            </a>
+        </el-menu-item>
+
+        <el-col style="margin-left: 40%;margin-top: 10px; width: 20%;">
+            <el-input
+                    type="text"
+                    v-model="search_key"
+                    placeholder="搜索项目"
+                    style="width: 100%; cursor: pointer"
+                    @keyup.enter.native="searchProject"
+            ></el-input>
+        </el-col>
+
+        <el-menu-item index="workspace" style="margin-left: 2%">我的工作台</el-menu-item>
+        <el-menu-item index="settings">配置中心</el-menu-item>
+        <el-menu-item index="workshop">加工坊</el-menu-item>
+        <el-submenu index="selfSpace">
+            <template slot="title"><img class="head-img" :src="headUrl"/></template>
+            <el-menu-item index="selfImf">个人信息</el-menu-item>
+            <el-menu-item index="logOut">登出</el-menu-item>
+        </el-submenu>
+    </el-menu>
+    <div>
+        <div v-show="showHome">
+            showHome
+        </div>
+        <div v-show="showWorkspace">
+            showWorkspace
+        </div>
+        <div v-show="showSettings">
+        </div>
+        <div v-show="showWorkshop">
+            <iframe src="../component/textEditor.html" style="width: 100%;border: medium none;height: 400px"></iframe>
+        </div>
+        <div v-show="showSelfImf">
+            showSelfImf
+        </div>
+    </div>
+
+
+
         <!--        <el-submenu index="2">-->
         <!--            <template slot="title">班级管理</template>-->
         <!--            <el-menu-item index="2-1">学生信息</el-menu-item>-->
@@ -24,28 +71,28 @@
         <!--        </el-submenu>-->
         <!--        <el-menu-item index="3">消息中心</el-menu-item>-->
         <!--        <el-menu-item index="4"><a href="https://192.168.10.7:8080/main" target="_blank">云盘</a></el-menu-item>-->
-    </el-menu>
-    <div v-show=true>
-        <section>
-            <img v-if="!refresh" class="head-img" :src="imageUrl"/>
-            <div v-show="refresh" class="head-img">
-                <el-progress type="circle" :percentage="progressPercent"></el-progress>
-            </div>
-            <el-upload  action="#"
-                       :show-file-list="false" :before-upload="beforeAvatarUpload"
-                       :http-request="uploadHead"
-            >
-                <el-button type="success" plain round size="mini">{{headNotice}}</el-button>
-            </el-upload>
-        </section>
 
-<!--        <form action="/head" method="post" enctype="multipart/form-data">-->
-<!--            <div><input type="file" multiple="multiple" accept="image/*" name="image" id="image"></div>-->
-<!--            <div><input type="submit" value="上传"></div>-->
-<!--        </form>-->
+    <!--    <div v-show=true>-->
+    <!--        <section>-->
+    <!--            <img v-if="!refresh" class="head-img" :src="headUrl"/>-->
+    <!--            <div v-show="refresh" class="head-img">-->
+    <!--                <el-progress type="circle" :percentage="progressPercent"></el-progress>-->
+    <!--            </div>-->
+    <!--            <el-upload  action="#"-->
+    <!--                       :show-file-list="false" :before-upload="beforeAvatarUpload"-->
+    <!--                       :http-request="uploadHead"-->
+    <!--            >-->
+    <!--                <el-button type="success" plain round size="mini">{{headNotice}}</el-button>-->
+    <!--            </el-upload>-->
+    <!--        </section>-->
 
-        </el-descriptions>
-    </div>
+    <!--&lt;!&ndash;        <form action="/head" method="post" enctype="multipart/form-data">&ndash;&gt;-->
+    <!--&lt;!&ndash;            <div><input type="file" multiple="multiple" accept="image/*" name="image" id="image"></div>&ndash;&gt;-->
+    <!--&lt;!&ndash;            <div><input type="submit" value="上传"></div>&ndash;&gt;-->
+    <!--&lt;!&ndash;        </form>&ndash;&gt;-->
+
+    <!--        </el-descriptions>-->
+    <!--    </div>-->
 
 </div>
 
@@ -55,25 +102,34 @@
         el: "#home",
         data() {
             return {
+                activeIndex: 'logo',
                 refresh: false,
                 headNotice: '上传头像',
-                imageUrl: '../image/defaultHead.png',
-                progressPercent: 0
+                headUrl: '../image/defaultHead.png',
+                progressPercent: 0,
+                fit: 'scale-down',
+                logo_url: '../image/local/logo.png',
+                search_key: '',
+                showHome: true,
+                showWorkshop: false,
+                showSettings: false,
+                showWorkspace: false,
+                showSelfImf: false
             }
         },
         created() {
             this.getHeadUrl()
         },
         methods: {
-            async getHeadUrl(){
+            async getHeadUrl() {
                 axios.get('/file/head').then(res => {
-                    if(res.data.code === 20000){
-                        this.imageUrl = res.data.msg
+                    if (res.data.code === 20000) {
+                        this.headUrl = res.data.msg
                         this.headNotice = '修改头像'
                     }
                 })
             },
-            uploadHead (f) {
+            uploadHead(f) {
                 this.refresh = true
                 let formData = new FormData()
                 formData.append('image', f.file)
@@ -86,13 +142,13 @@
                         this.progressPercent = (progressEvent.loaded / progressEvent.total * 100)
                     }
                 }).then(res => {
-                    if(res.data.code === 20000){
-                        this.imageUrl = res.data.data
-                        console.log(this.imageUrl)
+                    if (res.data.code === 20000) {
+                        this.headUrl = res.data.data
+                        console.log(this.headUrl)
                     }
                     this.refresh = false
                     this.progressPercent = 0
-                    if(res.data.code === 40000) {
+                    if (res.data.code === 40000) {
                         this.$message({
                             message: res.data.msg,
                             type: 'warn'
@@ -103,28 +159,57 @@
                 })
             },
             // 上传图片前的过滤
-            beforeAvatarUpload (file) {
+            beforeAvatarUpload(file) {
                 const isLt2M = (file.size / 1024 / 1024) < 2
                 if (!isLt2M) {
                     this.$message.error('上传头像图片大小不能超过 2MB!')
                 }
                 return isLt2M
-            }
+            },
+            searchProject() {
+                alert('wow!')
+            },
+            handleSelect(key, keyPath) {
+                console.log(key);
+                console.log(keyPath);
+                this.hideAll();
+                if(key === 'workshop'){
+                    this.showWorkshop = true
+                }
+                if(key === 'workspace'){
+                    this.showWorkspace = true
+                }
+                if(key === 'settings'){
+                    this.showSettings = true
+                }
+                if(key === 'logo'){
+                    this.showHome = true
+                }
+                if(key === 'selfImf'){
+                    this.showSelfImf = true
+                }
+            },
+            hideAll()
+            {
+                this.showWorkshop = false
+                this.showWorkspace = false
+                this.showSettings = false
+                this.showHome = false
+                this.showSelfImf = false
+            },
 
         }
     })
 </script>
 <style scoped>
     .head-img {
-        width: 128px;
-        height: 128px;
-        border: 1px dashed #d9d9d9;
+        height: 65%;
+        width: 40px;
         border-radius: 100%;
         cursor: pointer;
         position: relative;
         overflow: hidden;
     }
-
 
 
 </style>

@@ -13,7 +13,6 @@
 <!--    <script src="../plugins/vue/vue.js"></script>-->
 <!--    <script src="../plugins/element-ui/element.js"></script>-->
 <!--    &lt;!&ndash; 引入axios &ndash;&gt;-->
-<!--    <script src="../plugins/axios/axios.min.js"></script>-->
     <script src="../js/outService.js"></script>
 </head>
 
@@ -91,9 +90,7 @@
         },
         mounted(){
             let str = decodeURI(window.location.href.split("=")[1])
-            console.log(str)
             if (str !== 'undefined'){
-                console.log(str)
                 this.loginForm.email = str
             }
         },

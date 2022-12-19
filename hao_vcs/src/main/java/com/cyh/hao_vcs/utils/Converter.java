@@ -25,6 +25,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 public class Converter {
@@ -49,17 +51,19 @@ public class Converter {
         return FileConfig.UNKNOWN_FILE;
     }
 
-    public static boolean fileExists(String fileName, Integer kind) {
-        String path = FileConfig.pathMap.get(kind);
-        File file = new File(path + fileName);
-        return file.exists();
+    public static boolean fileExists(String fileName) {
+        return new File(getFilePath(fileName)).exists();
+    }
+
+    public static String getFilePath(String fileName){
+        return FileConfig.pathMap.get(textClassifier(fileName)) + fileName;
     }
 
 
     public static String wordToHtml(String fileName) {
         Integer kind = textClassifier(fileName);
         String htmlPath = null;
-        if (Objects.equals(kind, FileConfig.UNKNOWN_FILE) || !fileExists(fileName, kind)) {
+        if (Objects.equals(kind, FileConfig.UNKNOWN_FILE) || !fileExists(fileName)) {
             return null;
         }
         if (Objects.equals(kind, FileConfig.DOC_FILE)) {
@@ -154,25 +158,6 @@ public class Converter {
 
     public static String pdfToHtml(String fileName) {
         String targetPth = null;
-//        PDFDomTreeConfig config = PDFDomTreeConfig.createDefaultConfig();
-//        HtmlResourceHandler resourceHandler = PDFDomTreeConfig.saveToDirectory(new File(FileConfig.PDF_PATH));
-//        config.setImageHandler(resourceHandler);
-//        config.setFontHandler(resourceHandler);
-//        PDDocument pdf = null;
-//        try {
-//            pdf = PDDocument.load(new FileInputStream(FileConfig.PDF_PATH + fileName));
-//            PDFDomTree parser = new PDFDomTree(config);
-//            parser.setStartPage(0);
-//            parser.setEndPage(pdf.getNumberOfPages());
-//            Writer output = new StringWriter();
-//            parser.writeText(pdf, output);
-//            pdf.close();
-//            targetPth = FileConfig.TXT_PATH + fileName.substring(0, fileName.indexOf(".")) + ".html";
-//            FileUtils.write(new File(targetPth), output.toString(), "utf-8");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-            // String outputPath = "C:\\works\\files\\ZSQ保密知识测试题库.html";
-                  //try() 写在()里面会自动关闭流
         try {
             PDDocument document = PDDocument.load(new File(FileConfig.PDF_PATH + fileName));
             PDFDomTree pdfDomTree = new PDFDomTree();
@@ -188,23 +173,13 @@ public class Converter {
     }
 
     public static String htmlToString(String filePath) {
-        File file = new File(filePath);
-        InputStream input = null;
+        String data = null;
         try {
-            input = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        StringBuffer buffer = new StringBuffer();
-        byte[] bytes = new byte[1024];
-        try {
-            for (int n; (n = input.read(bytes)) != -1; ) {
-                buffer.append(new String(bytes, 0, n, StandardCharsets.UTF_8));
-            }
+            data = new String(Files.readAllBytes(Paths.get(filePath)));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return buffer.toString();
+        return data;
     }
 
 }
