@@ -15,6 +15,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Objects;
 
 @Service
@@ -58,6 +59,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!findUser.getPassword().equals(DigestUtils.md5DigestAsHex(user.getPassword().getBytes()))) {
             return R.error("密码错误");
         }
+        UserDetail tempUser = userDetailMapper.selectById(findUser.getId());
+        tempUser.setLatestLoginTime(LocalDateTime.now());
+        userDetailMapper.updateById(tempUser);
         return R.success(findUser, "登录成功");
     }
 

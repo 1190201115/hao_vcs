@@ -23,7 +23,7 @@ public class FileController {
 
 
     @PostMapping("/head")
-    public R uploadImg(@RequestParam("image") MultipartFile file, HttpSession session) {
+    public R uploadImg(MultipartFile file, HttpSession session) {
         if (FileUtil.fileIsNotExists(file)) {
             return R.warn("文件为空！");
         }
@@ -46,7 +46,7 @@ public class FileController {
         if(!StringUtils.isEmpty(fileName)){
             String headUrl = FileUtil.getFileUrl(fileName);
             if(!Objects.isNull(headUrl)){
-                return R.success(headUrl);
+                return R.success(headUrl, "获取头像成功");
             }
         }
         return R.error(null);

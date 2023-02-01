@@ -9,6 +9,8 @@ import com.cyh.hao_vcs.mapper.UserDetailMapper;
 import com.cyh.hao_vcs.mapper.UserMapper;
 import com.cyh.hao_vcs.service.FileService;
 import com.cyh.hao_vcs.service.UserDetailService;
+import com.cyh.hao_vcs.service.UserService;
+import com.cyh.hao_vcs.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -24,6 +26,9 @@ public class UserDetailServiceImpl extends ServiceImpl<UserDetailMapper, UserDet
 
     @Autowired
     FileService fileService;
+
+    @Autowired
+    UserService userService;
 
 
     public boolean setHead(Long id, String head) {
@@ -42,5 +47,33 @@ public class UserDetailServiceImpl extends ServiceImpl<UserDetailMapper, UserDet
         UserDetail userDetail = userDetailMapper.selectById(id);
         if (Objects.isNull(userDetail)) return null;
         return userDetail.getHead();
+    }
+
+
+    @Override
+    public R getUserDetail(Long id) {
+        UserDetail userDetail = userDetailMapper.selectById(id);
+        R r = new R();
+        if (!Objects.isNull(userDetail)){
+            userDetail.setHead(FileUtil.getFileUrl(userDetail.getHead()));
+            r.add("user", userService.getById(id));
+            r.add("userDetail", userDetail);
+        }
+        return r;
+    }
+
+    @Override
+    public boolean updateImf(String username, String signature, Long id) {
+        UserDetail userDetail = userDetailMapper.selectById(id);
+        if (!Objects.isNull(userDetail)){
+            userDetail.setSignature(signature);
+            userDetailMapper.updateById(userDetail);
+        }
+        User user = userService.getById(id);
+        if (!Objects.isNull(user)){
+            user.setUsername(username);
+            userService.updateById(user);
+        }
+        return !Objects.isNull(user) && !Objects.isNull(userDetail);
     }
 }

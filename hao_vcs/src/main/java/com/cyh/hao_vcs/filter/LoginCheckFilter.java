@@ -35,8 +35,8 @@ public class LoginCheckFilter implements Filter {
                 "/doSignUp",
                 "/doLogin",
                 "/doReset",
-                "/favicon.ico"
         };
+        String simpleURI = "/";
 
         if(check(allowsURIs,uri)){
             filterChain.doFilter(httpServletRequest,httpServletResponse);
@@ -45,7 +45,11 @@ public class LoginCheckFilter implements Filter {
         Long userId=(Long)httpServletRequest.getSession().getAttribute("user");
         if(!Objects.isNull(userId)) {
             ThreadLocalContext.setCurrentId(userId);
-            filterChain.doFilter(httpServletRequest,httpServletResponse);
+            if(check(simpleURI, uri)){
+                httpServletResponse.sendRedirect("/page/home.html");
+            }else {
+                filterChain.doFilter(httpServletRequest, httpServletResponse);
+            }
             return;
         }
         httpServletResponse.sendRedirect("/page/login.html");
@@ -58,5 +62,9 @@ public class LoginCheckFilter implements Filter {
             if(pathMatcher.match(allowURI,uri)) return true;
         }
         return false;
+    }
+
+    public boolean check(String allowURI,String uri){
+        return  pathMatcher.match(allowURI,uri);
     }
 }

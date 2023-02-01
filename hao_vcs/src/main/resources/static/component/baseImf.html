@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>个人信息</title>
+    <script src="../js/outService.js"></script>
+</head>
+<body >
+<div id="app">
+            <el-card>
+                <el-descriptions class="margin-top" title="个人资料" :column="2" border>
+                    <template slot="extra">
+                        <el-button type="primary" plain size="small" @click="editDialogVisible = true">编辑</el-button>
+                    </template>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-user"></i>
+                            用户名
+                        </template>
+                        {{ baseImf.username }}
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-message"></i>
+                            注册邮箱
+                        </template>
+                        {{ baseImf.email }}
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-magic-stick"></i>
+                            个性签名
+                        </template>
+                        {{ baseImf.signature }}
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-date"></i>
+                            注册时间
+                        </template>
+                        {{ baseImf.signUpTime }}
+                    </el-descriptions-item>
+                </el-descriptions>
+            </el-card>
+    <el-dialog title="个人资料" :visible.sync="editDialogVisible">
+        <el-form :model="baseImf">
+            <el-form-item label="用户名" label-width="120px">
+                <el-input v-model="baseImf.username" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="个人说明" label-width="120px">
+                <el-input v-model="baseImf.signature" autocomplete="off"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer">
+            <el-button @click="editDialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="editImf">确 定</el-button>
+        </div>
+    </el-dialog>
+
+
+
+</div>
+<script>
+    var vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                editDialogVisible : false,
+                baseImf: {
+                    username: '无名',
+                    email: '',
+                    signature: '',
+                    signUpTime: '',
+                    headUrl: '../image/defaultHead.png',
+                }
+            }
+        },
+        mounted(){
+            this.handleConnect()
+            this.getBaseImf()
+        },
+        methods: {
+            editImf(){
+                this.editDialogVisible = false
+                axios.post('/selfspace', this.baseImf).then(res => {
+                    if(res.data.code === 20000){
+                        this.$message.success(res.data.msg)
+                    }else{
+                        this.$message.error(res.data.msg)
+                    }
+                    this.getBaseImf()
+                })
+            },
+            getBaseImf(){
+                axios.get("/selfspace").then(res => {
+                    let map = res.data.map
+                    if (typeof map == null) {
+                        this.$message.warn("获取人物信息失败")
+                        return
+                    }
+                    let user = map.user
+                    let userDetail = map.userDetail
+                    if (userDetail.head != null) {
+                        this.baseImf.headUrl = userDetail.head
+                    }
+                    this.baseImf.email = user.email
+                    this.baseImf.username = user.username
+                    this.baseImf.signUpTime = userDetail.signUpTime.replace('T', ' ')
+
+                    this.baseImf.signature = userDetail.signature
+                    window.parent.postMessage(this.baseImf, "*")
+                })
+
+            },
+            handleConnect() {
+                let _this = this;
+                window.onmessage = function (event) {
+                    console.log(event)
+                    _this.handleCallback(event.data);
+                }
+            },
+            async handleCallback(data) {
+                console.log("收到了父页面的消息：", data)
+            },
+            edit(){
+
+            }
+
+        }
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/outService.js"></script>
+</head>
+
+<body>
+<div id="app">
+    <el-container>
+        <!--        <img v-if="!refresh" src="headUrl" class="head-img">-->
+        <el-header style="height: 144px;box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)">
+            <el-row :gutter="20">
+                <el-col :span="3">
+                    <el-upload
+                            action="/file/head"
+                            :show-file-list="false"
+                            :before-upload="beforeAvatarUpload"
+                            :on-progress="whileAvatarUpload"
+                            :on-success="afterAvatarUpload">
+                        <img v-show="!refresh" class="head-img" :src="baseImf.headUrl"/>
+                        <div v-show="refresh" class="head-img">
+                            <el-progress type="circle" :percentage="progressPercent"></el-progress>
+                        </div>
+                    </el-upload>
+                </el-col>
+                <el-col :span="18">
+                    <div class="besideHeadText">
+                        <div class="username">
+                            <span> {{ baseImf.username }} </span>
+                        </div>
+                        <div style="width: 200px">
+                            <el-divider></el-divider>
+                        </div>
+                        <span> {{ baseImf.signature }} </span>
+                    </div>
+                </el-col>
+            </el-row>
+        </el-header>
+        <el-container>
+
+
+            <el-aside style="margin-top: 20px;box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04)">
+                <p style="margin-left: 30px;font-size: large;margin-top: 30px;">个人中心</p>
+                <el-divider></el-divider>
+                <el-row class="tac">
+                    <el-menu
+                            default-active="myImf"
+                            @select="handleSelect">
+                        <el-menu-item index="myImf">个人资料</el-menu-item>
+                        <el-menu-item index="projectImf">项目信息</el-menu-item>
+                        <!--                <el-submenu index="imf" >-->
+                        <!--                    <template slot="title" >-->
+                        <!--                        <span style="font-size: medium;margin-left: 10px">关于我</span>-->
+                        <!--                    </template>-->
+                        <!--                    -->
+                        <!--                </el-submenu>-->
+                    </el-menu>
+                </el-row>
+            </el-aside>
+            <el-main v-show="showBaseImf">
+                <iframe id="baseImfIframe" src="./baseImf.html"
+                        style="border: medium none;height: 400px; width: 100%;"></iframe>
+            </el-main>
+        </el-container>
+    </el-container>
+
+</div>
+
+<script>
+    let vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                selfImf: '',
+                refresh: false,
+                progressPercent: 0,
+                showBaseImf: true,
+                baseImf: {
+                    username: '无名',
+                    email: '',
+                    signature: '',
+                    signUpTime: '',
+                    headUrl: '',
+
+                }
+            }
+        },
+        mounted() {
+            window.addEventListener('message', this.handleMessage)
+        },
+        methods: {
+            handleMessage(e) {
+                this.baseImf = e.data
+            },
+            handleSelect(key) {
+                this.hideAll();
+                if (key === 'myImf') {
+                    this.showBaseImf = true
+                }
+            },
+            hideAll() {
+                this.showBaseImf = false
+            },
+            beforeAvatarUpload(file) {
+                const isValidFormat = ["image/jpeg", "image/png"].indexOf(file.type) > -1
+                if (!isValidFormat) {
+                    this.$message.error("头像只能是 JPG、jpeg或PNG 格式!");
+                    return isValidFormat
+                }
+                const isLt2M = (file.size / 1024 / 1024) < 2
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!')
+                }
+                return isValidFormat && isLt2M
+            },
+            whileAvatarUpload() {
+                this.refresh = true
+                const interval = setInterval(() => {
+                    if (this.progressPercent > 90) {
+                        clearInterval(interval)  //进度条满了清除定时器
+                        return
+                    }
+                    this.progressPercent += 20 //进度条进度
+                }, 100)
+            },
+            afterAvatarUpload(response) {
+                this.refresh = false
+                this.progressPercent = 0
+                if (response.code === 20000) {
+                    this.baseImf.headUrl = response.data
+                    window.parent.postMessage(this.baseImf.headUrl, "*");
+                }
+                if (response.code === 40000) {
+                    this.$message.warn(response.msg)
+                }
+            },
+        }
+    })
+</script>
+
+<style scoped>
+    .head-img {
+        width: 120px;
+        height: 120px;
+        margin-top: 12px;
+        overflow: hidden;
+        border-radius: 20px;
+    }
+
+    .besideHeadText {
+        height: 120px;
+        margin-top: 12px;
+        margin-left: 36px;
+        width: 100%;
+    }
+
+    .username {
+        font-weight: bold;
+    }
+</style>
+
+</body>
+</html>

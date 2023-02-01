@@ -2,6 +2,7 @@ package com.cyh.hao_vcs.utils;
 
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.qiniu.util.Auth;
+import com.qiniu.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -28,6 +29,7 @@ public class FileUtil {
 
     //七牛云文件路径
     public static String getFileUrl(String fileName) {
+        if(StringUtils.isNullOrEmpty(fileName)) return null;
         String encodedFileName = null;
         try {
             encodedFileName = URLEncoder.encode(fileName, "utf-8").replace("+", "%20");

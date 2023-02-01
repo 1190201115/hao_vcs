@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新建工程</title>
+    <script src="../js/outService.js"></script>
+</head>
+<body >
+<div id="app" style="margin-left: 50px; height: 600px;width: 80%">
+    <p style="font-size: x-large;margin-bottom: 50px;font-weight: bold">新建工程</p>
+    <span style="font-size: small; font-weight: bold;"> 工程名称 </span><span style="color: red">*</span>
+    <el-input v-model="projectName" style="margin-top: 10px;margin-bottom: 20px"></el-input>
+    <span style="font-size: small; font-weight: bold;"> 工程介绍 </span>
+    <el-input
+            type="textarea"
+            placeholder="对工程进行一个简短的描述吧"
+            v-model="textarea"
+            :rows="3"
+            style="margin-top: 10px;margin-bottom: 20px">
+    </el-input>
+    <el-radio v-model="radio" label="public">公开（所有人可见，可搜索）</el-radio>
+    <p></p>
+    <el-radio v-model="radio" label="private">私有（仅自己和受邀成员可见、可搜索）</el-radio>
+    <p style="margin-top: 30px"></p>
+    <el-button type="primary" plain @click.native.prevent="createProject">创建</el-button>
+
+
+
+</div>
+<script>
+    var vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                projectName: "",
+                textarea: "",
+                radio: "private",
+            }
+        },
+        methods: {
+            createProject() {
+                axios.post('/createProject', {
+                    username: this.projectName,
+                    textarea: this.textarea,
+                    radio: this.radio,
+                }).then(results => {
+                    if (results.data.code === 20000) {
+                        console.log(results)
+                        this.$message({
+                            message: results.data.msg,
+                            type: 'success'
+                        });
+                    } else {
+                        this.$message({
+                            message: results.data.msg,
+                            type: 'warning'
+                        });
+                    }
+                })
+            },
+        }
+    })
+
+</script>
+</body>
+</html>

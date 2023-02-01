@@ -6,13 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>login</title>
-    <!-- 引入样式 -->
-<!--    <link rel="stylesheet" type="text/css" href="../styles/common.css">-->
     <link rel="stylesheet" type="text/css" href="../styles/login.css">
-<!--    <link rel="stylesheet" type="text/css" href="../plugins/element-ui/element.css"/>-->
-<!--    <script src="../plugins/vue/vue.js"></script>-->
-<!--    <script src="../plugins/element-ui/element.js"></script>-->
-<!--    &lt;!&ndash; 引入axios &ndash;&gt;-->
     <script src="../js/outService.js"></script>
 </head>
 
@@ -51,7 +45,7 @@
 
         <div align="right">
             <el-form-item>
-                <el-link icon="el-icon-question" :underline="false" href="/page/reset.html">忘记密码</el-link>
+                <el-link icon="el-icon-question" :underline="false" href="./reset.html">忘记密码</el-link>
             </el-form-item>
         </div>
 
@@ -108,7 +102,7 @@
                                 this.loginLoading = false
                                 this.loginForm.password = ''
                                 setTimeout(function () {
-                                    window.location.href = '/page/home.html'
+                                    window.location.href = './home.html'
                                     grid.api.reloadData();
                                 }, 1000);
                             }else{
@@ -123,7 +117,7 @@
                 })
             },
             tryRegister() {
-                window.location.href = '/page/sign_up.html'
+                window.location.href = './sign_up.html'
             }
         }
     })

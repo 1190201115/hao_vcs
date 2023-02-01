@@ -21,12 +21,23 @@ public class LoginController {
     }
     @PostMapping
     public R tryLogin(@RequestBody User user, HttpSession session){
-        R r = userService.signInWithPassword(user);
-        User findUser = (User)r.getData();
-        if(Objects.equals(r.getCode(), StatusEnum.SUCCESS)){
-            session.setAttribute("user",findUser.getId());
+        R r = null;
+        if(Objects.isNull(session.getAttribute("user"))){
+            r = userService.signInWithPassword(user);
+            User findUser = (User)r.getData();
+            if(Objects.equals(r.getCode(), StatusEnum.SUCCESS)){
+                session.setAttribute("user",findUser.getId());
+            }
+        }else{
+            r = R.warn("不允许多账号登录");
         }
         return r;
+    }
+
+    @GetMapping
+    public R tryLogOut(HttpSession session) {
+        session.removeAttribute("user");
+        return R.success("感谢使用Hao_VCS");
     }
 
 }

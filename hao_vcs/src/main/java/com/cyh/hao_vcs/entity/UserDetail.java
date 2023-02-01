@@ -8,9 +8,12 @@ import java.time.LocalDateTime;
 
 @Data
 public class UserDetail {
+
     private Long id;
 
     private String head;
+
+    private String signature;
 
     //创建时间
     @TableField(fill = FieldFill.INSERT)
