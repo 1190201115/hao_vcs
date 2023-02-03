@@ -53,27 +53,34 @@
                 showAddProject: false,
             }
         },
+        mounted() {
+            window.addEventListener('message', this.handleMessage)
+        },
         methods: {
+            handleMessage(e) {
+                window.location.href = './workspace.html'
+            },
             handleSelect(key, keyPath) {
                 this.hideAll();
                 if (key === 'depot') {
                     this.showDepot = true
                 }
-                if (key === 'myLike') {
+                else if (key === 'myLike') {
                     this.showMyLike = true
                 }
-                if (key === 'addProject') {
+                else if (key === 'addProject') {
                     this.showAddProject = true
                 }
             },
             handleClick(key){
-                this.hideAll();
-                if (key === 'depot') {
-                    this.showDepot = true
+                if (key === 'all') {
                 }
-                if (key === 'myLike') {
-                    this.showMyLike = true
+                else if (key === 'ownPro') {
+
                 }
+                else if (key === 'joinPro') {
+                }
+
 
             },
             hideAll() {

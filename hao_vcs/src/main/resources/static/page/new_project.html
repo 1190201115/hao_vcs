@@ -5,7 +5,7 @@
     <title>新建工程</title>
     <script src="../js/outService.js"></script>
 </head>
-<body >
+<body>
 <div id="app" style="margin-left: 50px; height: 600px;width: 80%">
     <p style="font-size: x-large;margin-bottom: 50px;font-weight: bold">新建工程</p>
     <span style="font-size: small; font-weight: bold;"> 工程名称 </span><span style="color: red">*</span>
@@ -25,7 +25,6 @@
     <el-button type="primary" plain @click.native.prevent="createProject">创建</el-button>
 
 
-
 </div>
 <script>
     var vm = new Vue({
@@ -38,18 +37,27 @@
             }
         },
         methods: {
+            clear() {
+                this.projectName = "",
+                this.textarea = "",
+                this.radio = "private"
+            },
             createProject() {
                 axios.post('/createProject', {
-                    username: this.projectName,
+                    projectName: this.projectName,
                     textarea: this.textarea,
                     radio: this.radio,
                 }).then(results => {
+                    console.log(results)
                     if (results.data.code === 20000) {
-                        console.log(results)
                         this.$message({
                             message: results.data.msg,
                             type: 'success'
                         });
+                        this.clear()
+                        setTimeout(function () {
+                            window.parent.postMessage("change", "*");
+                        }, 1000);
                     } else {
                         this.$message({
                             message: results.data.msg,
