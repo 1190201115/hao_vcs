@@ -24,21 +24,52 @@
         </el-menu>
     </el-col>
     <div v-show="showDepot">
-    <el-col :span="20">
+        <el-col :span="20">
             <el-menu default-active="all" class="el-menu-demo" mode="horizontal" @select="handleClick">
                 <el-menu-item index="all">全部</el-menu-item>
                 <el-menu-item index="ownPro">拥有项目</el-menu-item>
                 <el-menu-item index="joinPro">参与项目</el-menu-item>
+                <el-submenu index="sort" style="margin-right: 20%">
+                    <template slot="title">排序</template>
+                    <el-menu-item index="publicFirst">公开在前</el-menu-item>
+                    <el-menu-item index="privateFirst">私有在前</el-menu-item>
+                    <el-menu-item index="latestFirst">最新在前</el-menu-item>
+                    <el-menu-item index="reverse">反转</el-menu-item>
+                </el-submenu>
             </el-menu>
-    </el-col>
+
+            <div v-show="showProjectList">
+                <ul style="overflow:auto;width: 75%" >
+                    <li v-for="(project,i) in projectList" class="infinite-list-item" style="list-style:none">
+                        <el-card class="box-card" @click.native="getResearch()">
+                            <div slot="header" class="clearfix">
+                                <span>{{ project.projectName }}</span>
+                                <el-button style="float: right; padding: 3px 0" type="text" @click="checkProject(project)">进入项目</el-button>
+                            </div>
+                            <div>
+                                <div style=" color: #9f9f9f; font-family: PingFang SC;font-size: small;">
+                                    <span>最近更新： {{ project.latestUpdateTime }}</span>
+                                </div>
+                            </div>
+                        </el-card>
+                        <p></p>
+                    </li>
+                </ul>
+            </div>
+            <div v-show="!showProjectList">
+                <p style="text-align: center;margin-top: 20%; color: #9f9f9f; font-family: PingFang SC;font-size: xx-large;">
+                    还没有任何工程哦~</p>
+            </div>
+
+        </el-col>
     </div>
     <div v-show="showMyLike">
         showMyLike
     </div>
-    <div v-show="showAddProject" >
+    <div v-show="showAddProject">
         <el-col :span="20">
-        <iframe id="newProjectIframe" src="../page/new_project.html"
-                style="border: medium none;width: 100%;height: 750px"></iframe>
+            <iframe id="newProjectIframe" src="../page/new_project.html"
+                    style="border: medium none;width: 100%;height: 750px"></iframe>
         </el-col>
     </div>
 
@@ -51,37 +82,58 @@
                 showDepot: true,
                 showMyLike: false,
                 showAddProject: false,
+                showProjectList: true,
+                projectList: [
+                    {projectName: "p1", des: "this is 1", pri: 0,latestUpdateTime: 1},
+                    {projectName: "p2", des: "this is 2", pri: 1, latestUpdateTime: 2},
+
+                ],
             }
         },
         mounted() {
             window.addEventListener('message', this.handleMessage)
+            this.getAllProject()
         },
         methods: {
             handleMessage(e) {
                 window.location.href = './workspace.html'
             },
+            checkProject(project){
+              alert(project.projectName)
+            },
             handleSelect(key, keyPath) {
                 this.hideAll();
                 if (key === 'depot') {
                     this.showDepot = true
-                }
-                else if (key === 'myLike') {
+                } else if (key === 'myLike') {
                     this.showMyLike = true
-                }
-                else if (key === 'addProject') {
+                } else if (key === 'addProject') {
                     this.showAddProject = true
                 }
             },
-            handleClick(key){
+            handleClick(key) {
                 if (key === 'all') {
-                }
-                else if (key === 'ownPro') {
+                    this.getAllProject()
+                } else if (key === 'ownPro') {
 
-                }
-                else if (key === 'joinPro') {
+                } else if (key === 'joinPro') {
                 }
 
-
+            },
+            getAllProject() {
+                axios.get('/project/all').then(results => {
+                    console.log(results)
+                    if (results.data.code === 20000) {
+                        this.projectList = results.data.data
+                        this.showProjectList = true
+                    } else {
+                        this.$message({
+                            message: results.data.msg,
+                            type: 'warning'
+                        });
+                        this.showProjectList = false
+                    }
+                })
             },
             hideAll() {
                 this.showDepot = false
