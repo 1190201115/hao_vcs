@@ -24,18 +24,6 @@ import java.util.UUID;
 
 @Service
 public class FileServiceImpl implements FileService {
-    @Value("${qiniu.accessKey}")
-    private String ACCESS_KEY;
-
-    @Value("${qiniu.secretKey}")
-    private String SECRET_KEY;
-
-    //要上传的空间
-    @Value("${qiniu.bucket}")
-    private String bucketName;
-
-    @Value("${qiniu.cdns}")
-    private String CDNS;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -47,10 +35,9 @@ public class FileServiceImpl implements FileService {
     private static final int successStatus = 200;
 
     @Autowired
-    public void init(@Value("${qiniu.accessKey}") String ACCESS_KEY,
-                     @Value("${qiniu.secretKey}") String SECRET_KEY) {
+    public void init() {
         //密钥配置
-        this.auth = Auth.create(ACCESS_KEY, SECRET_KEY);
+        this.auth = Auth.create(QiNiuConfig.accessKey, QiNiuConfig.secretKey);
     }
 
     FileServiceImpl() {
@@ -63,7 +50,7 @@ public class FileServiceImpl implements FileService {
 
 
     public String getUpToken() {
-        return auth.uploadToken(bucketName);
+        return auth.uploadToken(QiNiuConfig.bucket);
     }
 
     @Override

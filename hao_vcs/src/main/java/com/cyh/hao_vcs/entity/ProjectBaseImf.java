@@ -19,11 +19,7 @@ public class ProjectBaseImf {
     private String description;
     private int privacy;
 
-    //创建时间
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-
-    private LocalDateTime latestUpdateTime;
 
     //mp在封装对象时会使用到无参构造函数
     public ProjectBaseImf(){

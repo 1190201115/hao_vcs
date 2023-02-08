@@ -9,9 +9,11 @@ import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
 import com.cyh.hao_vcs.mapper.User2ProjectMapper;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.qiniu.util.StringUtils;
+import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -25,6 +27,11 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
     @Autowired
     User2ProjectMapper user2ProjectMapper;
 
+    @Autowired
+    ProjectChangeBaseImfServiceImpl projectChangeBaseImfService;
+
+    private static final String DEFAULT_ACTION = "创建工程";
+
 
 
     @Override
@@ -36,8 +43,12 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
         if(Objects.isNull(userID)){
             return R.error("用户状态异常！");
         }
+        LocalDateTime time = LocalDateTime.now();
+        baseImf.setCreateTime(time);
         projectBaseMapper.insert(baseImf);
+        //先插入project,后续才能获得id
         user2ProjectMapper.insert(new UserProject(userID, baseImf.getProjectId(), status));
+        projectChangeBaseImfService.insertProjectChangeBaseImf(userID, baseImf.getProjectId(), time, DEFAULT_ACTION);
         return R.success("创建成功");
     }
 

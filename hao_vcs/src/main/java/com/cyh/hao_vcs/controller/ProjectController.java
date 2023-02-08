@@ -2,8 +2,10 @@ package com.cyh.hao_vcs.controller;
 
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
+import com.cyh.hao_vcs.entity.ProjectChangeBaseImf;
 import com.cyh.hao_vcs.entity.User;
 import com.cyh.hao_vcs.service.ProjectBaseService;
+import com.cyh.hao_vcs.service.ProjectChangeBaseImfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
@@ -22,6 +24,9 @@ public class ProjectController {
 
     @Autowired
     ProjectBaseService projectBaseService;
+
+    @Autowired
+    ProjectChangeBaseImfService projectChangeBaseImfService;
 
     private static Integer OWN_PROJECT_STATUS = 1;
 
@@ -44,5 +49,14 @@ public class ProjectController {
         }
         List<ProjectBaseImf> projectList = projectBaseService.getProjects(idList);
         return R.success(projectList, "查询成功");
+    }
+
+    @GetMapping("/changeImf")
+    public R getChangeImf(Long projectId){
+        ProjectChangeBaseImf projectChangeBaseImf = projectChangeBaseImfService.getProjectChangeBaseImfByID(projectId);
+        if( Objects.isNull(projectChangeBaseImf)){
+            return R.error("项目信息异常");
+        }
+        return R.success(projectChangeBaseImf, "项目更新基础信息");
     }
 }

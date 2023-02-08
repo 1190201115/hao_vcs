@@ -12,7 +12,6 @@ UUID isSafeDeleted
 
 文件的存储形式为：全量存储当前文件，同时记录文件与之关联的其他版本的差异
 
-
 项目需要与账户绑定
 userID projectID
 
@@ -20,3 +19,4 @@ userID projectID
 projectID projectName description privacy
 
 项目在本地的存储形式
+userID-projectID->location(不存储数据库，用配置类保存规则）
