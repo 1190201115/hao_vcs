@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>文件上传</title>
+    <script src="../js/outService.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-upload
+            class="upload-demo"
+            ref="upload"
+            action="none"
+            :on-change="handleChange"
+            :file-list="fileList"
+            :auto-upload="false"
+            :http-request="uploadFile"
+            style="width: 100%;height: 100%;">
+        <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+        <el-button size="small" type="success" @click="submitUpload" style="margin-left: 20px">上传到服务器</el-button>
+        <el-button size="small" type="warning" @click="clearFiles" style="margin-left: 20px">清空文件</el-button>
+    </el-upload>
+
+</div>
+<script>
+    var vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                fileList: [],
+                formData: '',
+            }
+        },
+        methods: {
+            clearFiles() {
+                this.$refs['upload'].clearFiles()
+            },
+            submitUpload() {
+                console.log('submit')
+                if (this.fileList.length === 0) {
+                    this.$message.warning({
+                        duration: 1000,
+                        message: '请选择至少一个文件',
+                    });
+                } else {
+                    this.$refs.upload.submit();
+                }
+            },
+            // handleRemove(file, fileList) {
+            //     console.log('remove')
+            //     console.log(file, fileList);
+            // },
+            handleChange(file, fileList) {
+                this.fileList = fileList;
+            },
+            uploadFile(file) {
+                console.log(file.file)
+                let fileData = new FormData();
+                fileData.append("file", file.file);
+                axios.post('../file/uploadFile', fileData, {
+                    "Content-Type": "multipart/form-data;charset=utf-8"
+                }).then(res => {
+                    console.log(res)
+                })
+
+            },
+        }
+    })
+</script>
+</body>
+</html>

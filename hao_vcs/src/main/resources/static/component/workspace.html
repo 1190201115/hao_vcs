@@ -95,9 +95,13 @@
             <el-main>
                 <div v-show="showProjectContent">
                     <div style="height: 50px">
-                        <el-button @click="uploadFile">上传文件</el-button>
+                        <el-button @click="uploadFileVisible = true">上传文件</el-button>
                         <el-button @click="downloadProject">下载工程</el-button>
                     </div>
+                    <el-dialog title="文件上传" :visible.sync="uploadFileVisible">
+                        <iframe id="uploadFIlle" src= "./uploadFile.html"
+                                style="border: medium none;height: 100%; width: 100%;"></iframe>
+                    </el-dialog>
                     <el-card class="project-card">
                         <div slot="header">
                             <span>{{latestProjectChangeImf.latestActor}}</span>
@@ -139,6 +143,7 @@
                 showProject: false,
                 showProjectContent: true,
                 showProjectSettings: false,
+                uploadFileVisible: false,
                 projectList: [
                     {projectName: "p1", description: "this is 1", privacy: 0, latestUpdateTime: 1},
                     {projectName: "p2", description: "this is 2", privacy: 1, latestUpdateTime: 2},

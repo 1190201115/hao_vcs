@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpSession;
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -50,6 +51,14 @@ public class FileController {
             }
         }
         return R.error(null);
+    }
+
+    @PostMapping("/uploadFile")
+    public String uploadFile(String title,@RequestParam("file") List<MultipartFile> fileList) {
+        for( MultipartFile file: fileList){
+            System.out.println(file.toString());
+        }
+        return "SUCCESS";
     }
 
 
