@@ -51,6 +51,28 @@ public class ProjectController {
         return R.success(projectList, "查询成功");
     }
 
+    @GetMapping("/own")
+    public R getOwnProject(HttpSession session) {
+        Long userID = (Long)session.getAttribute("user");
+        List<Long> idList = projectBaseService.getSelfProjectID(userID);
+        if(Objects.isNull(idList) || idList.isEmpty()) {
+            return R.warn("还没有任何项目~");
+        }
+        List<ProjectBaseImf> projectList = projectBaseService.getProjects(idList);
+        return R.success(projectList, "查询成功");
+    }
+
+    @GetMapping("/join")
+    public R getJoinProject(HttpSession session) {
+        Long userID = (Long)session.getAttribute("user");
+        List<Long> idList = projectBaseService.getJoinProjectID(userID);
+        if(Objects.isNull(idList) || idList.isEmpty()) {
+            return R.warn("还没有任何项目~");
+        }
+        List<ProjectBaseImf> projectList = projectBaseService.getProjects(idList);
+        return R.success(projectList, "查询成功");
+    }
+
     @GetMapping("/changeImf")
     public R getChangeImf(Long projectId){
         ProjectChangeBaseImf projectChangeBaseImf = projectChangeBaseImfService.getProjectChangeBaseImfByID(projectId);
@@ -58,5 +80,13 @@ public class ProjectController {
             return R.error("项目信息异常");
         }
         return R.success(projectChangeBaseImf, "项目更新基础信息");
+    }
+
+    @DeleteMapping("/deleteProject")
+    public R deleteProject(Long projectId){
+        if(projectChangeBaseImfService.deleteProjectByID(projectId)){
+            return R.success("删除成功");
+        }
+        return R.error("删除失败");
     }
 }

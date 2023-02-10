@@ -5,6 +5,7 @@
     <title>工作台</title>
     <script src="../js/outService.js"></script>
     <script src="../plugins/router/vue-router.global.js"></script>
+    <script src="../js/sortProject.js"></script>
 </head>
 <body>
 <div id="app" style=" margin:0 auto;">
@@ -49,18 +50,16 @@
                                            @click="checkProject(project)">进入项目
                                 </el-button>
                             </div>
-                            <div>
-                                <div style=" color: #9f9f9f; font-family: PingFang SC;font-size: small;">
-                                    <span>创建时间: {{ project.createTime }}</span>
-                                </div>
-                            </div>
+                            <span style=" color: #9f9f9f; font-size: small;">创建时间: {{ project.createTime }}</span>
+                            <span v-if="project.privacy==1" style=" color: #3a9edc; font-size: small;float: right;">公开</span>
+                            <span v-if="project.privacy==0" style=" color: #e57161; font-size: small;float: right;">私有</span>
                         </el-card>
                         <p></p>
                     </li>
                 </ul>
             </div>
             <div v-show="!showProjectList">
-                <p style="text-align: center;margin-top: 20%; color: #9f9f9f; font-family: PingFang SC;font-size: xx-large;">
+                <p style="text-align: center;margin-top: 20%; color: #9f9f9f; font-size: xx-large;">
                     还没有任何工程哦~</p>
             </div>
 
@@ -114,6 +113,9 @@
                         </div>
                     </el-card>
                 </div>
+                <div v-show="showProjectSettings">
+                    <el-button type="danger"  @click="deleteProject">删除项目</el-button>
+                </div>
             </el-main>
             <el-footer>
                 <div v-show="showProjectContent">
@@ -145,8 +147,9 @@
                 showProjectSettings: false,
                 uploadFileVisible: false,
                 projectList: [
-                    {projectName: "p1", description: "this is 1", privacy: 0, latestUpdateTime: 1},
-                    {projectName: "p2", description: "this is 2", privacy: 1, latestUpdateTime: 2},
+                    {projectName: "p1", description: "this is 1", privacy: 0, createTime: '2023-02-09 20:46:27'},
+                    {projectName: "p2", description: "this is 2", privacy: 1, createTime: '2023-02-10 20:46:20'},
+                    {projectName: "p3", description: "this is 3", privacy: 1, createTime: '2023-02-08 20:46:00'},
                 ],
                 selectedProject: {},
                 latestProjectChangeImf: {latestActor: "cyh?", latestAction: "nothing?", latestUpdateTime: "now?"}
@@ -157,6 +160,29 @@
             this.getAllProject()
         },
         methods: {
+            deleteProject(){
+                this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.delete('/project/deleteProject', {params: {'projectId': this.selectedProject.projectId}})
+                        .then(results => {
+                            if (results.data.code === 20000) {
+                                this.$message.success('删除成功!')
+                                this.handleSelect('depot')
+                            } else {
+                                this.$message.error('删除失败!')
+                            }
+                            this.getAllProject()
+                        })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
             tabAlt(tab) {
                 let choice = tab.name
                 if (choice === 'projectContent') {
@@ -191,10 +217,11 @@
                 this.selectedProject = project
                 this.getLatestProjectChangeImf()
             },
-            handleSelect(key, keyPath) {
+            handleSelect(key) {
                 this.hideAll();
                 if (key === 'depot') {
                     this.showDepot = true
+                    this.getAllProject()
                 } else if (key === 'myLike') {
                     this.showMyLike = true
                 } else if (key === 'addProject') {
@@ -205,20 +232,36 @@
                 if (key === 'all') {
                     this.getAllProject()
                 } else if (key === 'ownPro') {
-
+                    this.getOwnProject()
                 } else if (key === 'joinPro') {
+                    this.getJoinProject()
+                } else if (key === 'publicFirst' || key === 'privateFirst' ||
+                            key === 'latestFirst' || key === 'reverse'){
+                    this.projectList = sortProject(key, this.projectList)
                 }
-
+            },
+            setProjectList(result){
+                console.log(result)
+                if (result.data.code === 20000) {
+                    this.projectList = result.data.data
+                    this.showProjectList = true
+                } else {
+                    this.showProjectList = false
+                }
             },
             getAllProject() {
                 axios.get('/project/all').then(results => {
-                    console.log(results)
-                    if (results.data.code === 20000) {
-                        this.projectList = results.data.data
-                        this.showProjectList = true
-                    } else {
-                        this.showProjectList = false
-                    }
+                    this.setProjectList(results)
+                })
+            },
+            getOwnProject() {
+                axios.get('/project/own').then(results => {
+                    this.setProjectList(results)
+                })
+            },
+            getJoinProject() {
+                axios.get('/project/join').then(results => {
+                    this.setProjectList(results)
                 })
             },
             hideAll() {

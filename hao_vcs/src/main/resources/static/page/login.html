@@ -8,6 +8,7 @@
     <title>用户登录</title>
     <link rel="stylesheet" type="text/css" href="../styles/login.css">
     <script src="../js/outService.js"></script>
+    <script src="../js/validator.js"></script>
 </head>
 
 <body class="background">
@@ -77,7 +78,7 @@
                 },
                 loginLoading: false,
                 rules: {
-                    email: [{required: true, message: '账号不能为空', trigger: 'blur'}],
+                    email: [{validator: checkEmail, trigger: 'blur'}],
                     password: [{required: true, message: '密码不能为空', trigger: 'blur'}]
                 }
             }

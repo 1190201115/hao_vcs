@@ -9,4 +9,6 @@ public interface ProjectChangeBaseImfService {
     boolean insertProjectChangeBaseImf(Long userID, Long projectID, LocalDateTime latestUpdateTime, String latestAction);
 
     ProjectChangeBaseImf getProjectChangeBaseImfByID(Long projectID);
+
+    boolean deleteProjectByID(Long projectID);
 }

@@ -9,7 +9,7 @@ function checkEmail(rule, email, callback) {
     callback()
 }
 
-function checkRepeatPassword(rule, password, password2,callback,) {
+function checkRepeatPassword(rule, password, password2,callback) {
     if(password != password2){
        callback(new Error('两次输入不一致！'));
     }
