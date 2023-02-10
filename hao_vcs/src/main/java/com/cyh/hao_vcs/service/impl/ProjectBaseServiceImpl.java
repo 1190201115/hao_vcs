@@ -33,22 +33,25 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
     private static final String DEFAULT_ACTION = "创建工程";
 
 
-
     @Override
     public R insertBaseProject(ProjectBaseImf baseImf, Long userID, int status) {
-        if(StringUtils.isNullOrEmpty(baseImf.getProjectName()))
-        {
+        if (StringUtils.isNullOrEmpty(baseImf.getProjectName())) {
             return R.error("工程名称不能为空");
         }
-        if(Objects.isNull(userID)){
+        if (Objects.isNull(userID)) {
             return R.error("用户状态异常！");
         }
-        LocalDateTime time = LocalDateTime.now();
-        baseImf.setCreateTime(time);
-        projectBaseMapper.insert(baseImf);
-        //先插入project,后续才能获得id
-        user2ProjectMapper.insert(new UserProject(userID, baseImf.getProjectId(), status));
-        projectChangeBaseImfService.insertProjectChangeBaseImf(userID, baseImf.getProjectId(), time, DEFAULT_ACTION);
+        try {
+            LocalDateTime time = LocalDateTime.now();
+            baseImf.setCreateTime(time);
+            projectBaseMapper.insert(baseImf);
+            //先插入project,后续才能获得id
+            user2ProjectMapper.insert(new UserProject(userID, baseImf.getProjectId(), status));
+            projectChangeBaseImfService.insertProjectChangeBaseImf(userID, baseImf.getProjectId(), time, DEFAULT_ACTION);
+
+        } catch (Exception e) {
+            return R.error("创建工程异常");
+        }
         return R.success("创建成功");
     }
 
@@ -79,7 +82,7 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
     }
 
 
-    private List<Long> collectList(QueryWrapper<UserProject> queryWrapper){
+    private List<Long> collectList(QueryWrapper<UserProject> queryWrapper) {
         Object ob = user2ProjectMapper.selectList(queryWrapper);
         List<Long> idList = user2ProjectMapper.selectList(queryWrapper)
                 .stream()

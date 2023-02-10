@@ -19,4 +19,4 @@ userID projectID
 projectID projectName description privacy
 
 项目在本地的存储形式
-userID-projectID->location(不存储数据库，用配置类保存规则）
+projectID->location(不存储数据库，用配置类保存规则）

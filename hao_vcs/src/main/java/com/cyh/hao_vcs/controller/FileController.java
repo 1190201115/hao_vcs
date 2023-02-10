@@ -56,7 +56,7 @@ public class FileController {
     @PostMapping("/uploadFile")
     public String uploadFile(String title,@RequestParam("file") List<MultipartFile> fileList) {
         for( MultipartFile file: fileList){
-            System.out.println(file.toString());
+
         }
         return "SUCCESS";
     }

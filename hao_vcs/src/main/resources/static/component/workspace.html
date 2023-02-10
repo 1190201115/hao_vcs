@@ -170,6 +170,9 @@
             handleMessage(e) {
                 window.location.href = './workspace.html'
             },
+            downloadProject(){
+
+            },
             getLatestProjectChangeImf() {
                 console.log(this.selectedProject.projectId)
                 axios.get('/project/changeImf', {params: {'projectId': this.selectedProject.projectId}})

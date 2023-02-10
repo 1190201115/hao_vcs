@@ -1,5 +1,6 @@
 package com.cyh.hao_vcs.utils;
 
+import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringUtils;
@@ -66,4 +67,19 @@ public class FileUtil {
         }
         return true;
     }
+
+    public static String getSuffix(MultipartFile file) {
+        int dotPos = file.getOriginalFilename().lastIndexOf(".");
+        if (dotPos < 0) {
+            return null;
+        }
+        return file.getOriginalFilename().substring(dotPos + 1).toLowerCase();
+    }
+
+    public static String getProjectPath(String projectID){
+        return FileConfig.PROJECT_PATH + projectID;
+    }
+//    public static String getRealFileName(String userID, String projectID){
+//
+//    }
 }
