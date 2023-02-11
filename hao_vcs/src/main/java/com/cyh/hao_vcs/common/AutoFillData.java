@@ -16,7 +16,7 @@ public class AutoFillData implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         metaObject.setValue("signUpTime", LocalDateTime.now());
-        metaObject.setValue("createTime", LocalDateTime.now());
+//        metaObject.setValue("createTime", LocalDateTime.now());
 //        metaObject.setValue("updateTime", LocalDateTime.now());
 //            metaObject.setValue("createUser",BaseContext.getCurrentId());
 //            metaObject.setValue("updateUser",BaseContext.getCurrentId());

@@ -28,15 +28,19 @@
         data() {
             return {
                 fileList: [],
-                formData: '',
+                projectId: 1,
+                projectName: '',
             }
+        },
+        mounted() {
+            this.projectId = window.location.search.split("?")[1]
+            this.projectName = decodeURI(window.location.search.split("?")[2])
         },
         methods: {
             clearFiles() {
                 this.$refs['upload'].clearFiles()
             },
             submitUpload() {
-                console.log('submit')
                 if (this.fileList.length === 0) {
                     this.$message.warning({
                         duration: 1000,
@@ -54,13 +58,17 @@
                 this.fileList = fileList;
             },
             uploadFile(file) {
-                console.log(file.file)
-                let fileData = new FormData();
-                fileData.append("file", file.file);
-                axios.post('../file/uploadFile', fileData, {
+                let formData = new FormData();
+                formData.append("file",file.file)
+                formData.append("id", this.projectId)
+                formData.append("name",this.projectName)
+                axios.post('../file/uploadFile', formData, {
                     "Content-Type": "multipart/form-data;charset=utf-8"
                 }).then(res => {
-                    console.log(res)
+                    if(res.data.code === 40000){
+                        this.$message.error(res.data.msg)
+                    }
+                    this.clearFiles()
                 })
 
             },

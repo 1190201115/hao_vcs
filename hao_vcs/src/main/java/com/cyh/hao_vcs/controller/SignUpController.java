@@ -41,13 +41,13 @@ public class SignUpController {
         String inviteCode = InviteCodeGenerator.generate();
         System.out.println(inviteCode);
         redisTemplate.opsForValue().set(redisKey, inviteCode, 5, TimeUnit.MINUTES);
-        String content = emailContentPrefix + inviteCode + emailContentSuffix;
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(mailProperties.getUsername());
-        message.setTo(email);
-        message.setSubject(subject);
-        message.setText(content);
-        mailSender.send(message);
+//        String content = emailContentPrefix + inviteCode + emailContentSuffix;
+//        SimpleMailMessage message = new SimpleMailMessage();
+//        message.setFrom(mailProperties.getUsername());
+//        message.setTo(email);
+//        message.setSubject(subject);
+//        message.setText(content);
+//        mailSender.send(message);
         return R.success("验证码发送成功");
     }
 

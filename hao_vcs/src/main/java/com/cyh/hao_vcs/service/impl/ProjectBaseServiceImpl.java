@@ -3,13 +3,12 @@ package com.cyh.hao_vcs.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
-import com.cyh.hao_vcs.entity.User;
 import com.cyh.hao_vcs.entity.UserProject;
 import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
 import com.cyh.hao_vcs.mapper.User2ProjectMapper;
 import com.cyh.hao_vcs.service.ProjectBaseService;
+import com.cyh.hao_vcs.utils.FileUtil;
 import com.qiniu.util.StringUtils;
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.cyh.hao_vcs.utils.FileUtil.createDir;
 
 @Service
 public class ProjectBaseServiceImpl implements ProjectBaseService {
@@ -48,7 +49,8 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
             //先插入project,后续才能获得id
             user2ProjectMapper.insert(new UserProject(userID, baseImf.getProjectId(), status));
             projectChangeBaseImfService.insertProjectChangeBaseImf(userID, baseImf.getProjectId(), time, DEFAULT_ACTION);
-
+            String projectPath = FileUtil.getProjectPath(baseImf.getProjectId(), baseImf.getProjectName());
+            createDir(projectPath);
         } catch (Exception e) {
             return R.error("创建工程异常");
         }

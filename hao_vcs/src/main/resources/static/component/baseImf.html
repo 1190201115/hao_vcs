@@ -8,7 +8,7 @@
 <body >
 <div id="app">
             <el-card>
-                <el-descriptions class="margin-top" title="个人资料" :column="2" border>
+                <el-descriptions class="margin-top" title="个人资料" :column="1" border>
                     <template slot="extra">
                         <el-button type="primary" plain size="small" @click="editDialogVisible = true">编辑</el-button>
                     </template>
@@ -42,13 +42,13 @@
                     </el-descriptions-item>
                 </el-descriptions>
             </el-card>
-    <el-dialog title="个人资料" :visible.sync="editDialogVisible">
+    <el-dialog title="资料编辑" :visible.sync="editDialogVisible" >
         <el-form :model="baseImf">
-            <el-form-item label="用户名" label-width="120px">
-                <el-input v-model="baseImf.username" autocomplete="off"></el-input>
+            <el-form-item label="用户名" label-width="100px">
+                <el-input v-model="baseImf.username" autocomplete="off" style="width: 400px"></el-input>
             </el-form-item>
-            <el-form-item label="个人说明" label-width="120px">
-                <el-input v-model="baseImf.signature" autocomplete="off"></el-input>
+            <el-form-item label="个人说明" label-width="100px">
+                <el-input v-model="baseImf.signature" autocomplete="off" style="width: 400px"></el-input>
             </el-form-item>
         </el-form>
         <div slot="footer">
@@ -68,9 +68,9 @@
                 editDialogVisible : false,
                 baseImf: {
                     username: '无名',
-                    email: '',
-                    signature: '',
-                    signUpTime: '',
+                    email: '1561739463@qq.com',
+                    signature: '这个人很懒，什么都没写',
+                    signUpTime: '2001.04.10',
                     headUrl: '../image/defaultHead.png',
                 }
             }

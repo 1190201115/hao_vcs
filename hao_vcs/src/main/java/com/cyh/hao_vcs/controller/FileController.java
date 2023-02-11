@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
+
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -29,24 +31,24 @@ public class FileController {
             return R.warn("文件为空！");
         }
         R res = fileService.saveImage(file);
-        if(!Objects.isNull(res)){
-            if(userDetailService.setHead((Long)session.getAttribute("user"), res.getMsg())){
+        if (!Objects.isNull(res)) {
+            if (userDetailService.setHead((Long) session.getAttribute("user"), res.getMsg())) {
                 String path = FileUtil.getFileUrl(res.getMsg());
-                if(Objects.isNull(path)){
+                if (Objects.isNull(path)) {
                     return R.error("保存头像失败！");
                 }
-                return R.success(path,"保存头像成功");
+                return R.success(path, "保存头像成功");
             }
         }
         return R.error("保存头像失败！");
     }
 
     @GetMapping("/head")
-    public R getHeadUrl(HttpSession session){
-        String fileName = userDetailService.getHead((Long)session.getAttribute("user"));
-        if(!StringUtils.isEmpty(fileName)){
+    public R getHeadUrl(HttpSession session) {
+        String fileName = userDetailService.getHead((Long) session.getAttribute("user"));
+        if (!StringUtils.isEmpty(fileName)) {
             String headUrl = FileUtil.getFileUrl(fileName);
-            if(!Objects.isNull(headUrl)){
+            if (!Objects.isNull(headUrl)) {
                 return R.success(headUrl, "获取头像成功");
             }
         }
@@ -54,15 +56,14 @@ public class FileController {
     }
 
     @PostMapping("/uploadFile")
-    public String uploadFile(String title,@RequestParam("file") List<MultipartFile> fileList) {
-        for( MultipartFile file: fileList){
-
+    public R uploadFile(@RequestParam("id") Long projectId, @RequestParam("file") MultipartFile file,
+                             @RequestParam("name") String projectName) {
+        String projectPath = FileUtil.getProjectPath(projectId, projectName);
+        if(FileUtil.saveFile(projectPath, file)){
+            return R.success("上传成功");
         }
-        return "SUCCESS";
+        return R.error("上传失败");
     }
-
-
-
 
 
 }

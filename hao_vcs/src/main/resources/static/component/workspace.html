@@ -83,8 +83,7 @@
                         {{selectedProject.projectName}}</span>
                 <el-tabs value="projectContent" @tab-click="tabAlt" style="margin-left: 20px;margin-top: 14px">
                     <el-tab-pane name="projectContent">
-                            <span slot="label"
-                                  @click=""><i class="el-icon-folder-opened"></i> 项目内容</span>
+                            <span slot="label"><i class="el-icon-folder-opened"></i> 项目内容</span>
                     </el-tab-pane>
                     <el-tab-pane name="projectSettings">
                         <span slot="label"><i class="el-icon-setting"></i> 配置管理</span>
@@ -98,7 +97,7 @@
                         <el-button @click="downloadProject">下载工程</el-button>
                     </div>
                     <el-dialog title="文件上传" :visible.sync="uploadFileVisible">
-                        <iframe id="uploadFIlle" src= "./uploadFile.html"
+                        <iframe id="uploadFile" :src= "uploadSrc"
                                 style="border: medium none;height: 100%; width: 100%;"></iframe>
                     </el-dialog>
                     <el-card class="project-card">
@@ -147,12 +146,13 @@
                 showProjectSettings: false,
                 uploadFileVisible: false,
                 projectList: [
-                    {projectName: "p1", description: "this is 1", privacy: 0, createTime: '2023-02-09 20:46:27'},
-                    {projectName: "p2", description: "this is 2", privacy: 1, createTime: '2023-02-10 20:46:20'},
-                    {projectName: "p3", description: "this is 3", privacy: 1, createTime: '2023-02-08 20:46:00'},
+                    {projectId: 1,projectName: "p1", description: "this is 1", privacy: 0, createTime: '2023-02-09 20:46:27'},
+                    {projectId: 2,projectName: "p2", description: "this is 2", privacy: 1, createTime: '2023-02-10 20:46:20'},
+                    {projectId: 3,projectName: "p3", description: "this is 3", privacy: 1, createTime: '2023-02-08 20:46:00'},
                 ],
                 selectedProject: {},
-                latestProjectChangeImf: {latestActor: "cyh?", latestAction: "nothing?", latestUpdateTime: "now?"}
+                latestProjectChangeImf: {latestActor: "cyh?", latestAction: "nothing?", latestUpdateTime: "now?"},
+                uploadSrc: '',
             }
         },
         mounted() {
@@ -200,7 +200,7 @@
 
             },
             getLatestProjectChangeImf() {
-                console.log(this.selectedProject.projectId)
+                this.uploadSrc = './uploadFile.html?'+ this.selectedProject.projectId+'?'+this.selectedProject.projectName
                 axios.get('/project/changeImf', {params: {'projectId': this.selectedProject.projectId}})
                     .then(results => {
                         if (results.data.code === 20000) {

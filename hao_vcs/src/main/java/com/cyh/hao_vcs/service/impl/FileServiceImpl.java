@@ -4,7 +4,6 @@ import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.cyh.hao_vcs.service.FileService;
 import com.cyh.hao_vcs.utils.FileUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
 import com.qiniu.http.Response;
@@ -13,20 +12,15 @@ import com.qiniu.storage.Configuration;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class FileServiceImpl implements FileService {
 
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private Auth auth;
 
@@ -107,4 +101,12 @@ public class FileServiceImpl implements FileService {
         }
         return false;
     }
+
+//    @Override
+//    public boolean addFileInProject(Long projectId, MultipartFile file, String projectName) {
+//        String projectPath = FileUtil.getProjectPath(projectId, projectName);
+//        if(FileUtil.saveFile(projectPath, file)){
+//            return R.success("上传成功");
+//        }
+//    }
 }

@@ -4,15 +4,14 @@ import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.UUID;
 
 public class FileUtil {
 
@@ -68,6 +67,38 @@ public class FileUtil {
         return true;
     }
 
+    public static boolean saveFile(String dirPath, MultipartFile file){
+        String originalFilename = file.getOriginalFilename();
+        String fileFormat = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String uuid = UUID.randomUUID().toString().trim();
+        File localFile = new File(dirPath + File.separator + uuid + fileFormat);
+        createDir(dirPath);
+        InputStream ins = null;
+        OutputStream os = null;
+        try {
+            ins = file.getInputStream();
+            os = new FileOutputStream(localFile);
+            IOUtils.copy(ins, os);
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (ins != null) {
+                    ins.close();
+                }
+                if (os != null) {
+                    os.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static String getSuffix(MultipartFile file) {
         int dotPos = file.getOriginalFilename().lastIndexOf(".");
         if (dotPos < 0) {
@@ -76,8 +107,21 @@ public class FileUtil {
         return file.getOriginalFilename().substring(dotPos + 1).toLowerCase();
     }
 
-    public static String getProjectPath(String projectID){
-        return FileConfig.PROJECT_PATH + projectID;
+    public static String getProjectPath(Long projectID,String projectName){
+        return FileConfig.PROJECT_PATH + projectID.toString() +"-" + projectName;
+    }
+
+    public static void createDir(String dirPath){
+        File directory = new File(dirPath);
+        if(!directory.exists()){
+            directory.mkdir();
+        }
+    }
+
+    public static void createDir(File directory){
+        if(!directory.exists()){
+            directory.mkdir();
+        }
     }
 //    public static String getRealFileName(String userID, String projectID){
 //
