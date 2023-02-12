@@ -1,6 +1,8 @@
 package com.cyh.hao_vcs.controller;
 
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.entity.FileBaseImf;
+import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.FileService;
 import com.cyh.hao_vcs.service.UserDetailService;
 import com.cyh.hao_vcs.utils.FileUtil;
@@ -13,6 +15,7 @@ import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/file")
@@ -23,6 +26,9 @@ public class FileController {
 
     @Autowired
     private UserDetailService userDetailService;
+
+    @Autowired
+    private FileBaseImfService fileBaseImfService;
 
 
     @PostMapping("/head")
@@ -58,12 +64,12 @@ public class FileController {
     @PostMapping("/uploadFile")
     public R uploadFile(@RequestParam("id") Long projectId, @RequestParam("file") MultipartFile file,
                              @RequestParam("name") String projectName) {
-        String projectPath = FileUtil.getProjectPath(projectId, projectName);
-        if(FileUtil.saveFile(projectPath, file)){
+        if(fileBaseImfService.insertFileIntoProject(projectId, projectName, file)){
             return R.success("上传成功");
         }
         return R.error("上传失败");
     }
+
 
 
 }

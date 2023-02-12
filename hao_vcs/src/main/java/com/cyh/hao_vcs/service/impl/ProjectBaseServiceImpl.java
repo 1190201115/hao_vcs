@@ -2,12 +2,14 @@ package com.cyh.hao_vcs.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.UserProject;
 import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
 import com.cyh.hao_vcs.mapper.User2ProjectMapper;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.utils.FileUtil;
+import com.cyh.hao_vcs.utils.ProjectUtil;
 import com.qiniu.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,5 +93,14 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
                 .map(userProject -> userProject.getProjectId())
                 .collect(Collectors.toList());
         return idList;
+    }
+
+    @Override
+    public String getProjectPath(Long projectId) {
+        String projectName = projectBaseMapper.selectById(projectId).getProjectName();
+        if(!StringUtils.isNullOrEmpty(projectName)){
+            return FileConfig.PROJECT_PATH + ProjectUtil.getProjectName(projectName,projectId);
+        }
+        return null;
     }
 }

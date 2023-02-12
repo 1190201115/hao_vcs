@@ -16,4 +16,6 @@ public interface ProjectBaseService {
     List<Long> getJoinProjectID(Long userID);
 
     List<ProjectBaseImf> getProjects(List<Long> idList);
+
+    String getProjectPath(Long projectId);
 }

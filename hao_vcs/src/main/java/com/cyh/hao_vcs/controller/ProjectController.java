@@ -1,11 +1,15 @@
 package com.cyh.hao_vcs.controller;
 
+import com.cyh.hao_vcs.common.KeyEnum;
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.ProjectChangeBaseImf;
-import com.cyh.hao_vcs.entity.User;
+
+import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.service.ProjectChangeBaseImfService;
+import com.cyh.hao_vcs.service.impl.FileBaseImfServiceImpl;
+import com.cyh.hao_vcs.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
@@ -27,6 +31,9 @@ public class ProjectController {
 
     @Autowired
     ProjectChangeBaseImfService projectChangeBaseImfService;
+
+    @Autowired
+    FileBaseImfService fileBaseImfService;
 
     private static Integer OWN_PROJECT_STATUS = 1;
 
@@ -88,5 +95,19 @@ public class ProjectController {
             return R.success("删除成功");
         }
         return R.error("删除失败");
+    }
+
+    @GetMapping("/getProjectContent")
+    public R getProjectContent(Long projectId){
+        if(Objects.isNull(projectId) || projectId <= 0){
+            return R.error("工程信息异常");
+        }
+        String path = projectBaseService.getProjectPath(projectId);
+        if(StringUtils.isEmpty(path)){
+            return R.error("工程信息异常");
+        }
+        Map<String, List<String>> pageFile = FileUtil.getPageFile(path);
+        pageFile.put(KeyEnum.FILE_KEY,fileBaseImfService.getFileRealName(pageFile.get(KeyEnum.FILE_KEY)));
+        return R.success(pageFile,"获得文件信息");
     }
 }

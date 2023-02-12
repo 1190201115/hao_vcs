@@ -10,8 +10,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.cyh.hao_vcs.common.KeyEnum.DIR_KEY;
+import static com.cyh.hao_vcs.common.KeyEnum.FILE_KEY;
 
 public class FileUtil {
 
@@ -67,7 +70,7 @@ public class FileUtil {
         return true;
     }
 
-    public static boolean saveFile(String dirPath, MultipartFile file){
+    public static String saveFile(String dirPath, MultipartFile file){
         String originalFilename = file.getOriginalFilename();
         String fileFormat = originalFilename.substring(originalFilename.lastIndexOf("."));
         String uuid = UUID.randomUUID().toString().trim();
@@ -82,7 +85,7 @@ public class FileUtil {
             os.flush();
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return null;
         } finally {
             try {
                 if (ins != null) {
@@ -93,10 +96,10 @@ public class FileUtil {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                return false;
+                return null;
             }
         }
-        return true;
+        return uuid;
     }
 
     public static String getSuffix(MultipartFile file) {
@@ -123,7 +126,32 @@ public class FileUtil {
             directory.mkdir();
         }
     }
-//    public static String getRealFileName(String userID, String projectID){
-//
-//    }
+
+    public static Map<String, List<String>> getPageFile(String path){
+        File page = new File(path);
+        File[] allFileList = page.listFiles();
+        Map<String, List<String>> map = new HashMap<>();
+        List<String> fileList = new ArrayList<>();
+        List<String> dirList = new ArrayList<>();
+        for(File file:allFileList){
+            if(file.isDirectory()){
+                dirList.add(file.getName());
+            }else{
+                fileList.add(file.getName());
+            }
+        }
+        map.put(FILE_KEY,fileList);
+        map.put(DIR_KEY,dirList);
+        return map;
+    }
+
+    public static List<String> removeSuffix(List<String> nameList){
+        List<String> preNameList = nameList.stream().map(
+                name->{
+                    int dotPos = name.lastIndexOf(".");
+                    return name.substring(0,dotPos);
+                }
+        ).collect(Collectors.toList());
+        return preNameList;
+    }
 }

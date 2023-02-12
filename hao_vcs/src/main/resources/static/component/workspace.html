@@ -43,7 +43,7 @@
             <div v-show="showProjectList">
                 <ul style="overflow:auto;width: 75%">
                     <li v-for="(project,i) in projectList" class="infinite-list-item" style="list-style:none">
-                        <el-card class="box-card" @click.native="getResearch()">
+                        <el-card class="box-card" @click.native="checkProject(project)">
                             <div slot="header" class="clearfix">
                                 <span>{{ project.projectName }}</span>
                                 <el-button style="float: right; padding: 3px 0" type="text"
@@ -95,22 +95,30 @@
                     <div style="height: 50px">
                         <el-button @click="uploadFileVisible = true">上传文件</el-button>
                         <el-button @click="downloadProject">下载工程</el-button>
+                        <el-dialog title="文件上传" :visible.sync="uploadFileVisible">
+                            <iframe id="uploadFile" :src= "uploadSrc"
+                                    style="border: medium none;height: 100%; width: 100%;"></iframe>
+                        </el-dialog>
                     </div>
-                    <el-dialog title="文件上传" :visible.sync="uploadFileVisible">
-                        <iframe id="uploadFile" :src= "uploadSrc"
-                                style="border: medium none;height: 100%; width: 100%;"></iframe>
-                    </el-dialog>
-                    <el-card class="project-card">
-                        <div slot="header">
-                            <span>{{latestProjectChangeImf.latestActor}}</span>
-                            <span style="color: #8db2f6; margin-left: 1%;">{{latestProjectChangeImf.latestAction}}</span>
-                            <span style="font-size: small;margin-left: 1%;color: #8c939d">
-                            {{latestProjectChangeImf.latestUpdateTime}}</span>
-                        </div>
-                        <div>
-                            projectImf
-                        </div>
-                    </el-card>
+                </div>
+                <div v-show="showProjectContent">
+                    <iframe id="actionBanner" :src= "actionBannerSrc"
+                            style="border: medium none; width: 100%;"></iframe>
+<!--                    <el-card class="project-card">-->
+<!--                        <div slot="header">-->
+<!--                            <span>{{latestProjectChangeImf.latestActor}}</span>-->
+<!--                            <span style="color: #8db2f6; margin-left: 1%;">{{latestProjectChangeImf.latestAction}}</span>-->
+<!--                            <span style="font-size: small;margin-left: 1%;color: #8c939d">-->
+<!--                            {{latestProjectChangeImf.latestUpdateTime}}</span>-->
+<!--                        </div>-->
+<!--                        <div>-->
+<!--                            <el-pagination-->
+<!--                                    layout="prev, pager, next"-->
+<!--                                    :total="fileNum"-->
+<!--                                    :hide-on-single-page=true>-->
+<!--                            </el-pagination>-->
+<!--                        </div>-->
+<!--                    </el-card>-->
                 </div>
                 <div v-show="showProjectSettings">
                     <el-button type="danger"  @click="deleteProject">删除项目</el-button>
@@ -153,6 +161,7 @@
                 selectedProject: {},
                 latestProjectChangeImf: {latestActor: "cyh?", latestAction: "nothing?", latestUpdateTime: "now?"},
                 uploadSrc: '',
+                actionBannerSrc: '',
             }
         },
         mounted() {
@@ -200,7 +209,6 @@
 
             },
             getLatestProjectChangeImf() {
-                this.uploadSrc = './uploadFile.html?'+ this.selectedProject.projectId+'?'+this.selectedProject.projectName
                 axios.get('/project/changeImf', {params: {'projectId': this.selectedProject.projectId}})
                     .then(results => {
                         if (results.data.code === 20000) {
@@ -215,7 +223,12 @@
                 this.hideAll()
                 this.showProject = true
                 this.selectedProject = project
+                this.uploadSrc = './uploadFile.html?'+ project.projectId+'?'+project.projectName
+                this.actionBannerSrc = './latestActionBanner.html?' + project.projectId
                 this.getLatestProjectChangeImf()
+            },
+            getProjectPath(){
+
             },
             handleSelect(key) {
                 this.hideAll();
