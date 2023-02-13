@@ -133,9 +133,22 @@ public class FileUtil {
         Map<String, List<String>> map = new HashMap<>();
         List<String> fileList = new ArrayList<>();
         List<String> dirList = new ArrayList<>();
+        String tempDirName = "";
         for(File file:allFileList){
             if(file.isDirectory()){
-                dirList.add(file.getName());
+                File[] tempFileList = file.listFiles();
+                tempDirName = file.getName();
+                while(!Objects.isNull(tempFileList) &&
+                        tempFileList.length == 1) {
+                    File tempFile = tempFileList[0];
+                    if(tempFileList[0].isDirectory()){
+                        tempDirName = tempDirName + "//" + tempFile.getName();
+                        tempFileList = tempFileList[0].listFiles();
+                    }else{
+                        break;
+                    }
+                }
+                dirList.add(tempDirName);
             }else{
                 fileList.add(file.getName());
             }
@@ -143,6 +156,10 @@ public class FileUtil {
         map.put(FILE_KEY,fileList);
         map.put(DIR_KEY,dirList);
         return map;
+    }
+
+    public static boolean isDirectory(String path){
+        return new File(path).isDirectory();
     }
 
     public static List<String> removeSuffix(List<String> nameList){

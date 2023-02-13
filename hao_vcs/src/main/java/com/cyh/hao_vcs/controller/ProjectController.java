@@ -98,7 +98,7 @@ public class ProjectController {
     }
 
     @GetMapping("/getProjectContent")
-    public R getProjectContent(Long projectId){
+    public R getProjectContent(Long projectId,String morePath){
         if(Objects.isNull(projectId) || projectId <= 0){
             return R.error("工程信息异常");
         }
@@ -106,8 +106,19 @@ public class ProjectController {
         if(StringUtils.isEmpty(path)){
             return R.error("工程信息异常");
         }
-        Map<String, List<String>> pageFile = FileUtil.getPageFile(path);
-        pageFile.put(KeyEnum.FILE_KEY,fileBaseImfService.getFileRealName(pageFile.get(KeyEnum.FILE_KEY)));
-        return R.success(pageFile,"获得文件信息");
+        if(!Objects.isNull(morePath))
+        {
+            path += morePath;
+        }
+        if (FileUtil.isDirectory(path)){
+            Map<String, List<String>> pageFile = FileUtil.getPageFile(path);
+            List<String> fileRealName = fileBaseImfService.getFileRealName(pageFile.get(KeyEnum.FILE_KEY));
+            pageFile.put(KeyEnum.FILE_KEY, fileRealName);
+            return R.success(pageFile,"获得文件信息");
+        }else{
+            return R.success("是个文件呢","获得文件信息");
+        }
+
+
     }
 }
