@@ -6,6 +6,7 @@ import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.ProjectChangeBaseImf;
 
 import com.cyh.hao_vcs.service.FileBaseImfService;
+import com.cyh.hao_vcs.service.FileService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.service.ProjectChangeBaseImfService;
 import com.cyh.hao_vcs.service.impl.FileBaseImfServiceImpl;
@@ -34,6 +35,9 @@ public class ProjectController {
 
     @Autowired
     FileBaseImfService fileBaseImfService;
+
+    @Autowired
+    FileService fileService;
 
     private static Integer OWN_PROJECT_STATUS = 1;
 
@@ -97,8 +101,8 @@ public class ProjectController {
         return R.error("删除失败");
     }
 
-    @GetMapping("/getProjectContent")
-    public R getProjectContent(Long projectId,String morePath){
+    @GetMapping("/getContent")
+    public R getContent(Long projectId,String morePath){
         if(Objects.isNull(projectId) || projectId <= 0){
             return R.error("工程信息异常");
         }
@@ -116,6 +120,7 @@ public class ProjectController {
             pageFile.put(KeyEnum.FILE_KEY, fileRealName);
             return R.success(pageFile,"获得文件信息");
         }else{
+            fileService.getFileContent(path);
             return R.success("是个文件呢","获得文件信息");
         }
 

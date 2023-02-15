@@ -3,6 +3,7 @@ package com.cyh.hao_vcs.service.impl;
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.cyh.hao_vcs.service.FileService;
+import com.cyh.hao_vcs.utils.Classifier;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -100,6 +102,11 @@ public class FileServiceImpl implements FileService {
             System.out.println(e.response.toString());
         }
         return false;
+    }
+
+    public R getFileContent(String path){
+        Classifier.getHtmlPath(path);
+        return R.success("a");
     }
 
 //    @Override

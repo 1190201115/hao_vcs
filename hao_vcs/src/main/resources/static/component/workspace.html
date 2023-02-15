@@ -166,9 +166,6 @@
                     },
                 ],
                 selectedProject: {},
-                // latestProjectChangeImf: {
-                //     // latestActor: "cyh?", latestAction: "nothing?", latestUpdateTime: "now?"
-                // },
                 uploadSrc: '',
                 actionBannerSrc: '',
                 startIndex: 0,
@@ -195,16 +192,16 @@
                 }else{
                     this.uploadSrc = this.uploadSrc.substring(0,this.uploadSrc.lastIndexOf('/') - 1)
                     this.path = this.path.substring(0,this.path.lastIndexOf('\\'))
-                    this.getProjectContent(this.selectedProject.projectId, this.path)
+                    this.getContent(this.selectedProject.projectId, this.path)
                 }
             },
             getPath(link) {
                 this.path = this.path + '\\' + link
                 this.uploadSrc = this.uploadSrc + '?' + '/' + link;
-                this.getProjectContent(this.selectedProject.projectId, this.path)
+                this.getContent(this.selectedProject.projectId, this.path)
             },
-            getProjectContent(projectId, path) {
-                axios.get('/project/getProjectContent', {params: {projectId: projectId, morePath: path}})
+            getContent(projectId, path) {
+                axios.get('/project/getContent', {params: {projectId: projectId, morePath: path}})
                     .then(results => {
                         if (results.data.code === 20000) {
                             let allContent = results.data.data
@@ -271,7 +268,7 @@
                 this.uploadSrc = './uploadFile.html?' + project.projectId + '?' + project.projectName
                 this.actionBannerSrc = './latestActionBanner.html?' + project.projectId
                 this.handleCurrentChange(1)
-                this.getProjectContent(project.projectId)
+                this.getContent(project.projectId)
             },
             getProjectPath() {
 

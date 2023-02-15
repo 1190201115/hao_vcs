@@ -9,4 +9,6 @@ public interface FileService {
     boolean renameFile(String oldName, String newName);
 
     boolean deleteFile(String fileName);
+
+    R getFileContent(String path);
 }

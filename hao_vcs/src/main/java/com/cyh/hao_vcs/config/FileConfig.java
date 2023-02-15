@@ -9,14 +9,14 @@ import java.util.HashMap;
 public class FileConfig {
 
     public static HashMap<Integer, String> pathMap = new HashMap<>();
-    public static final String DOC_PATH = "D:\\ADeskTop\\project\\bigWork\\hao_vcs\\src\\main\\resources\\static\\text\\doc\\";
-    public static final String PDF_PATH = "D:\\ADeskTop\\project\\bigWork\\hao_vcs\\src\\main\\resources\\static\\text\\pdf\\";
-    public static final String TXT_PATH = "D:\\ADeskTop\\project\\bigWork\\hao_vcs\\src\\main\\resources\\static\\text\\txt\\";
-    public static final String DOCX_PATH = "D:\\ADeskTop\\project\\bigWork\\hao_vcs\\src\\main\\resources\\static\\text\\docx\\";
-    public static final String IMAGE_PATH = "D:\\ADeskTop\\project\\bigWork\\hao_vcs\\src\\main\\resources\\static\\image\\";
+    public static final String DOC_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\doc\\";
+    public static final String PDF_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\pdf\\";
+    public static final String TXT_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\txt\\";
+    public static final String DOCX_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\docx\\";
+    public static final String IMAGE_PATH = "D:\\ADeskTop\\project\\bigWork\\image\\";
     public static final String PROJECT_PATH = "D:\\ADeskTop\\project\\bigWork\\repository\\";
-    public static final String IMAGE_RELATIVE_PATH = "../../image/";
     public static final Integer UNKNOWN_FILE = -1;
+    public static final Integer EMPTY_FILE = 0;
     public static final Integer DOC_FILE = 1;
     public static final Integer DOCX_FILE = 2;
     public static final Integer TXT_FILE = 3;
