@@ -142,7 +142,7 @@ public class FileUtil {
                         tempFileList.length == 1) {
                     File tempFile = tempFileList[0];
                     if(tempFileList[0].isDirectory()){
-                        tempDirName = tempDirName + "//" + tempFile.getName();
+                        tempDirName = tempDirName + "\\" + tempFile.getName();
                         tempFileList = tempFileList[0].listFiles();
                     }else{
                         break;

@@ -63,8 +63,8 @@ public class FileController {
 
     @PostMapping("/uploadFile")
     public R uploadFile(@RequestParam("id") Long projectId, @RequestParam("file") MultipartFile file,
-                             @RequestParam("name") String projectName) {
-        if(fileBaseImfService.insertFileIntoProject(projectId, projectName, file)){
+                             @RequestParam("name") String projectName, @RequestParam("path") String path) {
+        if(fileBaseImfService.insertFileIntoProject(projectId, projectName, file, path)){
             return R.success("上传成功");
         }
         return R.error("上传失败");

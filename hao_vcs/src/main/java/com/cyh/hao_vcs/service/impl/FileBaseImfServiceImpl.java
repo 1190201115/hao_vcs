@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.cyh.hao_vcs.common.StatusEnum.*;
@@ -27,8 +28,11 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
 
 
     @Override
-    public boolean insertFileIntoProject(Long projectId, String projectName, MultipartFile file) {
+    public boolean insertFileIntoProject(Long projectId, String projectName, MultipartFile file, String path) {
         String projectPath = FileUtil.getProjectPath(projectId, projectName);
+        if(!Objects.isNull(path)){
+            projectPath += path;
+        }
         String fileId = FileUtil.saveFile(projectPath, file);
         if(!StringUtils.isNullOrEmpty(fileId)){
             FileBaseImf fileBaseImf = new FileBaseImf(fileId, file.getOriginalFilename(), INIT_VERSION, DELETE_SAFE);

@@ -76,7 +76,7 @@
                     style="border: medium none;width: 100%;height: 750px"></iframe>
         </el-col>
     </div>
-    <div v-show="showProject">
+    <div v-if="showProject">
         <el-container>
             <el-header style="height: 100px; background-color: #f3f5f5">
                 <br>
@@ -178,9 +178,9 @@
                 showList: [],
                 dirNum: 5,
                 fileNum: 10,
-                dirList: [1, 2, 3, 4, 5],
-                fileList: [3, 4, 5, 6, 7],
-                allList: [1, 2, 3, 4, 5, 3, 4, 5, 6, 7],
+                dirList: ['啊', 'ab', 3, 4, 5],
+                fileList: [ 6, 7,8,9,10],
+                allList: ['啊', 'ab', 3, 4, 5, 6, 7,8,9,10],
                 path: '',
             }
         },
@@ -193,12 +193,14 @@
                 if(this.path === ''){
                     this.handleSelect('depot')
                 }else{
+                    this.uploadSrc = this.uploadSrc.substring(0,this.uploadSrc.lastIndexOf('/') - 1)
                     this.path = this.path.substring(0,this.path.lastIndexOf('\\'))
                     this.getProjectContent(this.selectedProject.projectId, this.path)
                 }
             },
             getPath(link) {
-                this.path = this.path + '\\' + link;
+                this.path = this.path + '\\' + link
+                this.uploadSrc = this.uploadSrc + '?' + '/' + link;
                 this.getProjectContent(this.selectedProject.projectId, this.path)
             },
             getProjectContent(projectId, path) {
@@ -268,6 +270,7 @@
                 this.selectedProject = project
                 this.uploadSrc = './uploadFile.html?' + project.projectId + '?' + project.projectName
                 this.actionBannerSrc = './latestActionBanner.html?' + project.projectId
+                this.handleCurrentChange(1)
                 this.getProjectContent(project.projectId)
             },
             getProjectPath() {
@@ -297,7 +300,6 @@
                 }
             },
             setProjectList(result) {
-                console.log(result)
                 if (result.data.code === 20000) {
                     this.projectList = result.data.data
                     this.showProjectList = true

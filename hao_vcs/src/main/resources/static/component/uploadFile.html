@@ -28,13 +28,15 @@
         data() {
             return {
                 fileList: [],
-                projectId: 1,
+                projectId: 0,
                 projectName: '',
+                path: '',
             }
         },
         mounted() {
             this.projectId = window.location.search.split("?")[1]
             this.projectName = decodeURI(window.location.search.split("?")[2])
+            this.path = decodeURI(window.location.search.split("?")[3].replace('/', '\\'))
         },
         methods: {
             clearFiles() {
@@ -48,6 +50,7 @@
                     });
                 } else {
                     this.$refs.upload.submit();
+                    this.$message.success('上传成功')
                 }
             },
             // handleRemove(file, fileList) {
@@ -62,6 +65,7 @@
                 formData.append("file",file.file)
                 formData.append("id", this.projectId)
                 formData.append("name",this.projectName)
+                formData.append("path", this.path)
                 axios.post('../file/uploadFile', formData, {
                     "Content-Type": "multipart/form-data;charset=utf-8"
                 }).then(res => {

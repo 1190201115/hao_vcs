@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface FileBaseImfService {
 
-    boolean insertFileIntoProject(Long projectId, String projectName, MultipartFile file);
+    boolean insertFileIntoProject(Long projectId, String projectName, MultipartFile file, String path);
 
     List<String> getFileRealName(List<String> fileNameList);
 
