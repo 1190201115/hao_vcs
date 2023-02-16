@@ -11,5 +11,7 @@ public interface FileBaseImfService {
 
     List<String> getFileRealName(List<String> fileNameList);
 
+    String getFileRealName(String fileName);
+
 
 }

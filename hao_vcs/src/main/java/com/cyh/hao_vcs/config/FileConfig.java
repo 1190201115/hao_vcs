@@ -15,6 +15,7 @@ public class FileConfig {
     public static final String DOCX_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\docx\\";
     public static final String IMAGE_PATH = "D:\\ADeskTop\\project\\bigWork\\image\\";
     public static final String PROJECT_PATH = "D:\\ADeskTop\\project\\bigWork\\repository\\";
+    public static final String TEXT_FILE = "text";
     public static final Integer UNKNOWN_FILE = -1;
     public static final Integer EMPTY_FILE = 0;
     public static final Integer DOC_FILE = 1;

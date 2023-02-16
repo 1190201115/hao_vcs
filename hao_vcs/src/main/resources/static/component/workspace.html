@@ -96,7 +96,8 @@
                 <div v-show="showProjectContent" style="height: 50px;">
                     <el-button @click="uploadFileVisible = true">上传文件</el-button>
                     <el-button @click="downloadProject">下载工程</el-button>
-                    <el-dialog title="文件上传" :visible.sync="uploadFileVisible">
+                    <el-dialog title="文件上传" :visible.sync="uploadFileVisible"
+                               @close='closeFileUpload'>
                         <iframe id="uploadFile" :src="uploadSrc"
                                 style="border: medium none;height: 100%; width: 100%;"></iframe>
                     </el-dialog>
@@ -110,7 +111,7 @@
                         <div v-for="(file, index) in showList" :key="file" class="text item">
                             <span v-if="startIndex + index < dirNum"><i class="el-icon-folder"></i> </span>
                             <span v-else><i class="el-icon-document"></i> </span>
-                            <el-button type="text" @click="getPath(file)">{{file}}</el-button>
+                            <el-button type="text" @click="getPath(file,startIndex+index)">{{file}}</el-button>
                             <el-divider></el-divider>
                         </div>
                     </el-card>
@@ -176,7 +177,6 @@
                 dirNum: 5,
                 fileNum: 10,
                 dirList: ['啊', 'ab', 3, 4, 5],
-                fileList: [ 6, 7,8,9,10],
                 allList: ['啊', 'ab', 3, 4, 5, 6, 7,8,9,10],
                 path: '',
             }
@@ -186,33 +186,42 @@
             this.getAllProject()
         },
         methods: {
+            closeFileUpload(){
+                this.getDirContent(this.selectedProject.projectId, this.path)
+            },
             goBack(){
                 if(this.path === ''){
                     this.handleSelect('depot')
                 }else{
                     this.uploadSrc = this.uploadSrc.substring(0,this.uploadSrc.lastIndexOf('/') - 1)
                     this.path = this.path.substring(0,this.path.lastIndexOf('\\'))
-                    this.getContent(this.selectedProject.projectId, this.path)
+                    this.getDirContent(this.selectedProject.projectId, this.path)
                 }
             },
-            getPath(link) {
-                this.path = this.path + '\\' + link
-                this.uploadSrc = this.uploadSrc + '?' + '/' + link;
-                this.getContent(this.selectedProject.projectId, this.path)
+            getPath(link, index) {
+                if(index < this.dirNum){
+                    this.path = this.path + '\\' + link
+                    this.uploadSrc = this.uploadSrc + '?' + '/' + link;
+                    this.getDirContent(this.selectedProject.projectId, this.path)
+                }else{
+                    this.getFileContent(this.selectedProject.projectId, this.path.replace('\\','/') + '/'+ link)
+                }
             },
-            getContent(projectId, path) {
-                axios.get('/project/getContent', {params: {projectId: projectId, morePath: path}})
+            getFileContent(projectId,path){
+                let editUrl = '../page/editor.html?' + projectId +'?'+path
+                window.open(editUrl)
+            },
+            getDirContent(projectId, path) {
+                axios.get('/project/getDirContent', {params: {projectId: projectId, morePath: path}})
                     .then(results => {
                         if (results.data.code === 20000) {
-                            let allContent = results.data.data
-                            this.dirList = allContent.dir
-                            this.fileList = allContent.file
-                            this.dirNum = this.dirList.length
-                            this.allList = this.dirList.concat(this.fileList)
-                            this.fileNum = this.allList.length
-                            this.handleCurrentChange(this.currentPage)
-                        } else {
-                            return null;
+                                let allContent = results.data.data
+                                this.dirNum = allContent.dir.length
+                                this.allList = allContent.dir.concat(allContent.file)
+                                this.fileNum = this.allList.length
+                                this.handleCurrentChange(this.currentPage)
+                            } else {
+                            this.$message.error('获取文件夹内容失败!')
                         }
                     })
             },
@@ -268,7 +277,7 @@
                 this.uploadSrc = './uploadFile.html?' + project.projectId + '?' + project.projectName
                 this.actionBannerSrc = './latestActionBanner.html?' + project.projectId
                 this.handleCurrentChange(1)
-                this.getContent(project.projectId)
+                this.getDirContent(project.projectId)
             },
             getProjectPath() {
 

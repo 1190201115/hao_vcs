@@ -1,9 +1,12 @@
 package com.cyh.hao_vcs.service.impl;
 
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.common.StatusEnum;
+import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.cyh.hao_vcs.service.FileService;
 import com.cyh.hao_vcs.utils.Classifier;
+import com.cyh.hao_vcs.utils.Converter;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
@@ -105,8 +108,14 @@ public class FileServiceImpl implements FileService {
     }
 
     public R getFileContent(String path){
-        Classifier.getHtmlPath(path);
-        return R.success("a");
+        R result = Classifier.getHtmlPath(path);
+        if(StatusEnum.SUCCESS.equals(result.getCode())){
+            if(FileConfig.TEXT_FILE.equals(result.getMsg())){
+                return R.success(Converter.htmlToString(result.getData().toString()), FileConfig.TEXT_FILE);
+            }
+        }
+         return null;
+
     }
 
 //    @Override

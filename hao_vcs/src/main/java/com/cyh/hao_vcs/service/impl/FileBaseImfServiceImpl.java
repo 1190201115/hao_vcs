@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.cyh.hao_vcs.common.StatusEnum.*;
+import static com.cyh.hao_vcs.utils.FileUtil.getSuffix;
 import static com.cyh.hao_vcs.utils.FileUtil.removeSuffix;
 
 @Service
@@ -48,5 +49,12 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
         return fileBaseImfMapper.selectList(queryWrapper).stream().map(
                 fileBaseImf -> fileBaseImf.getFileName()
         ).collect(Collectors.toList());
+    }
+
+    @Override
+    public String getFileRealName(String fileName) {
+        QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("file_name", fileName);
+        return fileBaseImfMapper.selectOne(queryWrapper).getFileId()+fileName.substring(fileName.lastIndexOf("."));
     }
 }

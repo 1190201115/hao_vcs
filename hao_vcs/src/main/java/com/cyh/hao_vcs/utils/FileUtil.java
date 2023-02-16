@@ -171,4 +171,8 @@ public class FileUtil {
         ).collect(Collectors.toList());
         return preNameList;
     }
+
+    public static String removeSuffix(String name){
+        return name.substring(0,name.lastIndexOf("."));
+    }
 }

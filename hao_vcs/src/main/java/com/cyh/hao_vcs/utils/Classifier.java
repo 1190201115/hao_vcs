@@ -1,5 +1,6 @@
 package com.cyh.hao_vcs.utils;
 
+import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.config.FileConfig;
 import org.springframework.util.StringUtils;
 
@@ -8,18 +9,18 @@ import java.util.Objects;
 
 public class Classifier {
 
-    public static String getHtmlPath(String path){
+    public static R getHtmlPath(String path){
         File file = new File(path);
         String fileName = file.getName();
         if (StringUtils.isEmpty(fileName)) {
-            return "文件名为空";
+            return R.warn("文件名为空");
         }
         String suffix = fileName.substring(fileName.indexOf(".") + 1);
         String result = textClassifier(suffix, fileName, path);
         if(!Objects.isNull(result)){
-            return result;
+            return R.success(result,FileConfig.TEXT_FILE);
         }
-        return null;
+        return R.error(null);
     }
 
     public static String textClassifier(String suffix, String fileName, String path) {

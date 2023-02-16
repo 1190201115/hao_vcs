@@ -2,6 +2,7 @@ package com.cyh.hao_vcs.controller;
 
 import com.cyh.hao_vcs.common.KeyEnum;
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.ProjectChangeBaseImf;
 
@@ -101,8 +102,8 @@ public class ProjectController {
         return R.error("删除失败");
     }
 
-    @GetMapping("/getContent")
-    public R getContent(Long projectId,String morePath){
+    @GetMapping("/getDirContent")
+    public R getDirContent(Long projectId,String morePath){
         if(Objects.isNull(projectId) || projectId <= 0){
             return R.error("工程信息异常");
         }
@@ -118,12 +119,27 @@ public class ProjectController {
             Map<String, List<String>> pageFile = FileUtil.getPageFile(path);
             List<String> fileRealName = fileBaseImfService.getFileRealName(pageFile.get(KeyEnum.FILE_KEY));
             pageFile.put(KeyEnum.FILE_KEY, fileRealName);
-            return R.success(pageFile,"获得文件信息");
+            return R.success(pageFile,"dir");
         }else{
-            fileService.getFileContent(path);
-            return R.success("是个文件呢","获得文件信息");
+            return R.error("不是文件夹");
+        }
+    }
+    // morePath自带\
+    @GetMapping("/getFileContent")
+    public R getFileContent(Long projectId,String morePath) {
+        if (Objects.isNull(projectId) || projectId <= 0) {
+            return R.error("工程信息异常");
+        }
+        String path = projectBaseService.getProjectPath(projectId);
+        if (StringUtils.isEmpty(path)) {
+            return R.error("工程信息异常");
+        }
+        if (!Objects.isNull(morePath)) {
+            String fileName = morePath.substring(morePath.lastIndexOf("\\")+1);
+            fileName = fileBaseImfService.getFileRealName(fileName);
+            path = path + morePath.substring(0,morePath.lastIndexOf("\\")+1)+fileName;
+        }
+        return fileService.getFileContent(path);
         }
 
-
-    }
 }
