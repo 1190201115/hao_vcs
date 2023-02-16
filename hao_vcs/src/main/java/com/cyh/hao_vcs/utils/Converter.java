@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
 
+import static com.cyh.hao_vcs.config.FileConfig.RELATIVE_PATH;
 import static com.cyh.hao_vcs.utils.Classifier.textClassifier;
 
 public class Converter {
@@ -148,8 +149,10 @@ public static String doc2Html(String fileName, String path) {
         try {
             document = new XWPFDocument(new FileInputStream(path));
             XHTMLOptions options = XHTMLOptions.getDefault();
+            //存放照片地址
             options.setExtractor(new FileImageExtractor(new File(newDir)));
-            options.URIResolver(new BasicURIResolver(newDir.replace("\\","/")));
+            options.URIResolver(new BasicURIResolver((RELATIVE_PATH+fileName)));
+            //options.URIResolver(new BasicURIResolver(newDir.replace("\\","/")));
 //            options.setIgnoreStylesIfUnused(false);
 //            options.setFragment(true);
             targetPath = FileConfig.DOCX_PATH + nameFromFile2Html(fileName);
@@ -281,6 +284,10 @@ public static String doc2Html(String fileName, String path) {
             e.printStackTrace();
         }
         return data;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(htmlToString("D:\\ADeskTop\\project\\bigWork\\html\\docx\\test.html"));
     }
 
 }
