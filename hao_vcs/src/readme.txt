@@ -11,6 +11,7 @@ UUID fileName latestVersion
 UUID isSafeDeleted
 
 文件的存储形式为：全量存储当前文件，同时记录文件与之关联的其他版本的差异
+文件名为UUID+v+版本号。同一个文件有相同的UUID
 
 项目需要与账户绑定
 userID projectID

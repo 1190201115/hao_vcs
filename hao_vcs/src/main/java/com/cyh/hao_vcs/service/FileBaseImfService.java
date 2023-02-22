@@ -7,11 +7,13 @@ import java.util.List;
 
 public interface FileBaseImfService {
 
-    boolean insertFileIntoProject(Long projectId, String projectName, MultipartFile file, String path);
+    boolean insertFileIntoProject(Long projectId, String projectName, MultipartFile file, String path, Long userId);
 
     List<String> getFileRealName(List<String> fileNameList);
 
-    String getFileRealName(String fileName);
+    String getFileOriginId(String fileName);
 
+    String getFileIdWithVersion(String filePath);
 
+    String getFileLatestVersion(String filePath);
 }

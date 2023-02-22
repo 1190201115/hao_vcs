@@ -15,7 +15,7 @@ public class Classifier {
         if (StringUtils.isEmpty(fileName)) {
             return R.warn("文件名为空");
         }
-        String suffix = fileName.substring(fileName.indexOf(".") + 1);
+        String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
         String result = textClassifier(suffix, fileName, path);
         if(!Objects.isNull(result)){
             return R.success(result,FileConfig.TEXT_FILE);

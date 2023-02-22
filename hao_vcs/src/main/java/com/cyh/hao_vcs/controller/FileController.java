@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,9 +63,10 @@ public class FileController {
     }
 
     @PostMapping("/uploadFile")
-    public R uploadFile(@RequestParam("id") Long projectId, @RequestParam("file") MultipartFile file,
+    public R uploadFile(HttpSession session,@RequestParam("id") Long projectId, @RequestParam("file") MultipartFile file,
                              @RequestParam("name") String projectName, @RequestParam("path") String path) {
-        if(fileBaseImfService.insertFileIntoProject(projectId, projectName, file, path)){
+        Long userID = (Long)session.getAttribute("user");
+        if(fileBaseImfService.insertFileIntoProject(projectId, projectName, file, path, userID)){
             return R.success("上传成功");
         }
         return R.error("上传失败");

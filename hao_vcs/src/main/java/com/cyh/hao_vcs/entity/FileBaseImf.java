@@ -6,7 +6,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class FileBaseImf {
 private String fileId;
+private String path;
 private String fileName;
-private Integer latestVersion;
+private String latestVersion;
 private Integer deleteSafe;
 }

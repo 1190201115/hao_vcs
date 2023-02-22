@@ -70,11 +70,11 @@ public class FileUtil {
         return true;
     }
 
-    public static String saveFile(String dirPath, MultipartFile file){
+    public static String saveFile(String dirPath, String version, MultipartFile file){
         String originalFilename = file.getOriginalFilename();
         String fileFormat = originalFilename.substring(originalFilename.lastIndexOf("."));
         String uuid = UUID.randomUUID().toString().trim();
-        File localFile = new File(dirPath + File.separator + uuid + fileFormat);
+        File localFile = new File(dirPath + File.separator + uuid +VersionUtil.getVersionSuffix(version)+fileFormat);
         createDir(dirPath);
         InputStream ins = null;
         OutputStream os = null;
@@ -166,6 +166,16 @@ public class FileUtil {
         List<String> preNameList = nameList.stream().map(
                 name->{
                     int dotPos = name.lastIndexOf(".");
+                    return name.substring(0,dotPos);
+                }
+        ).collect(Collectors.toList());
+        return preNameList;
+    }
+
+    public static List<String> removeSuffixContainVersion(List<String> nameList){
+        List<String> preNameList = nameList.stream().map(
+                name->{
+                    int dotPos = name.lastIndexOf("-");
                     return name.substring(0,dotPos);
                 }
         ).collect(Collectors.toList());

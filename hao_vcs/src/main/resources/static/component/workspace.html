@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="overflow:hidden;">
 <head>
     <meta charset="UTF-8">
     <title>工作台</title>
@@ -9,7 +9,6 @@
 </head>
 <body>
 <div id="app" style=" margin:0 auto;">
-
     <el-col :span="4">
         <el-menu
                 default-active="depot"
@@ -67,8 +66,9 @@
 
         </el-col>
     </div>
-    <div v-show="showMyLike">
-        showMyLike
+    <div v-show="showMyLike" style="overflow:auto;">
+        <p style="text-align: center; margin-top: 20%;color: #9f9f9f; font-size: xx-large;">
+            还没有收藏任何工程哦~</p>
     </div>
     <div v-show="showAddProject">
         <el-col :span="20">
@@ -103,15 +103,21 @@
                     </el-dialog>
                 </div>
                 <iframe v-show="showProjectContent" id="actionBanner" :src="actionBannerSrc"
-                        style="border: none; width: 100%;height: 50px" scrolling="no"></iframe>
+                        style="border: none; width: 100%;height: 50px;" scrolling="no"></iframe>
                 <div v-show="showProjectContent">
                     <el-card class="box-card">
                         <el-page-header @back="goBack">
                         </el-page-header>
                         <div v-for="(file, index) in showList" :key="file" class="text item">
-                            <span v-if="startIndex + index < dirNum"><i class="el-icon-folder"></i> </span>
-                            <span v-else><i class="el-icon-document"></i> </span>
-                            <el-button type="text" @click="getPath(file,startIndex+index)">{{file}}</el-button>
+                            <span v-if="startIndex + index < dirNum"><i class="el-icon-folder"></i>
+                                <el-button type="text" @click="getPath(file,startIndex+index)">{{file}}</el-button>
+                            </span>
+                            <span v-else><i class="el-icon-document"></i>
+                                <el-button type="text" @click="getPath(file,startIndex+index)">{{file}}</el-button>
+                                <el-button type="text" @click="openVersionLog(file)" style="float: right">
+                                    查看历史版本
+                                </el-button>
+                            </span>
                             <el-divider></el-divider>
                         </div>
                     </el-card>
@@ -122,6 +128,18 @@
                             :page-size="pageSize"
                             @current-change="handleCurrentChange">
                     </el-pagination>
+                    <el-dialog title="版本更替信息" :visible.sync="versionLogVisible">
+                        <el-table :data="versionData" width="250"  height="300">
+                            <el-table-column property="version" label="版本号" ></el-table-column>
+                            <el-table-column property="date" label="最后更新日期"></el-table-column>
+                            <el-table-column property="actor" label="更新人"></el-table-column>
+                            <el-table-column label="操作" fixed="right" width="150">
+                                <template slot-scope="scope">
+                                    <el-button @click="handleClick(scope.row)" type="text" >查看</el-button>
+                                    <el-button type="text">切换</el-button>
+                                </template>
+                        </el-table>
+                    </el-dialog>
                 </div>
 
                 <div v-show="showProjectSettings">
@@ -177,8 +195,19 @@
                 dirNum: 5,
                 fileNum: 10,
                 dirList: ['啊', 'ab', 3, 4, 5],
-                allList: ['啊', 'ab', 3, 4, 5, 6, 7,8,9,10],
+                allList: ['啊', 'ab', 3, 4, 5, 6, 7, 8, 9, 10],
                 path: '',
+                versionLogVisible: false,
+                versionData: [{
+                    version: '1.0',
+                    date: '2023.02.21',
+                    actor: 'cyh'
+                },
+                    {
+                        version: '1.1',
+                        date: '2023.02.22',
+                        actor: 'cyh'
+                }],
             }
         },
         mounted() {
@@ -186,41 +215,47 @@
             this.getAllProject()
         },
         methods: {
-            closeFileUpload(){
+            closeFileUpload() {
                 this.getDirContent(this.selectedProject.projectId, this.path)
             },
-            goBack(){
-                if(this.path === ''){
+            goBack() {
+                if (this.path === '') {
+                    this.dirList = []
+                    this.fileList = []
+                    this.fileNum = 0
                     this.handleSelect('depot')
-                }else{
-                    this.uploadSrc = this.uploadSrc.substring(0,this.uploadSrc.lastIndexOf('/') - 1)
-                    this.path = this.path.substring(0,this.path.lastIndexOf('\\'))
+                } else {
+                    this.uploadSrc = this.uploadSrc.substring(0, this.uploadSrc.lastIndexOf('/') - 1)
+                    this.path = this.path.substring(0, this.path.lastIndexOf('\\'))
                     this.getDirContent(this.selectedProject.projectId, this.path)
                 }
             },
-            getPath(link, index) {
-                if(index < this.dirNum){
-                    this.path = this.path + '\\' + link
-                    this.uploadSrc = this.uploadSrc + '?' + '/' + link;
+            openVersionLog(file){
+                this.versionLogVisible = true
+            },
+            getPath(file, index) {
+                if (index < this.dirNum) {
+                    this.path = this.path + '\\' + file
+                    this.uploadSrc = this.uploadSrc + '?' + '/' + file;
                     this.getDirContent(this.selectedProject.projectId, this.path)
-                }else{
-                    this.getFileContent(this.selectedProject.projectId, this.path.replace('\\','/') + '/'+ link)
+                } else {
+                    this.getFileContent(this.selectedProject.projectId, this.path.replace('\\', '/') + '/' + file)
                 }
             },
-            getFileContent(projectId,path){
-                let editUrl = '../page/editor.html?' + projectId +'?'+path
+            getFileContent(projectId, path) {
+                let editUrl = '../page/editor.html?' + projectId + '?' + path
                 window.open(editUrl)
             },
             getDirContent(projectId, path) {
                 axios.get('/project/getDirContent', {params: {projectId: projectId, morePath: path}})
                     .then(results => {
                         if (results.data.code === 20000) {
-                                let allContent = results.data.data
-                                this.dirNum = allContent.dir.length
-                                this.allList = allContent.dir.concat(allContent.file)
-                                this.fileNum = this.allList.length
-                                this.handleCurrentChange(this.currentPage)
-                            } else {
+                            let allContent = results.data.data
+                            this.dirNum = allContent.dir.length
+                            this.allList = allContent.dir.concat(allContent.file)
+                            this.fileNum = this.allList.length
+                            this.handleCurrentChange(this.currentPage)
+                        } else {
                             this.$message.error('获取文件夹内容失败!')
                         }
                     })
@@ -308,9 +343,12 @@
             setProjectList(result) {
                 if (result.data.code === 20000) {
                     this.projectList = result.data.data
-                    this.showProjectList = true
-                } else {
-                    this.showProjectList = false
+                    if(this.projectList.length > 0){
+                        this.showProjectList = true
+                    }else{
+                        this.showProjectList = false
+                    }
+
                 }
             },
             getAllProject() {

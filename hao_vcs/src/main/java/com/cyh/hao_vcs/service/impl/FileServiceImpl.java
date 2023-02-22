@@ -114,7 +114,7 @@ public class FileServiceImpl implements FileService {
                 return R.success(Converter.htmlToString(result.getData().toString()), FileConfig.TEXT_FILE);
             }
         }
-         return null;
+        return R.error("获取文件内容失败");
 
     }
 

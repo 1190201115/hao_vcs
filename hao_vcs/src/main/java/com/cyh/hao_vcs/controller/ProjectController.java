@@ -126,7 +126,7 @@ public class ProjectController {
     }
     // morePath自带\
     @GetMapping("/getFileContent")
-    public R getFileContent(Long projectId,String morePath) {
+    public R getLatestFileContent(Long projectId,String morePath) {
         if (Objects.isNull(projectId) || projectId <= 0) {
             return R.error("工程信息异常");
         }
@@ -135,9 +135,8 @@ public class ProjectController {
             return R.error("工程信息异常");
         }
         if (!Objects.isNull(morePath)) {
-            String fileName = morePath.substring(morePath.lastIndexOf("\\")+1);
-            fileName = fileBaseImfService.getFileRealName(fileName);
-            path = path + morePath.substring(0,morePath.lastIndexOf("\\")+1)+fileName;
+            String fileId = fileBaseImfService.getFileIdWithVersion(projectBaseService.getProjectPath(projectId)+morePath);
+            path = path + morePath.substring(0,morePath.lastIndexOf("\\")+1)+fileId;
         }
         return fileService.getFileContent(path);
         }
