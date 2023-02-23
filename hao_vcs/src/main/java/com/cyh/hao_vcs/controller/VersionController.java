@@ -1,24 +1,35 @@
 package com.cyh.hao_vcs.controller;
 
 import com.cyh.hao_vcs.common.R;
-import com.cyh.hao_vcs.entity.ProjectBaseImf;
+import com.cyh.hao_vcs.service.FileBaseImfService;
+import com.cyh.hao_vcs.service.FileVersionImfService;
+import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.utils.FileUtil;
-import com.qiniu.util.StringUtils;
+import com.cyh.hao_vcs.utils.VersionUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpSession;
-import java.util.List;
-import java.util.Objects;
+import java.io.File;
+
 
 @RestController
 @RequestMapping("/version")
 public class VersionController {
 
+    @Autowired
+    FileBaseImfService fileBaseImfService;
+
+    @Autowired
+    ProjectBaseService projectBaseService;
+
+    @Autowired
+    FileVersionImfService fileVersionImfService;
+
     @PostMapping("/updateText")
     public R updateText(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath,
                         @RequestParam("content") String content) {
-        return R.success("查询成功");
+        fileVersionImfService.updateText(projectId,morePath,content,0);
+        return R.success("更新成功");
     }
 
 }

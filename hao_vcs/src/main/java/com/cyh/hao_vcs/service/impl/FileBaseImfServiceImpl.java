@@ -52,7 +52,7 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
         if(!StringUtils.isNullOrEmpty(fileId)){
             FileBaseImf fileBaseImf = new FileBaseImf(fileId, projectPath,file.getOriginalFilename(), INIT_VERSION, DELETE_SAFE);
             FileVersionImf fileVersionImf = new FileVersionImf(fileId, INIT_VERSION, LocalDateTime.now(),
-                    userMapper.selectById(userId).getUsername());
+                    userMapper.selectById(userId).getUsername(),"创建文件");
             return fileBaseImfMapper.insert(fileBaseImf) == 1 && fileVersionImfMapper.insert(fileVersionImf) == 1;
         }
         return false;
@@ -92,4 +92,19 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
         queryWrapper.eq("path", filePath.substring(0,filePath.lastIndexOf('\\')));
         return fileBaseImfMapper.selectOne(queryWrapper).getLatestVersion();
     }
+
+    @Override
+    public String updateFileLatestVersion(String filePath, Integer updateKind) {
+        String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
+        QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("file_name", fileName);
+        queryWrapper.eq("path", filePath.substring(0,filePath.lastIndexOf('\\')));
+        FileBaseImf fileBaseImf = fileBaseImfMapper.selectOne(queryWrapper);
+        String version = VersionUtil.getNextVersion(fileBaseImf.getLatestVersion(),updateKind);
+        fileBaseImf.setLatestVersion(version);
+        fileBaseImfMapper.updateById(fileBaseImf);
+        return version;
+    }
+
+
 }

@@ -16,4 +16,6 @@ public interface FileBaseImfService {
     String getFileIdWithVersion(String filePath);
 
     String getFileLatestVersion(String filePath);
+
+    String updateFileLatestVersion(String filePath, Integer updateKind);
 }

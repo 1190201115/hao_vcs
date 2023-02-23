@@ -30,7 +30,6 @@ import java.nio.file.Paths;
 import java.util.Objects;
 
 import static com.cyh.hao_vcs.config.FileConfig.RELATIVE_PATH;
-import static com.cyh.hao_vcs.utils.Classifier.textClassifier;
 
 public class Converter {
 
@@ -208,7 +207,7 @@ public static String doc2Html(String fileName, String path) {
     }
 
     public static String nameFromFile2Html(String fileName){
-        return fileName.substring(0, fileName.indexOf(".")) + ".html";
+        return fileName.substring(0, fileName.lastIndexOf(".")) + ".html";
     }
 
 //    public static String docxToHtml(String fileName) {

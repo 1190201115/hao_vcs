@@ -24,13 +24,20 @@
                 editor: null,
                 text: 'if you see this, please refresh',
                 projectId: '',
-                path: '',
+                path: 'qq',
                 showTextEditor: false,
+                form: {
+                        projectId : '',
+                        path : 'qq',
+                        content: ''
+                    }
             }
         },
         mounted() {
             this.projectId = window.location.search.split("?")[1]
             this.path = decodeURI(window.location.search.split("?")[2].replaceAll('/','\\'))
+            this.form.projectId = this.projectId
+            this.form.path = this.path
             this.getContent(this.projectId, this.path)
         },
         methods: {
@@ -67,14 +74,19 @@
                 });
                 CKEDITOR.plugins.registered['save'] =
                     {
-                        init : function( editor )
+                        init : function( editor)
                         {
+                            editor.form = this.form,
                             editor.addCommand( 'save',
                                 {
                                     modes : { wysiwyg:1, source:1 },
-                                    exec : function( editor ) {
-                                        let content =editor.getData();
-                                        axios.post('/text/doc', {fileName: 'test.doc', content: content}).then(results => {
+                                    exec : function(editor) {
+                                        let form = new FormData()
+                                        form.append("content", editor.getData())
+                                        form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/','\\')))
+                                        form.append("projectId", window.location.search.split("?")[1])
+                                        console.log(form)
+                                        axios.post('/version/updateText', form).then(results => {
                                             alert(results.data.msg)
                                         })
                                     }

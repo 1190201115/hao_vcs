@@ -70,6 +70,33 @@ public class FileUtil {
         return true;
     }
 
+    public static String saveTextAsHtml(String fileName, String fileIdWithVersion, String content){
+        String suffix = fileName.substring(fileName.lastIndexOf(".")+1);
+        String path = null;
+        if (Objects.equals(suffix, "doc")) {
+            path = FileConfig.DOC_PATH+fileIdWithVersion+".html";
+        }
+        if (Objects.equals(suffix, "docx")) {
+            path = FileConfig.DOCX_PATH+fileIdWithVersion+".html";
+        }
+        if (Objects.equals(suffix, "txt")) {
+            path = FileConfig.TXT_PATH+fileIdWithVersion+".html";
+        }
+        if (Objects.equals(suffix, "pdf")) {
+            path = FileConfig.PDF_PATH+fileIdWithVersion+".html";
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(path);
+            OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+            writer.write(content);
+            writer.flush();
+            fos.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return path;
+    }
+
     public static String saveFile(String dirPath, String version, MultipartFile file){
         String originalFilename = file.getOriginalFilename();
         String fileFormat = originalFilename.substring(originalFilename.lastIndexOf("."));
