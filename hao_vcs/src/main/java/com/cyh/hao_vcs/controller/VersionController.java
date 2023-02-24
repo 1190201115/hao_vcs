@@ -1,6 +1,7 @@
 package com.cyh.hao_vcs.controller;
 
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.entity.FileVersionImf;
 import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.util.List;
+import java.util.Objects;
 
 
 @RestController
@@ -31,6 +34,15 @@ public class VersionController {
                         @RequestParam("content") String content, HttpSession session) {
         fileVersionImfService.updateText(projectId,morePath,content,0,(Long)session.getAttribute("user"));
         return R.success("更新成功");
+    }
+
+    @GetMapping("/getVersionList")
+    public R getVersionList(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath) {
+        List<FileVersionImf> resList = fileVersionImfService.getVersionList(projectId,morePath);
+        if(Objects.isNull(resList) || resList.isEmpty()){
+            return R.warn("版本号查询异常");
+        }
+        return R.success(resList,"版本列表查询成功");
     }
 
 }

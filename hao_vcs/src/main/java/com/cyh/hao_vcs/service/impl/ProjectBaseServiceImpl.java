@@ -87,7 +87,6 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
 
     private List<Long> collectList(QueryWrapper<UserProject> queryWrapper) {
-        Object ob = user2ProjectMapper.selectList(queryWrapper);
         List<Long> idList = user2ProjectMapper.selectList(queryWrapper)
                 .stream()
                 .map(userProject -> userProject.getProjectId())

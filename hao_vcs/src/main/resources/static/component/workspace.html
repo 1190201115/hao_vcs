@@ -129,16 +129,18 @@
                             @current-change="handleCurrentChange">
                     </el-pagination>
                     <el-dialog title="版本更替信息" :visible.sync="versionLogVisible">
-                        <el-table :data="versionData" width="250"  height="300">
-                            <el-table-column property="version" label="版本号" ></el-table-column>
-                            <el-table-column property="date" label="最后更新日期"></el-table-column>
-                            <el-table-column property="actor" label="更新人"></el-table-column>
-                            <el-table-column label="操作" fixed="right" width="200">
+                        <el-table :data="versionImf" height="300">
+                            <el-table-column property="version" label="版本号" width="100"></el-table-column>
+                            <el-table-column property="saveTime" label="最后更新日期" width="175"></el-table-column>
+                            <el-table-column property="latestActor" label="更新人" width="100"></el-table-column>
+                            <el-table-column property="latestAction" label="更新日志" width="200"></el-table-column>
+                            <el-table-column label="操作" fixed="right" width="150">
                                 <template slot-scope="scope">
                                     <el-button @click="handleClick(scope.row)" type="text" >对比</el-button>
                                     <el-button type="text">切换</el-button>
                                     <el-button type="text" style="color: red">删除</el-button>
                                 </template>
+                            </el-table-column>
                         </el-table>
                     </el-dialog>
                 </div>
@@ -199,16 +201,12 @@
                 allList: ['啊', 'ab', 3, 4, 5, 6, 7, 8, 9, 10],
                 path: '',
                 versionLogVisible: false,
-                versionData: [{
+                versionImf: [{
                     version: '1.0',
-                    date: '2023.02.21',
-                    actor: 'cyh'
-                },
-                    {
-                        version: '1.1',
-                        date: '2023.02.22',
-                        actor: 'cyh'
-                }],
+                    saveTime: '2023-02-24T17:40:11',
+                    latestActor: 'cyh',
+                    latestAction: '更新x'
+                },],
             }
         },
         mounted() {
@@ -232,6 +230,16 @@
                 }
             },
             openVersionLog(file){
+                axios.get('/version/getVersionList',
+                    {
+                        params:
+                            {projectId: this.selectedProject.projectId, morePath: this.path + '\\' + file}
+                    }).then(
+                    result => {
+                        console.log(result)
+                        this.versionImf = result.data.data
+                        console.log(this.versionImf)
+                    })
                 this.versionLogVisible = true
             },
             getPath(file, index) {

@@ -1,6 +1,8 @@
 package com.cyh.hao_vcs.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyh.hao_vcs.config.FileConfig;
+import com.cyh.hao_vcs.entity.FileBaseImf;
 import com.cyh.hao_vcs.entity.FileVersionImf;
 import com.cyh.hao_vcs.mapper.FileVersionImfMapper;
 import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
@@ -15,7 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.sql.Wrapper;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.cyh.hao_vcs.config.VersionConfig.UPDATE_FILE;
 
@@ -49,5 +54,13 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         return FileUtil.saveTextAsHtml(morePath.substring(morePath.lastIndexOf("\\")+1),
                 fileId+ VersionUtil.LOGO+version,content);
 
+    }
+
+    @Override
+    public List<FileVersionImf> getVersionList(Long projectId, String morePath) {
+        String fileId = fileBaseImfService.getFileOriginId(projectBaseService.getProjectPath(projectId) + morePath);
+        QueryWrapper<FileVersionImf> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("file_id", fileId);
+        return fileVersionImfMapper.selectList(queryWrapper);
     }
 }
