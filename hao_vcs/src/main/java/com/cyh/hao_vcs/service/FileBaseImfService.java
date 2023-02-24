@@ -11,7 +11,7 @@ public interface FileBaseImfService {
 
     List<String> getFileRealName(List<String> fileNameList);
 
-    String getFileOriginId(String fileName);
+    String getFileOriginId(String filePath);
 
     String getFileIdWithVersion(String filePath);
 

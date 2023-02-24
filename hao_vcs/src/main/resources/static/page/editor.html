@@ -45,13 +45,11 @@
                 console.log(path)
                 axios.get('/project/getFileContent', {params: {projectId: projectId, morePath: path}})
                     .then(results => {
-                        console.log(results)
                         if (results.data.code === 20000) {
                             let msg = results.data.msg
                             let data = results.data.data
-                            console.log(msg)
                             if(msg === 'text'){
-                                console.log('in')
+                                console.log(data)
                                 this.initCKEditor()
                                 CKEDITOR.instances.textEditor.setData(data)
                                 this.showTextEditor = true

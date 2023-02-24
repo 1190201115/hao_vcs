@@ -1,16 +1,23 @@
 package com.cyh.hao_vcs.service.impl;
 
 import com.cyh.hao_vcs.config.FileConfig;
+import com.cyh.hao_vcs.entity.FileVersionImf;
+import com.cyh.hao_vcs.mapper.FileVersionImfMapper;
 import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
 import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
+import com.cyh.hao_vcs.service.UserService;
 import com.cyh.hao_vcs.utils.FileUtil;
+import com.cyh.hao_vcs.utils.VersionUtil;
 import com.qiniu.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.time.LocalDateTime;
+
+import static com.cyh.hao_vcs.config.VersionConfig.UPDATE_FILE;
 
 @Service
 public class FileVersionImfServiceImpl implements FileVersionImfService {
@@ -19,20 +26,28 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
     ProjectBaseMapper projectBaseMapper;
 
     @Autowired
+    FileVersionImfMapper fileVersionImfMapper;
+
+    @Autowired
     FileBaseImfService fileBaseImfService;
 
     @Autowired
     ProjectBaseService projectBaseService;
 
+    @Autowired
+    UserService userService;
+
 
 
     @Override
-    public String updateText(Long projectId, String morePath, String content, Integer updateKind) {
+    public String updateText(Long projectId, String morePath, String content, Integer updateKind, Long actorId) {
         String path = projectBaseService.getProjectPath(projectId);
-        fileBaseImfService.updateFileLatestVersion(path + morePath, updateKind);
-        String fileId = fileBaseImfService.getFileIdWithVersion(path + morePath);
+        String version = fileBaseImfService.updateFileLatestVersion(path + morePath, updateKind);
+        String fileId = fileBaseImfService.getFileOriginId(path + morePath);
+        fileVersionImfMapper.insert(new FileVersionImf(fileId,version, LocalDateTime.now(),
+                userService.getById(actorId).getUsername(),UPDATE_FILE));
         return FileUtil.saveTextAsHtml(morePath.substring(morePath.lastIndexOf("\\")+1),
-                fileId.substring(0,fileId.lastIndexOf(".")),content);
+                fileId+ VersionUtil.LOGO+version,content);
 
     }
 }

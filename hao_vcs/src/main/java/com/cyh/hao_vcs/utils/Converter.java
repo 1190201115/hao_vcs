@@ -125,7 +125,7 @@ public static String doc2Html(String fileName, String path) {
                 e.printStackTrace();
             }
             //html读取照片的地址
-            return picPath;
+            return RELATIVE_PATH+fileName+File.separator+name;
         });
         wordToHtmlConverter.processDocument(new HWPFDocument(new FileInputStream(path)));
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -286,7 +286,7 @@ public static String doc2Html(String fileName, String path) {
     }
 
     public static void main(String[] args) {
-        System.out.println(htmlToString("D:\\ADeskTop\\project\\bigWork\\html\\docx\\test.html"));
+
     }
 
 }

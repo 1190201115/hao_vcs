@@ -109,7 +109,7 @@ public class ProjectController {
         }
         String path = projectBaseService.getProjectPath(projectId);
         if(StringUtils.isEmpty(path)){
-            return R.error("工程信息异常");
+            return R.warn("空白工程");
         }
         if(!Objects.isNull(morePath))
         {

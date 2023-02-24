@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.cyh.hao_vcs.common.StatusEnum.*;
+import static com.cyh.hao_vcs.config.VersionConfig.CREATE_FILE;
 import static com.cyh.hao_vcs.utils.FileUtil.*;
 
 @Service
@@ -52,7 +53,7 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
         if(!StringUtils.isNullOrEmpty(fileId)){
             FileBaseImf fileBaseImf = new FileBaseImf(fileId, projectPath,file.getOriginalFilename(), INIT_VERSION, DELETE_SAFE);
             FileVersionImf fileVersionImf = new FileVersionImf(fileId, INIT_VERSION, LocalDateTime.now(),
-                    userMapper.selectById(userId).getUsername(),"创建文件");
+                    userMapper.selectById(userId).getUsername(),CREATE_FILE);
             return fileBaseImfMapper.insert(fileBaseImf) == 1 && fileVersionImfMapper.insert(fileVersionImf) == 1;
         }
         return false;
@@ -68,10 +69,13 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
     }
 
     @Override
-    public String getFileOriginId(String fileName) {
+    public String getFileOriginId(String filePath) {
         QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
+        String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
         queryWrapper.eq("file_name", fileName);
-        return fileBaseImfMapper.selectOne(queryWrapper).getFileId()+fileName.substring(fileName.lastIndexOf("."));
+        queryWrapper.eq("path", filePath.substring(0,filePath.lastIndexOf('\\')));
+        FileBaseImf fileBaseImf = fileBaseImfMapper.selectOne(queryWrapper);
+        return fileBaseImf.getFileId();
     }
 
     @Override

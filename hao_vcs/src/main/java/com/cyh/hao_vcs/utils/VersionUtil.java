@@ -4,7 +4,7 @@ import com.cyh.hao_vcs.common.StatusEnum;
 
 public class VersionUtil {
 
-    private static final String LOGO = "-v";
+    public static final String LOGO = "-v";
     public static String getVersionSuffix(String version){
         return LOGO + version;
     }
