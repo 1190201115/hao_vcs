@@ -51,7 +51,7 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
         }
         String fileId = FileUtil.saveFile(projectPath,INIT_VERSION,file);
         if(!StringUtils.isNullOrEmpty(fileId)){
-            FileBaseImf fileBaseImf = new FileBaseImf(fileId, projectPath,file.getOriginalFilename(), INIT_VERSION, DELETE_SAFE);
+            FileBaseImf fileBaseImf = new FileBaseImf(fileId, projectPath,file.getOriginalFilename(), INIT_VERSION,INIT_VERSION,DELETE_SAFE);
             FileVersionImf fileVersionImf = new FileVersionImf(fileId, INIT_VERSION, LocalDateTime.now(),
                     userMapper.selectById(userId).getUsername(),CREATE_FILE);
             return fileBaseImfMapper.insert(fileBaseImf) == 1 && fileVersionImfMapper.insert(fileVersionImf) == 1;
@@ -70,44 +70,59 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
 
     @Override
     public String getFileOriginId(String filePath) {
-        QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
-        String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
-        queryWrapper.eq("file_name", fileName);
-        queryWrapper.eq("path", filePath.substring(0,filePath.lastIndexOf('\\')));
-        FileBaseImf fileBaseImf = fileBaseImfMapper.selectOne(queryWrapper);
+        FileBaseImf fileBaseImf = getFileByFilePath(filePath);
         return fileBaseImf.getFileId();
     }
 
     @Override
-    public String getFileIdWithVersion(String filePath) {
-        QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
+    public String getFileIdWithCurrentVersion(String filePath) {
         String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
-        queryWrapper.eq("file_name", fileName);
-        queryWrapper.eq("path", filePath.substring(0,filePath.lastIndexOf('\\')));
-        FileBaseImf fileBaseImf = fileBaseImfMapper.selectOne(queryWrapper);
+        FileBaseImf fileBaseImf = getFileByFilePath(filePath);
+        return fileBaseImf.getFileId()+ VersionUtil.getVersionSuffix(fileBaseImf.getCurrentVersion())+fileName.substring(fileName.lastIndexOf("."));
+    }
+
+    @Override
+    public String getFileIdWithLatestVersion(String filePath) {
+        String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
+        FileBaseImf fileBaseImf = getFileByFilePath(filePath);
         return fileBaseImf.getFileId()+ VersionUtil.getVersionSuffix(fileBaseImf.getLatestVersion())+fileName.substring(fileName.lastIndexOf("."));
     }
 
     @Override
     public String getFileLatestVersion(String filePath) {
-        String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
-        QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("file_name", fileName);
-        queryWrapper.eq("path", filePath.substring(0,filePath.lastIndexOf('\\')));
-        return fileBaseImfMapper.selectOne(queryWrapper).getLatestVersion();
+        FileBaseImf fileBaseImf = getFileByFilePath(filePath);
+        return fileBaseImf.getLatestVersion();
+    }
+
+    /**
+     * 用于更新文件时，会同时将latestVersion和currentVersion同步为下一个版本
+     * @param filePath
+     * @param updateKind
+     * @return
+     */
+    @Override
+    public String updateFileLatestVersion(String filePath, Integer updateKind) {
+        FileBaseImf fileBaseImf = getFileByFilePath(filePath);
+        String version = VersionUtil.getNextVersion(fileBaseImf.getLatestVersion(),updateKind);
+        fileBaseImf.setLatestVersion(version);
+        fileBaseImf.setCurrentVersion(version);
+        fileBaseImfMapper.updateById(fileBaseImf);
+        return version;
     }
 
     @Override
-    public String updateFileLatestVersion(String filePath, Integer updateKind) {
+    public boolean checkCurrentVersion(String filePath, String newVersion){
+        FileBaseImf fileBaseImf = getFileByFilePath(filePath);
+        fileBaseImf.setCurrentVersion(newVersion);
+        return fileBaseImfMapper.updateById(fileBaseImf) == 1;
+    }
+
+    private FileBaseImf getFileByFilePath(String filePath){
         String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
         QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("file_name", fileName);
         queryWrapper.eq("path", filePath.substring(0,filePath.lastIndexOf('\\')));
-        FileBaseImf fileBaseImf = fileBaseImfMapper.selectOne(queryWrapper);
-        String version = VersionUtil.getNextVersion(fileBaseImf.getLatestVersion(),updateKind);
-        fileBaseImf.setLatestVersion(version);
-        fileBaseImfMapper.updateById(fileBaseImf);
-        return version;
+        return fileBaseImfMapper.selectOne(queryWrapper);
     }
 
 

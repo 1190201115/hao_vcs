@@ -135,7 +135,7 @@ public class ProjectController {
             return R.error("工程信息异常");
         }
         if (!Objects.isNull(morePath)) {
-            String fileId = fileBaseImfService.getFileIdWithVersion(projectBaseService.getProjectPath(projectId)+morePath);
+            String fileId = fileBaseImfService.getFileIdWithCurrentVersion(projectBaseService.getProjectPath(projectId)+morePath);
             path = path + morePath.substring(0,morePath.lastIndexOf("\\")+1)+fileId;
         }
         return fileService.getFileContent(path);

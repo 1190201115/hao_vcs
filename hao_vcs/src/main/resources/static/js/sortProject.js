@@ -14,6 +14,14 @@ function sortProject(rule, projectList, callback) {
     }
 }
 
+function sortVersionList(list){
+    list.sort((p1,p2)=>{
+        return p1.saveTime > p2.saveTime ? 1 : -1
+    })
+    return list
+
+}
+
 function publicFirst(p1,p2){
     return p2.privacy - p1.privacy;
 }

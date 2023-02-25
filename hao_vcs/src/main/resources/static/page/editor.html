@@ -49,7 +49,6 @@
                             let msg = results.data.msg
                             let data = results.data.data
                             if(msg === 'text'){
-                                console.log(data)
                                 this.initCKEditor()
                                 CKEDITOR.instances.textEditor.setData(data)
                                 this.showTextEditor = true
@@ -61,38 +60,41 @@
             },
             initCKEditor() {
                 this.editor = CKEDITOR.replace('textEditor', {
-                    uiColor: '#3a9edc',
+                    // uiColor: '#3a9edc',
                     width: '100%',
                     height: screen.height * 0.77,
-                    toolbar: [
-                        ['Source', 'Save', 'Preview'],
-                        ['Find', 'Scayt'],
-                        ['Bold', 'Italic', 'Underline', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Smiley', 'oembed']
-                    ]
+                    // toolbar: [
+                    //     ['Source', 'Save', 'Preview'],
+                    //     ['Find', 'Scayt'],
+                    //     ['Bold', 'Italic', 'Underline', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Smiley', 'oembed']
+                    // ]
                 });
-                CKEDITOR.plugins.registered['save'] =
-                    {
-                        init : function( editor)
-                        {
-                            editor.form = this.form,
-                            editor.addCommand( 'save',
-                                {
-                                    modes : { wysiwyg:1, source:1 },
-                                    exec : function(editor) {
-                                        let form = new FormData()
-                                        form.append("content", editor.getData())
-                                        form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/','\\')))
-                                        form.append("projectId", window.location.search.split("?")[1])
-                                        console.log(form)
-                                        axios.post('/version/updateText', form).then(results => {
-                                            alert(results.data.msg)
-                                        })
-                                    }
-                                }
-                            );
-                            editor.ui.addButton( 'Save', {label : '保存', command : 'save'} );
-                        }
-                    }
+                // CKEDITOR.plugins.registered['save'] =
+                //     {
+                //         init : function( editor)
+                //         {
+                //             editor.addCommand( 'save',
+                //                 {
+                //                     modes : { wysiwyg:1, source:1 },
+                //                     exec : function(editor) {
+                //                         let form = new FormData()
+                //                         form.append("content", editor.getData())
+                //                         form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/','\\')))
+                //                         form.append("projectId", window.location.search.split("?")[1])
+                //                         console.log(form)
+                //                         axios.post('/version/updateText', form).then(results => {
+                //                             if(results.data.code === 20000){
+                //                                 this.$message.success(results.data.msg)
+                //                             }else{
+                //                                 this.$message.error(results.data.msg)
+                //                             }
+                //                         })
+                //                     }
+                //                 }
+                //             );
+                //             editor.ui.addButton( 'Save', {label : '小版本保存', command : 'save'} );
+                //         }
+                //     }
             },
 
 

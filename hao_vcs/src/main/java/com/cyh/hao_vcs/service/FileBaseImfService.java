@@ -13,9 +13,13 @@ public interface FileBaseImfService {
 
     String getFileOriginId(String filePath);
 
-    String getFileIdWithVersion(String filePath);
+    String getFileIdWithCurrentVersion(String filePath);
+
+    String getFileIdWithLatestVersion(String filePath);
 
     String getFileLatestVersion(String filePath);
 
     String updateFileLatestVersion(String filePath, Integer updateKind);
+
+    boolean checkCurrentVersion(String filePath, String newVersion);
 }

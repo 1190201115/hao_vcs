@@ -9,4 +9,6 @@ public interface FileVersionImfService {
     String updateText(Long projectId, String morePath, String content, Integer updateKind, Long actorId);
 
     List<FileVersionImf> getVersionList(Long projectId, String morePath);
+
+    boolean checkFileVersion(Long projectId, String morePath, String newVersion, Long userId);
 }

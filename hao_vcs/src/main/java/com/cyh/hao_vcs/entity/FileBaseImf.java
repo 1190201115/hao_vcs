@@ -11,6 +11,7 @@ public class FileBaseImf {
     private String fileId;
     private String path;
     private String fileName;
+    private String currentVersion;
     private String latestVersion;
     private Integer deleteSafe;
 }

@@ -20,8 +20,10 @@ import java.io.File;
 import java.sql.Wrapper;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.cyh.hao_vcs.config.VersionConfig.CHECK_FILE;
 import static com.cyh.hao_vcs.config.VersionConfig.UPDATE_FILE;
 
 @Service
@@ -62,5 +64,29 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         QueryWrapper<FileVersionImf> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("file_id", fileId);
         return fileVersionImfMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public boolean checkFileVersion(Long projectId, String morePath, String newVersion, Long actorId) {
+        boolean checkCurrentVersion = fileBaseImfService.checkCurrentVersion
+                (projectBaseService.getProjectPath(projectId) + morePath, newVersion);
+        FileVersionImf fileVersionImf = getFileVersionImf(projectId, morePath, newVersion);
+        if(Objects.isNull( fileVersionImf )) return false;
+        fileVersionImf.setSaveTime(LocalDateTime.now());
+        fileVersionImf.setLatestAction(CHECK_FILE);
+        fileVersionImf.setLatestActor(userService.getById(actorId).getUsername());
+        String fileId = fileBaseImfService.getFileOriginId(projectBaseService.getProjectPath(projectId) + morePath);
+        QueryWrapper<FileVersionImf> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("file_id", fileId);
+        queryWrapper.eq("version", newVersion);
+        return fileVersionImfMapper.update(fileVersionImf,queryWrapper) == 1 && checkCurrentVersion;
+    }
+
+    private FileVersionImf getFileVersionImf(Long projectId, String morePath, String version){
+        String fileId = fileBaseImfService.getFileOriginId(projectBaseService.getProjectPath(projectId) + morePath);
+        QueryWrapper<FileVersionImf> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("file_id", fileId);
+        queryWrapper.eq("version", version);
+        return fileVersionImfMapper.selectOne(queryWrapper);
     }
 }

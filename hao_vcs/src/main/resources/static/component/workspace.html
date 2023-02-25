@@ -136,9 +136,13 @@
                             <el-table-column property="latestAction" label="更新日志" width="200"></el-table-column>
                             <el-table-column label="操作" fixed="right" width="150">
                                 <template slot-scope="scope">
-                                    <el-button @click="handleClick(scope.row)" type="text" >对比</el-button>
-                                    <el-button type="text">切换</el-button>
-                                    <el-button type="text" style="color: red">删除</el-button>
+                                    <span v-if="scope.row.version != currentVersion">
+                                        <el-button @click="compareTwoFile(scope.row)" type="text">对比</el-button>
+                                        <el-button @click="checkFileVersion(scope.row)" type="text">切换</el-button>
+                                        <el-button @click="deleteFileWithVersion(scope.row)" type="text"
+                                                   style="color: red">删除</el-button>
+                                    </span>
+                                    <span v-else style="color: #3a9edc">当前版本</span>
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -200,6 +204,7 @@
                 dirList: ['啊', 'ab', 3, 4, 5],
                 allList: ['啊', 'ab', 3, 4, 5, 6, 7, 8, 9, 10],
                 path: '',
+                selectedFile:'',
                 versionLogVisible: false,
                 versionImf: [{
                     version: '1.0',
@@ -207,6 +212,7 @@
                     latestActor: 'cyh',
                     latestAction: '更新x'
                 },],
+                currentVersion: 0,
             }
         },
         mounted() {
@@ -214,9 +220,33 @@
             this.getAllProject()
         },
         methods: {
+            compareTwoFile(row) {
+                console.log(row)
+            },
+            deleteFileWithVersion(row) {
+                console.log(row)
+            },
+            checkFileVersion(row) {
+                axios.get('/version/checkFileVersion',
+                    {
+                        params:
+                            {projectId: this.selectedProject.projectId,
+                             morePath: this.path + '\\' + this.selectedFile,
+                             version: row.version}
+                    }).then(
+                    result => {
+                        if(result.data.code === 20000){
+                            this.$message.success(result.data.msg)
+                            this.openVersionLog(this.selectedFile)
+                        }else{
+                            this.$message.error(result.data.msg)
+                        }
+                    })
+            },
             closeFileUpload() {
                 this.getDirContent(this.selectedProject.projectId, this.path)
-            },
+            }
+            ,
             goBack() {
                 if (this.path === '') {
                     this.dirList = []
@@ -228,20 +258,22 @@
                     this.path = this.path.substring(0, this.path.lastIndexOf('\\'))
                     this.getDirContent(this.selectedProject.projectId, this.path)
                 }
-            },
-            openVersionLog(file){
+            }
+            ,
+            openVersionLog(file) {
+                this.selectedFile = file,
                 axios.get('/version/getVersionList',
                     {
                         params:
                             {projectId: this.selectedProject.projectId, morePath: this.path + '\\' + file}
                     }).then(
                     result => {
-                        console.log(result)
-                        this.versionImf = result.data.data
-                        console.log(this.versionImf)
+                        this.versionImf = sortVersionList(result.data.data)
+                        this.currentVersion = this.versionImf[this.versionImf.length - 1].version
                     })
                 this.versionLogVisible = true
-            },
+            }
+            ,
             getPath(file, index) {
                 if (index < this.dirNum) {
                     this.path = this.path + '\\' + file
@@ -250,11 +282,13 @@
                 } else {
                     this.getFileContent(this.selectedProject.projectId, this.path.replace('\\', '/') + '/' + file)
                 }
-            },
+            }
+            ,
             getFileContent(projectId, path) {
                 let editUrl = '../page/editor.html?' + projectId + '?' + path
                 window.open(editUrl)
-            },
+            }
+            ,
             getDirContent(projectId, path) {
                 axios.get('/project/getDirContent', {params: {projectId: projectId, morePath: path}})
                     .then(results => {
@@ -268,13 +302,15 @@
                             this.$message.error('获取文件夹内容失败!')
                         }
                     })
-            },
+            }
+            ,
             handleCurrentChange(currentPage) {
                 this.currentPage = currentPage;
                 this.startIndex = (this.currentPage - 1) * this.pageSize
                 this.endIndex = this.currentPage * this.pageSize
                 this.showList = this.allList.slice(this.startIndex, this.endIndex)
-            },
+            }
+            ,
             deleteProject() {
                 this.$confirm('此操作将永久删除该项目, 是否继续?', '提示', {
                     confirmButtonText: '确定',
@@ -297,7 +333,8 @@
                         message: '已取消删除'
                     });
                 });
-            },
+            }
+            ,
             tabAlt(tab) {
                 let choice = tab.name
                 if (choice === 'projectContent') {
@@ -307,13 +344,16 @@
                     this.showProjectContent = false
                     this.showProjectSettings = true
                 }
-            },
+            }
+            ,
             handleMessage(e) {
                 window.location.href = './workspace.html'
-            },
+            }
+            ,
             downloadProject() {
 
-            },
+            }
+            ,
             checkProject(project) {
                 this.hideAll()
                 this.showProject = true
@@ -322,10 +362,8 @@
                 this.actionBannerSrc = './latestActionBanner.html?' + project.projectId
                 this.handleCurrentChange(1)
                 this.getDirContent(project.projectId)
-            },
-            getProjectPath() {
-
-            },
+            }
+            ,
             handleSelect(key) {
                 this.hideAll();
                 if (key === 'depot') {
@@ -336,7 +374,8 @@
                 } else if (key === 'addProject') {
                     this.showAddProject = true
                 }
-            },
+            }
+            ,
             handleClick(key) {
                 if (key === 'all') {
                     this.getAllProject()
@@ -348,39 +387,45 @@
                     key === 'latestFirst' || key === 'reverse') {
                     this.projectList = sortProject(key, this.projectList)
                 }
-            },
+            }
+            ,
             setProjectList(result) {
                 if (result.data.code === 20000) {
                     this.projectList = result.data.data
-                    if(this.projectList.length > 0){
+                    if (this.projectList.length > 0) {
                         this.showProjectList = true
-                    }else{
+                    } else {
                         this.showProjectList = false
                     }
 
                 }
-            },
+            }
+            ,
             getAllProject() {
                 axios.get('/project/all').then(results => {
                     this.setProjectList(results)
                 })
-            },
+            }
+            ,
             getOwnProject() {
                 axios.get('/project/own').then(results => {
                     this.setProjectList(results)
                 })
-            },
+            }
+            ,
             getJoinProject() {
                 axios.get('/project/join').then(results => {
                     this.setProjectList(results)
                 })
-            },
+            }
+            ,
             hideAll() {
                 this.showDepot = false
                 this.showAddProject = false
                 this.showMyLike = false
                 this.showProject = false
-            },
+            }
+            ,
 
         }
     })

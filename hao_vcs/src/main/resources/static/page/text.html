@@ -135,35 +135,35 @@
         methods: {
             initCKEditor() {
                 this.editor = CKEDITOR.replace('textEditor', {
-                    uiColor: '#3a9edc',
+                    // uiColor: '#3a9edc',
                     width: '100%',
                     height: screen.height * 0.77,
-                    toolbar: [
-                        ['Source', 'Save', 'Preview'],
-                        ['Find', 'Scayt'],
-                        ['Bold', 'Italic', 'Underline', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Smiley', 'oembed']
-                    ]
+                    // toolbar: [
+                    //     ['Source', 'Save', 'Preview','LightSave'],
+                    //     ['Find', 'Scayt'],
+                    //     ['Bold', 'Italic', 'Underline', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Smiley', 'oembed']
+                    // ]
                 });
-                CKEDITOR.plugins.registered['save'] =
-                    {
-                        init : function( editor )
-                        {
-                            editor.addCommand( 'save',
-                                {
-                                    modes : { wysiwyg:1, source:1 },
-                                    exec : function( editor ) {
-                                        let content =editor.getData();
-                                        axios.post('/text/doc', {fileName: 'test.doc', content: content}).then(results => {
-                                            alert(results.data.msg)
-                                        })
-                                    }
-                                }
-                            );
-                            editor.ui.addButton( 'Save', {label : '保存', command : 'save'} );
-                        }
-                    }
-
-            },
+            //     CKEDITOR.plugins.registered['save'] =
+            //         {
+            //             init : function( editor )
+            //             {
+            //                 editor.addCommand( 'save',
+            //                     {
+            //                         modes : { wysiwyg:1, source:1 },
+            //                         exec : function( editor ) {
+            //                             let content =editor.getData();
+            //                             axios.post('/text/doc', {fileName: 'test.doc', content: content}).then(results => {
+            //                                 alert(results.data.msg)
+            //                             })
+            //                         }
+            //                     }
+            //                 );
+            //                 editor.ui.addButton( 'Save', {label : '保存', command : 'save'} );
+            //             }
+            //         }
+            //
+             },
             getContent(){
                 axios.get('/text/doc', {params: {'fileName': '1190201115陈宇豪.doc'}}).then(results => {
                     this.text = results.data.data
