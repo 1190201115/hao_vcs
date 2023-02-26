@@ -31,8 +31,9 @@ public class VersionController {
 
     @PostMapping("/updateText")
     public R updateText(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath,
-                        @RequestParam("content") String content, @RequestParam("updateKind") Integer updateKind,HttpSession session) {
-        fileVersionImfService.updateText(projectId,morePath,content,updateKind,(Long)session.getAttribute("user"));
+                        @RequestParam("content") String content, @RequestParam("updateKind") Integer updateKind,
+                        @RequestParam("log") String log,HttpSession session) {
+        fileVersionImfService.updateText(projectId,morePath,content,updateKind, log, (Long)session.getAttribute("user"));
         return R.success("更新成功");
     }
 
@@ -52,6 +53,13 @@ public class VersionController {
             return R.success("版本切换成功");
         }
         return R.error("版本切换失败");
+    }
+
+    @GetMapping("/compareText")
+    public R compareText(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath,
+                         @RequestParam("version") String newVersion){
+        fileVersionImfService.compareText(projectId,morePath,newVersion);
+        return R.success("aa");
     }
 
 }

@@ -117,7 +117,8 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
         return fileBaseImfMapper.updateById(fileBaseImf) == 1;
     }
 
-    private FileBaseImf getFileByFilePath(String filePath){
+    @Override
+    public FileBaseImf getFileByFilePath(String filePath){
         String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
         QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("file_name", fileName);

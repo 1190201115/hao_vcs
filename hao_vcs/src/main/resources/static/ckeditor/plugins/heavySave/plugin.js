@@ -3,14 +3,18 @@ CKEDITOR.plugins.add('heavySave', {
     init: function (editor) {
         editor.addCommand('heavySave', {
             exec: function (editor) {
-                let form = new FormData()
-                form.append("content", editor.getData())
-                form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
-                form.append("projectId", window.location.search.split("?")[1])
-                form.append("updateKind",2)
-                axios.post('/version/updateText', form).then(results => {
-                    alert(results.data.msg)
-                })
+                let log = prompt("请输入更新日志");
+                if(log || log === ""){
+                    let form = new FormData()
+                    form.append("content", editor.getData())
+                    form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
+                    form.append("projectId", window.location.search.split("?")[1])
+                    form.append("updateKind",2)
+                    form.append("log", log)
+                    axios.post('/version/updateText', form).then(results => {
+                        alert(results.data.msg)
+                    })
+                }
             }
         });
         editor.ui.addButton('HeavySave', { // 添加按钮，按钮的名称会在添加按钮的时候使用

@@ -8,6 +8,7 @@ CKEDITOR.plugins.add('lightSave', {
                 form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
                 form.append("projectId", window.location.search.split("?")[1])
                 form.append("updateKind",0)
+                form.append("log", "")
                 axios.post('/version/updateText', form).then(results => {
                         alert(results.data.msg)
                 })

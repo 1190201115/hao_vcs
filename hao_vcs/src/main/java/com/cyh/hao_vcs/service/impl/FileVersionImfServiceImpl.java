@@ -1,6 +1,7 @@
 package com.cyh.hao_vcs.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.entity.FileBaseImf;
 import com.cyh.hao_vcs.entity.FileVersionImf;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.cyh.hao_vcs.config.FileConfig.DOC_PATH;
 import static com.cyh.hao_vcs.config.VersionConfig.CHECK_FILE;
 import static com.cyh.hao_vcs.config.VersionConfig.UPDATE_FILE;
 
@@ -47,12 +49,15 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
 
 
     @Override
-    public String updateText(Long projectId, String morePath, String content, Integer updateKind, Long actorId) {
+    public String updateText(Long projectId, String morePath, String content, Integer updateKind, String log, Long actorId) {
         String path = projectBaseService.getProjectPath(projectId);
+        if(StringUtils.isNullOrEmpty(log)){
+            log = UPDATE_FILE;
+        }
         String version = fileBaseImfService.updateFileLatestVersion(path + morePath, updateKind);
         String fileId = fileBaseImfService.getFileOriginId(path + morePath);
         fileVersionImfMapper.insert(new FileVersionImf(fileId,version, LocalDateTime.now(),
-                userService.getById(actorId).getUsername(),UPDATE_FILE));
+                userService.getById(actorId).getUsername(),log));
         return FileUtil.saveTextAsHtml(morePath.substring(morePath.lastIndexOf("\\")+1),
                 fileId+ VersionUtil.LOGO+version,content);
 
@@ -80,6 +85,18 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         queryWrapper.eq("file_id", fileId);
         queryWrapper.eq("version", newVersion);
         return fileVersionImfMapper.update(fileVersionImf,queryWrapper) == 1 && checkCurrentVersion;
+    }
+
+    @Override
+    public R compareText(Long projectId, String morePath, String version){
+        String filePath = projectBaseService.getProjectPath(projectId) + morePath;
+        FileBaseImf fileBaseImf = fileBaseImfService.getFileByFilePath(filePath);
+        String fileId = fileBaseImf.getFileId();
+        String currentVersion = fileBaseImf.getCurrentVersion();
+        String htmlStorePath = FileUtil.getHtmlStorePath(morePath);
+        File currentText = new File(htmlStorePath+fileId+VersionUtil.LOGO+currentVersion);
+        File compareText = new File(htmlStorePath+fileId+VersionUtil.LOGO+version);
+        return R.success("对比成功");
     }
 
     private FileVersionImf getFileVersionImf(Long projectId, String morePath, String version){

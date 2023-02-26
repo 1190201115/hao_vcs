@@ -22,4 +22,6 @@ public interface FileBaseImfService {
     String updateFileLatestVersion(String filePath, Integer updateKind);
 
     boolean checkCurrentVersion(String filePath, String newVersion);
+
+    FileBaseImf getFileByFilePath(String filePath);
 }

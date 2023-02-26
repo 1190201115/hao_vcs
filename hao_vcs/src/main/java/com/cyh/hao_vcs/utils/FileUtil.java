@@ -212,4 +212,21 @@ public class FileUtil {
     public static String removeSuffix(String name){
         return name.substring(0,name.lastIndexOf("."));
     }
+
+    public static String getHtmlStorePath(String name){
+        String suffix = name.substring(name.lastIndexOf(".") + 1);
+            if (Objects.equals(suffix, "doc")) {
+                return FileConfig.DOC_PATH;
+            }
+            if (Objects.equals(suffix, "docx")) {
+                return FileConfig.DOCX_PATH;
+            }
+            if (Objects.equals(suffix, "txt")) {
+                return FileConfig.TXT_PATH;
+            }
+            if (Objects.equals(suffix, "pdf")) {
+                return FileConfig.PDF_PATH;
+            }
+            return null;
+        }
 }

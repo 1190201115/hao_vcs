@@ -3,14 +3,18 @@ CKEDITOR.plugins.add('normalSave', {
     init: function (editor) {
         editor.addCommand('normalSave', {
             exec: function (editor) {
-                let form = new FormData()
-                form.append("content", editor.getData())
-                form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
-                form.append("projectId", window.location.search.split("?")[1])
-                form.append("updateKind",1)
-                axios.post('/version/updateText', form).then(results => {
-                    alert(results.data.msg)
-                })
+                let log = prompt("请输入更新日志");
+                if(log || log === ""){
+                    let form = new FormData()
+                    form.append("content", editor.getData())
+                    form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
+                    form.append("projectId", window.location.search.split("?")[1])
+                    form.append("updateKind",1)
+                    form.append("log", log)
+                    axios.post('/version/updateText', form).then(results => {
+                        alert(results.data.msg)
+                    })
+                }
             }
         });
         editor.ui.addButton('NormalSave', { // 添加按钮，按钮的名称会在添加按钮的时候使用

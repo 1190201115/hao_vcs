@@ -221,7 +221,16 @@
         },
         methods: {
             compareTwoFile(row) {
-                console.log(row)
+                axios.get('/version/compareText',
+                    {
+                        params:
+                            {   projectId: this.selectedProject.projectId,
+                                morePath: this.path + '\\' + this.selectedFile,
+                                version: row.version}
+                    }).then(
+                    result => {
+
+                    })
             },
             deleteFileWithVersion(row) {
                 console.log(row)
