@@ -134,18 +134,6 @@
         },
         methods: {
             initCKEditor() {
-                let log = prompt("请输入更新日志");
-                if(log || log === ""){
-                    let form = new FormData()
-                    form.append("content", editor.getData())
-                    form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
-                    form.append("projectId", window.location.search.split("?")[1])
-                    form.append("updateKind",2)
-                    form.append("log", log)
-                    axios.post('/version/updateText', form).then(results => {
-                        alert(results.data.msg)
-                    })
-                }
                 this.editor = CKEDITOR.replace('textEditor', {
                     // uiColor: '#3a9edc',
                     width: '100%',

@@ -3,18 +3,23 @@ package com.cyh.hao_vcs.config;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.io.File;
 import java.util.HashMap;
+import java.util.regex.Matcher;
 
 @Component
 public class FileConfig {
 
     public static HashMap<Integer, String> pathMap = new HashMap<>();
+    public static final String TEMP_PATH = "D:\\ADeskTop\\project\\bigWork\\temp\\";
     public static final String DOC_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\doc\\";
     public static final String PDF_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\pdf\\";
     public static final String TXT_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\txt\\";
     public static final String DOCX_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\docx\\";
     public static final String IMAGE_PATH = "D:\\ADeskTop\\project\\bigWork\\image\\";
-    //public static final String RELATIVE_PATH = "/project/image/";
+    public static final String IMAGE_PATH_REGEX = "D:" + Matcher.quoteReplacement(File.separator) + "ADeskTop"
+            + Matcher.quoteReplacement(File.separator) + "project" + Matcher.quoteReplacement(File.separator)
+            + "bigWork" + Matcher.quoteReplacement(File.separator) + "image" + Matcher.quoteReplacement(File.separator);
     public static final String RELATIVE_PATH = "/bigWork/image/";
     public static final String PROJECT_PATH = "D:\\ADeskTop\\project\\bigWork\\repository\\";
     public static final String TEXT_FILE = "text";

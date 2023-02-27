@@ -2,10 +2,16 @@ package com.cyh.hao_vcs.utils;
 
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.config.FileConfig;
+import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.Patch;
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.converter.WordToHtmlConverter;
+import org.apache.poi.poifs.filesystem.DirectoryEntry;
+import org.apache.poi.poifs.filesystem.DocumentEntry;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.xwpf.converter.core.BasicURIResolver;
 import org.apache.poi.xwpf.converter.core.FileImageExtractor;
 import org.apache.poi.xwpf.converter.xhtml.XHTMLConverter;
@@ -14,8 +20,11 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.fit.pdfdom.PDFDomTree;
 import org.fit.pdfdom.PDFDomTreeConfig;
 import org.fit.pdfdom.resource.HtmlResourceHandler;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -27,94 +36,19 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Objects;
+import java.util.*;
+import java.util.regex.Matcher;
 
-import static com.cyh.hao_vcs.config.FileConfig.RELATIVE_PATH;
+import static com.cyh.hao_vcs.config.FileConfig.*;
 
 public class Converter {
-
-
-//    public static boolean fileExists(String fileName) {
-//        return new File(getFilePath(fileName)).exists();
-//    }
-
-//    public static String getFilePath(String fileName){
-//        return FileConfig.pathMap.get(textClassifier(fileName)) + fileName;
-//    }
-//
-//    public static String wordToHtml(String fileName) {
-//        Integer kind = textClassifier(fileName);
-//        String htmlPath = null;
-//        if (Objects.equals(kind, FileConfig.UNKNOWN_FILE) || !fileExists(fileName)) {
-//            return null;
-//        }
-//        if (Objects.equals(kind, FileConfig.DOC_FILE)) {
-//            htmlPath = docToHtml(fileName);
-//        }
-//        if (Objects.equals(kind, FileConfig.DOCX_FILE)) {
-//            htmlPath = docxToHtml(fileName);
-//        }
-//        if (Objects.equals(kind, FileConfig.TXT_FILE)) {
-//            htmlPath = txtToHtml(fileName);
-//        }
-//        if (Objects.equals(kind, FileConfig.PDF_FILE)) {
-//            htmlPath = pdfToHtml(fileName);
-//        }
-//        return htmlPath;
-//    }
-
-//    public static String textToHtml(String path, Integer kind) {
-//        String htmlPath = null;
-//        if (Objects.equals(kind, FileConfig.UNKNOWN_FILE) || !fileExists(path)) {
-//            return null;
-//        }
-//        if (Objects.equals(kind, FileConfig.DOC_FILE)) {
-//            htmlPath = docToHtml(fileName);
-//        }
-//        if (Objects.equals(kind, FileConfig.DOCX_FILE)) {
-//            htmlPath = docxToHtml(fileName);
-//        }
-//        if (Objects.equals(kind, FileConfig.TXT_FILE)) {
-//            htmlPath = txtToHtml(fileName);
-//        }
-//        if (Objects.equals(kind, FileConfig.PDF_FILE)) {
-//            htmlPath = pdfToHtml(fileName);
-//        }
-//        return htmlPath;
-//    }
-
-//    public static String docToHtml(String fileName) {
-//        String targetPath = null;
-//        try {
-//            WordToHtmlConverter wordToHtmlConverter = new WordToHtmlConverter(
-//                    DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
-//            wordToHtmlConverter.setPicturesManager((content, pictureType, name, width, height) -> {
-//                try (FileOutputStream out = new FileOutputStream(FileConfig.IMAGE_PATH + name)) {
-//                    out.write(content);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                return FileConfig.IMAGE_RELATIVE_PATH + name;
-//            });
-//            wordToHtmlConverter.processDocument(new HWPFDocument(new FileInputStream(FileConfig.DOC_PATH + fileName)));
-//            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-//            transformer.setOutputProperty(OutputKeys.ENCODING, "utf-8");
-//            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-//            transformer.setOutputProperty(OutputKeys.METHOD, "html");
-//            targetPath = FileConfig.DOC_PATH + fileName.substring(0, fileName.indexOf(".")) + ".html";
-//            transformer.transform(new DOMSource(wordToHtmlConverter.getDocument()), new StreamResult(new File(targetPath)));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return targetPath;
-//    }
 
 public static String doc2Html(String fileName, String path) {
     String targetPath = null;
     try {
         WordToHtmlConverter wordToHtmlConverter = new WordToHtmlConverter(
                 DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
-        String newDir = FileConfig.IMAGE_PATH + fileName;
+        String newDir = IMAGE_PATH + fileName;
         FileUtil.createDir(newDir);
         wordToHtmlConverter.setPicturesManager((content, pictureType, name, width, height) -> {
             String picPath = newDir+File.separator+name;
@@ -143,7 +77,7 @@ public static String doc2Html(String fileName, String path) {
     public static String docx2Html(String fileName, String path) {
         String targetPath = null;
         XWPFDocument document = null;
-        String newDir = FileConfig.IMAGE_PATH+fileName;
+        String newDir = IMAGE_PATH+fileName;
         FileUtil.createDir(newDir);
         try {
             document = new XWPFDocument(new FileInputStream(path));
@@ -210,70 +144,6 @@ public static String doc2Html(String fileName, String path) {
         return fileName.substring(0, fileName.lastIndexOf(".")) + ".html";
     }
 
-//    public static String docxToHtml(String fileName) {
-//        String targetPath = null;
-//        // 1) 加载word文档生成 XWPFDocument对象
-//        XWPFDocument document = null;
-//        try {
-//            document = new XWPFDocument(new FileInputStream(FileConfig.DOCX_PATH + fileName));
-//            XHTMLOptions options = XHTMLOptions.create();
-//            // options.setExtractor(new FileImageExtractor(new File(FileConfig.IMAGE_PATH)));
-//            options.URIResolver(new BasicURIResolver(FileConfig.IMAGE_RELATIVE_PATH));
-//            options.setIgnoreStylesIfUnused(false);
-//            options.setFragment(true);
-//            targetPath = FileConfig.DOCX_PATH + fileName.substring(0, fileName.indexOf(".")) + ".html";
-//            OutputStream out = new FileOutputStream(targetPath);
-//            XHTMLConverter.getInstance().convert(document, out, options);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return targetPath;
-//    }
-
-//    public static String txtToHtml(String fileName) {
-//        String targetPth = null;
-//        try {
-//            File file = new File(FileConfig.TXT_PATH + fileName);
-//            if (file.isFile() && file.exists()) {
-//                InputStreamReader read = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
-//                BufferedReader bufferedReader = new BufferedReader(read);
-//                targetPth = FileConfig.TXT_PATH + fileName.substring(0, fileName.indexOf(".")) + ".html";
-//                FileOutputStream fos = new FileOutputStream(new File(targetPth));
-//                OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
-//                BufferedWriter bw = new BufferedWriter(osw);
-//                String lineTxt = null;
-//                while ((lineTxt = bufferedReader.readLine()) != null) {
-//                    bw.write("&nbsp&nbsp&nbsp" + lineTxt + "</br>");
-//                }
-//                bw.close();
-//                osw.close();
-//                fos.close();
-//                read.close();
-//            } else {
-//                System.out.println("找不到指定的文件");
-//            }
-//        } catch (Exception e) {
-//            System.out.println("读取文件内容出错");
-//            e.printStackTrace();
-//        }
-//        return targetPth;
-//    }
-
-//    public static String pdfToHtml(String fileName) {
-//        String targetPth = null;
-//        try {
-//            PDDocument document = PDDocument.load(new File(FileConfig.PDF_PATH + fileName));
-//            PDFDomTree pdfDomTree = new PDFDomTree();
-//            targetPth = FileConfig.PDF_PATH + fileName.substring(0, fileName.indexOf(".")) + ".html";
-//            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(targetPth)), StandardCharsets.UTF_8));
-//            //加载PDF文档
-//            //PDDocument document = PDDocument.load(bytes);
-//            pdfDomTree.writeText(document, out);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return targetPth;
-//    }
 
     public static String htmlToString(String filePath) {
         String data = null;
@@ -285,8 +155,89 @@ public static String doc2Html(String fileName, String path) {
         return data;
     }
 
-    public static void main(String[] args) {
-
+    public static String htmlToWord(String htmlPath, String fileName) {
+        if (StringUtils.isEmpty(htmlPath)) {
+            return null;
+        }
+        File html = new File(htmlPath);
+        if (html.exists()) {
+            byte content[] = htmlToString(htmlPath). replaceAll(RELATIVE_PATH, IMAGE_PATH_REGEX)
+                    .getBytes(StandardCharsets.UTF_8);
+            try {
+                POIFSFileSystem poifsFileSystem = new POIFSFileSystem();
+                poifsFileSystem.getRoot().createDocument("WordDocument",new ByteArrayInputStream(content));
+                FileOutputStream outputStream = new FileOutputStream(TEMP_PATH + fileName);
+                poifsFileSystem.writeFilesystem(outputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
+
+    public static Document htmlToDocument(String htmlPath){
+        if (StringUtils.isEmpty(htmlPath)) {
+            return null;
+        }
+        if (new File(htmlPath).exists()) {
+            try(Scanner scanner=new Scanner( new File(htmlPath))) {
+                String content = scanner.useDelimiter("\\\\A").next();
+                scanner.close();
+                return Jsoup.parse(content);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param htmlPath html文件路径（含文件名） 若文件不存在返回null
+     * @return 提取的纯文本String，以空格为分隔
+     */
+    public static String htmlToText(String htmlPath) {
+        Document document = htmlToDocument(htmlPath);
+        if(!Objects.isNull(document)){
+            return document.text();
+        }
+        return null;
+    }
+
+    public static void getTextDiff(String htmlPathOrigin, String htmlPathNew){
+        String text1 = htmlToText(htmlPathOrigin);
+        String text2 = htmlToText(htmlPathNew);
+        if(StringUtils.isEmpty(text1) || StringUtils.isEmpty(text2)){
+            return;
+        }
+        List list1 = Arrays.asList(text1.split(" "));
+        List list2 = Arrays.asList(text2.split(" "));
+        Patch<String> patch = DiffUtils.diff(list1, list2);
+        for (AbstractDelta<String> delta : patch.getDeltas()) {
+            System.out.println(delta.getType());
+            System.out.println(delta);
+        }
+    }
+
+    public static void replaceTextWithDiff(String htmlPath){
+        Document document = htmlToDocument(htmlPath);
+
+
+        Elements spans = document.getElementsByTag("span");
+
+        for (Element span : spans) {
+            System.out.println(span.toString());
+//            String link_href = span.attr("href");
+//
+//            String link_text = span.text();
+
+        }
+    }
+
+    public static void main(String[] args) {
+//        getTextDiff("D:\\ADeskTop\\project\\bigWork\\html\\docx\\8df70494-411f-4083-a35c-1d4607d7a336-v1.0.0.html",
+//                "D:\\ADeskTop\\project\\bigWork\\html\\docx\\8df70494-411f-4083-a35c-1d4607d7a336-v1.0.1.html");
+        replaceTextWithDiff("D:\\ADeskTop\\project\\bigWork\\html\\docx\\8df70494-411f-4083-a35c-1d4607d7a336-v1.0.1.html");
+    }
+
 
 }
