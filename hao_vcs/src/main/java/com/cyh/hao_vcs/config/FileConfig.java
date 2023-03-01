@@ -13,6 +13,7 @@ public class FileConfig {
     public static HashMap<Integer, String> pathMap = new HashMap<>();
     public static final String TEMP_PATH = "D:\\ADeskTop\\project\\bigWork\\temp\\";
     public static final String DOC_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\doc\\";
+    public static final String DIFF_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\diff\\";
     public static final String PDF_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\pdf\\";
     public static final String TXT_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\txt\\";
     public static final String DOCX_PATH = "D:\\ADeskTop\\project\\bigWork\\html\\docx\\";

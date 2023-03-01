@@ -11,6 +11,7 @@ import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.service.UserService;
+import com.cyh.hao_vcs.utils.DiffUtil;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.cyh.hao_vcs.utils.VersionUtil;
 import com.qiniu.util.StringUtils;
@@ -92,10 +93,23 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         String filePath = projectBaseService.getProjectPath(projectId) + morePath;
         FileBaseImf fileBaseImf = fileBaseImfService.getFileByFilePath(filePath);
         String fileId = fileBaseImf.getFileId();
+        String fileName = fileBaseImf.getFileName();
+        fileName = fileName.substring(0, fileName.lastIndexOf("."));
         String currentVersion = fileBaseImf.getCurrentVersion();
-        String htmlStorePath = FileUtil.getHtmlStorePath(morePath);
-        File currentText = new File(htmlStorePath+fileId+VersionUtil.LOGO+currentVersion);
-        File compareText = new File(htmlStorePath+fileId+VersionUtil.LOGO+version);
+        String suffix = morePath.substring(morePath.lastIndexOf(".") + 1);
+        String htmlSuffix = ".html";
+        if("txt".equals(suffix)){
+            String pathPrefix = FileConfig.TXT_PATH+fileId+VersionUtil.LOGO;
+            DiffUtil.generateDiffHtml(DiffUtil.diffString(pathPrefix+version+htmlSuffix, pathPrefix + currentVersion +htmlSuffix,
+                    fileName+version, fileName + currentVersion),FileUtil.getDiffFileName(fileName, version, currentVersion));
+        }else{
+            String htmlStorePath = FileUtil.getHtmlStorePath(morePath)+fileId+VersionUtil.LOGO;
+
+        }
+
+//        File currentText = new File(htmlStorePath+fileId+VersionUtil.LOGO+currentVersion);
+//        File compareText = new File(htmlStorePath+fileId+VersionUtil.LOGO+version);
+
         return R.success("对比成功");
     }
 

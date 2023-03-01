@@ -203,6 +203,7 @@ public class FileUtil {
         List<String> preNameList = nameList.stream().map(
                 name->{
                     int dotPos = name.lastIndexOf("-");
+                    if(dotPos < 0) return null;
                     return name.substring(0,dotPos);
                 }
         ).collect(Collectors.toList());
@@ -213,8 +214,7 @@ public class FileUtil {
         return name.substring(0,name.lastIndexOf("."));
     }
 
-    public static String getHtmlStorePath(String name){
-        String suffix = name.substring(name.lastIndexOf(".") + 1);
+    public static String getHtmlStorePath(String suffix){
             if (Objects.equals(suffix, "doc")) {
                 return FileConfig.DOC_PATH;
             }
@@ -228,5 +228,9 @@ public class FileUtil {
                 return FileConfig.PDF_PATH;
             }
             return null;
+        }
+
+        public static String getDiffFileName(String fileName, String originVersion, String version){
+            return FileConfig.DIFF_PATH+fileName+"-"+originVersion+"-"+version+".html";
         }
 }
