@@ -21,16 +21,13 @@ import org.apache.poi.xwpf.converter.xhtml.XHTMLConverter;
 import org.apache.poi.xwpf.converter.xhtml.XHTMLOptions;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.fit.pdfdom.PDFDomTree;
-import org.fit.pdfdom.PDFDomTreeConfig;
-import org.fit.pdfdom.resource.HtmlResourceHandler;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 import org.springframework.util.StringUtils;
 
-import javax.print.Doc;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -42,7 +39,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import static com.cyh.hao_vcs.config.FileConfig.*;
@@ -197,21 +193,6 @@ public static String doc2Html(String fileName, String path) {
         return null;
     }
 
-    /**
-     * @param htmlPath html文件路径（含文件名） 若文件不存在返回null
-     * @return 提取的纯文本String，以空格为分隔
-     */
-    public static String htmlToTextForWord(String htmlPath) {
-        Document document = htmlToDocument(htmlPath);
-        if(!Objects.isNull(document)){
-            document.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
-            document.select("span").prepend("\\n");
-            document.select("span").append("\\n");
-            document.select("title").remove();
-            return document.text();
-        }
-        return null;
-    }
     public static String htmlToTextForTxt(String htmlPath) {
         Document document = htmlToDocument(htmlPath);
         if(!Objects.isNull(document)){
@@ -233,115 +214,89 @@ public static String doc2Html(String fileName, String path) {
         return list;
     }
 
-    public static void getWordDiff(String htmlPathOrigin, String htmlPathNew){
-        String text1 = htmlToTextForWord(htmlPathOrigin);
-        String text2 = htmlToTextForWord(htmlPathNew);
-        if(StringUtils.isEmpty(text1) || StringUtils.isEmpty(text2)){
-            return;
-        }
-        List list1 = trimContentOfWord(text1);
-        List list2 = trimContentOfWord(text2);
-        Patch<String> patch = DiffUtils.diff(list1, list2);
-        replaceTextWithDiff(htmlPathOrigin,htmlPathNew, patch);
-//        List<String> unifiedDiff = UnifiedDiffUtils.generateUnifiedDiff("test1.txt", "test2.txt", list1, patch, 0);
-        for (AbstractDelta<String> delta : patch.getDeltas()) {
-            System.out.println(delta.toString());
-        }
-    }
-
-    private static List<String> trimContentOfWord(String text){
-        return Arrays.stream(text.split("\\\\n")).filter(str-> !"".equals(str) && !" ".equals(str)).map(str ->{
-            return str.trim().replaceAll(",","，");//英文逗号用于区分修改区域
-        }).collect(Collectors.toList());
-    }
-
-
     /**
-     * 对单词按照deltaType进行替换
+     * 除了返回Elements外也填充了textList
+     * @param document
+     * @param textList
+     * @return
      */
-    public static void replaceWordWithDiff(AbstractDelta<String> delta){
-        DeltaType type = delta.getType();
-        if(type.equals(DeltaType.INSERT)){
-
-        }
-    }
-    private static Elements trimSpans(Elements spans){
-        int i = 0;
-        Stack<Integer> stack = new Stack<>();
-        for(Element span:spans){
-            System.out.println(i+span.text());
-            if("".equals(span.text())){
-                stack.add(i);
+    public static Elements getElementListWithOwnText(Document document, List<String> textList){
+        Elements elements = document.body().getAllElements();
+        Elements trimElementList = new Elements();
+        String text = null;
+        for(Element span: elements){
+            text = span.ownText();
+            if(!StringUtils.isEmpty(text)){
+                textList.add(text);
+                trimElementList.add(span);
             }
-            i++;
         }
-        while(!stack.isEmpty()){
-            spans.remove(spans.get(stack.pop()));
-        }
-        return spans;
+        return trimElementList;
     }
-    public static void replaceTextWithDiff(String originHtmlPath, String htmlPath, Patch<String> patch){
-        Document document = htmlToDocument(htmlPath);
-        Document originDocument = htmlToDocument(originHtmlPath);
-        Elements spans = trimSpans(document.getElementsByTag("span"));
-        Elements originSpans = trimSpans(originDocument.getElementsByTag("span"));
-        List<AbstractDelta<String>> deltas =  patch.getDeltas();
+
+    private static void handleInsertDiff(int targetLinesSize,int targetPosition,Elements newElements){
+        for (int i = 0; i < targetLinesSize; i++) {
+            newElements.get(targetPosition + i).attr("style", "background-color: #43b443;");
+        }
+    }
+
+    private static void handleDeleteDiff(int sourceLinesSize, int sourcePosition, int targetPosition,Elements newElements, Elements originElements) {
+        Element delElement = originElements.get(sourcePosition);
+        for (int i = 1; i < sourceLinesSize; i++){
+            delElement.append(originElements.get(sourcePosition + i).html());
+        }
+        delElement.append("<br/>");
+        delElement.attr("style", "background-color: #e86c8c;text-decoration: line-through;");
+        if(targetPosition > 0){
+            newElements.get(targetPosition - 1).after(delElement);
+        }else{
+            newElements.get(targetPosition).before(delElement);
+        }
+
+    }
+
+    public static void replaceTextWithDiff(String htmlPathOrigin, String htmlPathNew){
+        List<String> originTextList = new ArrayList<>();
+        Document originDocument = htmlToDocument(htmlPathOrigin);
+        Elements originElements = getElementListWithOwnText(originDocument,originTextList);
+
+        List<String> newTextList = new ArrayList<>();
+        Document newDocument = htmlToDocument(htmlPathNew);
+        Elements newElements = getElementListWithOwnText(newDocument, newTextList);
+        Patch<String> patch = DiffUtils.diff(originTextList, newTextList);
+        List<AbstractDelta<String>> deltas = patch.getDeltas();
+                for(AbstractDelta<String> delta: deltas){
+            System.out.println(delta.getType());
+            System.out.println(delta.getSource().toString());
+            System.out.println(delta.getTarget().toString());
+        }
         Chunk<String> source = null;
         Chunk<String> target = null;
         List<String> targetLines = null;
         List<String> sourceLines = null;
-        int sourcePosition = 0;
-        int targetPosition =  0;
-        int targetLinesSize = 0;
-        int sourceLinesSize = 0;
         for (AbstractDelta<String> delta : deltas) {
             DeltaType type = delta.getType();
             source = delta.getSource();
             target = delta.getTarget();
             targetLines = target.getLines();
             sourceLines = source.getLines();
-            if(type.equals(DeltaType.INSERT)){
-                targetLinesSize = targetLines.size();
-                targetPosition = target.getPosition();
-                for(int i = 0; i < targetLinesSize; i++){
-                    spans.get(targetPosition + i).attr("style","background-color: #43b443;");
-                }
-            }else if(type.equals(DeltaType.DELETE)){
-                sourceLinesSize = sourceLines.size();
-                targetPosition = target.getPosition() - 1;
-                sourcePosition = source.getPosition();
-                for(int i = 0; i < sourceLinesSize; i++) {
-                    Element delHtml = originSpans.get(sourcePosition + i).wrap("<del></del>").attr("style", "background-color: #e86c8c;");
-                    spans.get(targetPosition + i).parent().after(delHtml.parentNode());
-                }
-            }else if(type.equals(DeltaType.CHANGE)){
-                sourcePosition = source.getPosition();
-                sourceLinesSize = sourceLines.size();
-                targetLinesSize = targetLines.size();
-                targetPosition = target.getPosition();
-                for(int i = 0; i < targetLinesSize || i < sourceLinesSize; i++){
-                    if(i < sourceLinesSize){
-                        Element delHtml = originSpans.get(sourcePosition + i).wrap("<del></del>").attr("style","background-color: #e86c8c;");
-                        spans.get(targetPosition + i).before(delHtml.parentNode());
-                        spans.get(targetPosition + i).attr("style","background-color: yellow;");
-                    }
-                    else {
-                        spans.get(targetPosition + i).attr("style", "background-color: #43b443;");
-                    }
-                }
+            if (type.equals(DeltaType.INSERT)) {
+                handleInsertDiff(targetLines.size(), target.getPosition(), newElements);
+            } else if (type.equals(DeltaType.DELETE)) {
+                handleDeleteDiff(sourceLines.size(),source.getPosition(),target.getPosition(),newElements,originElements);
+            } else if (type.equals(DeltaType.CHANGE)) {
+                handleInsertDiff(targetLines.size(), target.getPosition(), newElements);
+                handleDeleteDiff(sourceLines.size(),source.getPosition(),target.getPosition(),newElements,originElements);
+
             }
         }
-
-        FileUtil.saveFile(FileConfig.DIFF_PATH+"wordTest.html",document.html());
-//        for (Element span : spans) {
-//            System.out.println(span.toString());
-//            String link_href = span.attr("href");
-//
-//            String link_text = span.text();
-
+        FileUtil.saveFile(FileConfig.DIFF_PATH+"wordTest.html",newDocument.html());
     }
 
+
     public static void main(String[] args) {
+        String originPath = "D:\\ADeskTop\\project\\bigWork\\html\\docx\\text1.html";
+        String newPath = "D:\\ADeskTop\\project\\bigWork\\html\\docx\\text2.html";
 //       getTextDiff("D:\\ADeskTop\\project\\bigWork\\html\\txt\\6dd77e3f-9edf-4cbb-9af4-adadaadd7679-v1.0.1.html",
 //                "D:\\ADeskTop\\project\\bigWork\\html\\txt\\6dd77e3f-9edf-4cbb-9af4-adadaadd7679-v6.0.0.html");
 //        getTextDiff("D:\\ADeskTop\\project\\bigWork\\html\\doc\\c5e10406-0ed1-48f8-b78e-71543241a1ca-v1.0.0.html",
@@ -349,8 +304,12 @@ public static String doc2Html(String fileName, String path) {
 //        getTextDiff("D:\\ADeskTop\\project\\bigWork\\html\\docx\\8df70494-411f-4083-a35c-1d4607d7a336-v1.0.1.html",
 //                "D:\\ADeskTop\\project\\bigWork\\html\\docx\\8df70494-411f-4083-a35c-1d4607d7a336-v1.0.4.html");
 //        replaceTextWithDiff("D:\\ADeskTop\\project\\bigWork\\html\\docx\\8df70494-411f-4083-a35c-1d4607d7a336-v1.0.1.html");
-        getWordDiff("D:\\ADeskTop\\project\\bigWork\\html\\docx\\8df70494-411f-4083-a35c-1d4607d7a336-v1.0.1.html",
-                "D:\\ADeskTop\\project\\bigWork\\html\\docx\\8df70494-411f-4083-a35c-1d4607d7a336-v1.0.4.html");
+//        docx2Html("moonTest1.docx", "D:\\ADeskTop\\moon\\附录5  中英文缩写对照表.docx");
+//        docx2Html("moonTest2.docx", "D:\\ADeskTop\\moon\\附录5  中英文缩写对照表 - 副本.docx");
+        //getWordDiffPatch(originPath,newPath)；
+        docx2Html("text1.docx","D:\\ADeskTop\\project\\bigWork\\repository\\test\\text1.docx");
+        docx2Html("text2.docx","D:\\ADeskTop\\project\\bigWork\\repository\\test\\text2.docx");
+        replaceTextWithDiff(originPath,newPath);
     }
 
 
