@@ -278,6 +278,9 @@ public class Converter {
      * return diffFile's path
      */
     public static String showHtmlDiff(String htmlPathOrigin, String htmlPathNew, String diffFileName) {
+        if(new File(DIFF_PATH+ diffFileName).exists()){
+            return FileConfig.RELATIVE_DIFF_PATH + diffFileName;
+        }
         List<String> originTextList = new ArrayList<>();
         Document originDocument = htmlToDocument(htmlPathOrigin);
         Document newDocument = htmlToDocument(htmlPathNew);
