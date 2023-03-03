@@ -58,8 +58,7 @@ public class VersionController {
     @GetMapping("/compareText")
     public R compareText(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath,
                          @RequestParam("version") String newVersion){
-        fileVersionImfService.compareText(projectId,morePath,newVersion);
-        return R.success("aa");
+        return fileVersionImfService.compareText(projectId,morePath,newVersion);
     }
 
 }

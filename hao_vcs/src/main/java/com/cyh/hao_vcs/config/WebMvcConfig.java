@@ -10,6 +10,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/bigWork/image/**").addResourceLocations("file:D:/ADeskTop/project/bigWork/image/");
+        registry.addResourceHandler("/html/diff/**").addResourceLocations("file:D:/ADeskTop/project/bigWork/html/diff/");
     }
 
 

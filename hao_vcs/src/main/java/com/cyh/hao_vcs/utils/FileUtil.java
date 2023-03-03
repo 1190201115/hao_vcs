@@ -231,6 +231,6 @@ public class FileUtil {
         }
 
         public static String getDiffFileName(String fileName, String originVersion, String version){
-            return FileConfig.DIFF_PATH+fileName+"-"+originVersion+"-"+version+".html";
+            return fileName+"-"+originVersion+"^"+version+".html";
         }
 }

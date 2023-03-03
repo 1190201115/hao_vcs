@@ -22,6 +22,7 @@ public class FileConfig {
             + Matcher.quoteReplacement(File.separator) + "project" + Matcher.quoteReplacement(File.separator)
             + "bigWork" + Matcher.quoteReplacement(File.separator) + "image" + Matcher.quoteReplacement(File.separator);
     public static final String RELATIVE_PATH = "/bigWork/image/";
+    public static final String RELATIVE_DIFF_PATH = "/html/diff/";
     public static final String PROJECT_PATH = "D:\\ADeskTop\\project\\bigWork\\repository\\";
     public static final String TEXT_FILE = "text";
     public static final Integer UNKNOWN_FILE = -1;

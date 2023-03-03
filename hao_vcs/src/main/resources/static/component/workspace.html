@@ -229,6 +229,12 @@
                                 version: row.version}
                     }).then(
                     result => {
+                        if(result.data.code === 20000){
+                            console.log(result.data.data)
+                            window.open(result.data.data)
+                        }else{
+                            this.$message.error(result.data.msg)
+                        }
 
                     })
             },
