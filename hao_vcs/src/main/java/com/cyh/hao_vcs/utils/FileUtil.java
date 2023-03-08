@@ -161,23 +161,25 @@ public class FileUtil {
         List<String> fileList = new ArrayList<>();
         List<String> dirList = new ArrayList<>();
         String tempDirName = "";
-        for(File file:allFileList){
-            if(file.isDirectory()){
-                File[] tempFileList = file.listFiles();
-                tempDirName = file.getName();
-                while(!Objects.isNull(tempFileList) &&
-                        tempFileList.length == 1) {
-                    File tempFile = tempFileList[0];
-                    if(tempFileList[0].isDirectory()){
-                        tempDirName = tempDirName + "\\" + tempFile.getName();
-                        tempFileList = tempFileList[0].listFiles();
-                    }else{
-                        break;
+        if (allFileList != null) {
+            for(File file:allFileList){
+                if(file.isDirectory()){
+                    File[] tempFileList = file.listFiles();
+                    tempDirName = file.getName();
+                    while(!Objects.isNull(tempFileList) &&
+                            tempFileList.length == 1) {
+                        File tempFile = tempFileList[0];
+                        if(tempFileList[0].isDirectory()){
+                            tempDirName = tempDirName + "\\" + tempFile.getName();
+                            tempFileList = tempFileList[0].listFiles();
+                        }else{
+                            break;
+                        }
                     }
+                    dirList.add(tempDirName);
+                }else{
+                    fileList.add(file.getName());
                 }
-                dirList.add(tempDirName);
-            }else{
-                fileList.add(file.getName());
             }
         }
         map.put(FILE_KEY,fileList);

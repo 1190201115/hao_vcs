@@ -111,7 +111,7 @@ public class Converter {
             BufferedWriter bw = new BufferedWriter(osw);
             String lineTxt = null;
             while ((lineTxt = bufferedReader.readLine()) != null) {
-                bw.write("&nbsp&nbsp&nbsp" + lineTxt + "</br>");
+                bw.write(lineTxt + "</br>");
             }
             bw.close();
             osw.close();
@@ -194,26 +194,26 @@ public class Converter {
         return null;
     }
 
-    public static String htmlToTextForTxt(String htmlPath) {
-        Document document = htmlToDocument(htmlPath);
-        if (!Objects.isNull(document)) {
-            document.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
-            document.select("br").append("\\n");
-            document.select("p").prepend("\\n");
-            return document.text().replaceAll("&nbsp", "");
-            //Jsoup.clean(temp, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
-        }
-        return null;
-    }
-
-    public static List<String> htmlToList(String htmlPath) {
-        String text = htmlToTextForTxt(htmlPath);
-        List<String> list = null;
-        if (!StringUtils.isEmpty(text)) {
-            list = Arrays.asList(text.split("\\\\n"));
-        }
-        return list;
-    }
+//    public static String htmlToTextForTxt(String htmlPath) {
+//        Document document = htmlToDocument(htmlPath);
+//        if (!Objects.isNull(document)) {
+//            document.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
+//            document.select("br").append("\\n");
+//            document.select("p").prepend("\\n");
+//            return document.text().replaceAll("&nbsp", "");
+//            //Jsoup.clean(temp, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
+//        }
+//        return null;
+//    }
+//
+//    public static List<String> htmlToList(String htmlPath) {
+//        String text = htmlToTextForTxt(htmlPath);
+//        List<String> list = null;
+//        if (!StringUtils.isEmpty(text)) {
+//            list = Arrays.asList(text.split("\\\\n"));
+//        }
+//        return list;
+//    }
 
     /**
      * 除了返回Elements外也填充了textList
