@@ -194,26 +194,6 @@ public class Converter {
         return null;
     }
 
-//    public static String htmlToTextForTxt(String htmlPath) {
-//        Document document = htmlToDocument(htmlPath);
-//        if (!Objects.isNull(document)) {
-//            document.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
-//            document.select("br").append("\\n");
-//            document.select("p").prepend("\\n");
-//            return document.text().replaceAll("&nbsp", "");
-//            //Jsoup.clean(temp, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
-//        }
-//        return null;
-//    }
-//
-//    public static List<String> htmlToList(String htmlPath) {
-//        String text = htmlToTextForTxt(htmlPath);
-//        List<String> list = null;
-//        if (!StringUtils.isEmpty(text)) {
-//            list = Arrays.asList(text.split("\\\\n"));
-//        }
-//        return list;
-//    }
 
     /**
      * 除了返回Elements外也填充了textList
@@ -249,44 +229,28 @@ public class Converter {
     }
 
     /**
-     * 这是用于将删除显示在新文件上的方法，在2.0对比中被废弃
-     *
-     * @param sourceLinesSize
-     * @param sourcePosition
-     * @param targetPosition
-     * @param newElements
-     * @param originElements
-     */
-    private static void handleDeleteDiff(int sourceLinesSize, int sourcePosition, int targetPosition, Elements newElements, Elements originElements) {
-        Element delElement = originElements.get(sourcePosition);
-        for (int i = 1; i < sourceLinesSize; i++) {
-            delElement.append(originElements.get(sourcePosition + i).html());
-        }
-        delElement.append("<br/>");
-        delElement.attr("style", "background-color: #e86c8c;text-decoration: line-through;");
-        if (targetPosition > 0) {
-            newElements.get(targetPosition - 1).after(delElement);
-        } else {
-            newElements.get(targetPosition).before(delElement);
-        }
-    }
-
-    /**
      * @param htmlPathOrigin 原始html全路径
      * @param htmlPathNew    新html全路径
-     * @param diffFileName 差异文件名称（包含后缀）
-     * return diffFile's path
+     * @param diffFileName   差异文件名称（包含后缀）
+     *                       return diffFile's path
      */
     public static String showHtmlDiff(String htmlPathOrigin, String htmlPathNew, String diffFileName) {
-        if(new File(DIFF_PATH+ diffFileName).exists()){
+        if (new File(DIFF_PATH + diffFileName).exists()) {
             return FileConfig.RELATIVE_DIFF_PATH + diffFileName;
         }
-        List<String> originTextList = new ArrayList<>();
         Document originDocument = htmlToDocument(htmlPathOrigin);
         Document newDocument = htmlToDocument(htmlPathNew);
-        if(Objects.isNull(originDocument) || Objects.isNull(newDocument)){
+        if (Objects.isNull(originDocument) || Objects.isNull(newDocument)) {
             return null;
         }
+        markImageDiff(originDocument, newDocument);
+        markTextDiff(originDocument, newDocument);
+        FileUtil.saveFile(DIFF_PATH + diffFileName, newDocument.html());
+        return FileConfig.RELATIVE_DIFF_PATH + diffFileName;
+    }
+
+    private static void markTextDiff(Document originDocument, Document newDocument) {
+        List<String> originTextList = new ArrayList<>();
         Elements originElements = getElementListWithOwnText(originDocument, originTextList);
         List<String> newTextList = new ArrayList<>();
         Elements newElements = getElementListWithOwnText(newDocument, newTextList);
@@ -314,12 +278,60 @@ public class Converter {
         }
         StringBuilder stringBuilder = new StringBuilder("<div style=\"float: right;width: 45%\">");
         stringBuilder.append(newDocument.body().html()).append("</div>")
-                .append("<div style=\"float: left;width: 45v%\">").append(originDocument.body().html()).append("</div>");
+                .append("<div style=\"float: left;width: 45%\">").append(originDocument.body().html()).append("</div>");
         newDocument.head().append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />");
         newDocument.body().html(stringBuilder.toString());
-        FileUtil.saveFile(DIFF_PATH+ diffFileName, newDocument.html());
-        return FileConfig.RELATIVE_DIFF_PATH + diffFileName;
     }
 
+
+    private static void markImageDiff(Document originDocument, Document newDocument) {
+        Elements originImgElements = originDocument.getElementsByTag("img");
+        List<String> originImgList = getImgSrcList(originImgElements);
+        Elements newImgElements = newDocument.getElementsByTag("img");
+        List<String> newImgList = getImgSrcList(newImgElements);
+        List<AbstractDelta<String>>  deltas = DiffUtils.diff(originImgList, newImgList).getDeltas();
+        Chunk<String> source = null;
+        Chunk<String> target = null;
+        List<String> targetLines = null;
+        List<String> sourceLines = null;
+        for (AbstractDelta<String> delta : deltas) {
+            DeltaType type = delta.getType();
+            source = delta.getSource();
+            target = delta.getTarget();
+            targetLines = target.getLines();
+            sourceLines = source.getLines();
+            if (type.equals(DeltaType.INSERT)) {
+                handleInsertDiff(targetLines.size(), target.getPosition(), newImgElements, VersionConfig.INSERT_IMG_STYLE);
+            } else if (type.equals(DeltaType.DELETE)) {
+                handleDeleteDiff(sourceLines.size(), source.getPosition(), originImgElements, VersionConfig.DELETE_IMG_STYLE);
+            } else if (type.equals(DeltaType.CHANGE)) {
+                handleInsertDiff(targetLines.size(), target.getPosition(), newImgElements, VersionConfig.INSERT_IMG_STYLE);
+                handleDeleteDiff(sourceLines.size(), source.getPosition(), originImgElements, VersionConfig.DELETE_IMG_STYLE);
+            }
+        }
+    }
+
+    private static List<String> getImgSrcList(Elements elements) {
+        return elements.stream().map(element -> element.attributes().get("src")).collect(Collectors.toList());
+    }
+
+    //    private static void getImgElements(Document document){
+//        Elements elements = document.body().getElementsByTag("img");
+//
+//        Elements trimElementList = new Elements();
+//        String text = null;
+//        for (Element span : elements) {
+//            text = span.ownText();
+//            if (!StringUtils.isEmpty(text)) {
+//                textList.add(text);
+//                trimElementList.add(span);
+//            }
+//        }
+//    }
+    public static void main(String[] args) {
+        showHtmlDiff("D:\\ADeskTop\\project\\bigWork\\html\\doc\\9b027760-f424-44b4-9ef6-4f16ffd80215-v1.0.0.html",
+                "D:\\ADeskTop\\project\\bigWork\\html\\doc\\9b027760-f424-44b4-9ef6-4f16ffd80215-v1.1.0.html",
+                "newDiffWithPic.html");
+    }
 
 }

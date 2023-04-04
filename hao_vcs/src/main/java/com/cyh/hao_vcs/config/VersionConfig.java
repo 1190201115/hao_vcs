@@ -9,4 +9,8 @@ public class VersionConfig {
     public static final String DELETE_STYLE = "background-color: #ff7f92;text-decoration: line-through;";
     public static final String UPDATE_INSERT_STYLE = "background-color: #f6ef67;";
     public static final String UPDATE_DELETE_STYLE = "background-color: #f6ef67;text-decoration: line-through;";
+
+    public static final String INSERT_IMG_STYLE = "border-style: solid;border-width: 5px;border-color: #97eec0;";
+    public static final String DELETE_IMG_STYLE = "border-style: dashed;border-width: 5px;border-color: #ff7f92;";
+
 }
