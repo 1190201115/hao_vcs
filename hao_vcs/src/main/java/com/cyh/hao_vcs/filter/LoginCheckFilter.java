@@ -44,7 +44,7 @@ public class LoginCheckFilter implements Filter {
         }
         Long userId=(Long)httpServletRequest.getSession().getAttribute("user");
         if(!Objects.isNull(userId)) {
-            ThreadLocalContext.setCurrentId(userId);
+//            ThreadLocalContext.setCurrentId(userId);
             if(check(simpleURI, uri)){
                 httpServletResponse.sendRedirect("/page/home.html");
             }else {

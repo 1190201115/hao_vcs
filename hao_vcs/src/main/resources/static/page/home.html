@@ -113,7 +113,7 @@
             handleMessage(e) {
                 this.headUrl = e.data
             },
-            handleSelect(key, keyPath) {
+            handleSelect(key) {
                 this.hideAll();
                 if (key === 'logOut') {
                     axios.get('/doLogin')

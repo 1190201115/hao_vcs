@@ -1,65 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>A Simple Page with CKEditor 4</title>
-    <!-- Make sure the path to CKEditor is correct. -->
-    <script src="../ckeditor/ckeditor.js"></script>
+    <meta charset="UTF-8">
+    <title>Canvas</title>
 </head>
-<body id="app">
-<form>
-<!--            <textarea name="editor1" id="editor1" rows="10" cols="80">-->
-<!--                This is my textarea to be replaced with CKEditor 4.-->
-<!--            </textarea>-->
-    <textarea id="edito">
+<body>
+<div class="wrapper">
+    <h3>目标</h3>
+    <span>将图片中的最右侧头像剪裁出来</span>
 
-    </textarea>
-</form>
-</body>
+    <h3>原始图预览</h3>
+    <img id="image"  alt=""
+         style="width:800px; height:572px">
 
+    <h3>Canvas裁切视图</h3>
+    <canvas id="canvas-cut" width="800" height="572" ></canvas>
 
-
+    <h3>Base64结果展示</h3>
+    <img id="result" />
+</div>
 <script>
-    var editor = CKEDITOR.replace( 'edito',{
-        uiColor: '#FFFFFF',
-        width: '100%',
-        height: '600'
-        // toolbar: [
-        //     ['Save', 'Cut', 'Copy', 'Paste', 'PasteFromWord', '-', 'Undo', 'Redo', '-', 'Scayt'],
-        //     '/',
-        //     ['Bold', 'Italic', 'Underline', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Smiley', 'oembed']
-        //
-        // ]
-    });
-    CKEDITOR.instances.edito.setData("aa")
-    CKEDITOR.plugins.registered['save'] =
-        {
-            init : function( editor )
-            {
-                editor.addCommand( 'save',
-                    {
-                        modes : { wysiwyg:1, source:1 },
-                        exec : function( editor ) {
-                            let html = CKEDITOR.instances.editor1.getData();
-                            alert()
-                        }
-                    }
-                );
-                editor.ui.addButton( 'Save', {label : '保存', command : 'save'} );
-            }
-        }
+
+    const SRC= "https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg";
+    //document.getElementById('image').src = SRC;
+    var canvas = document.getElementById('canvas-cut');
+    var cut = canvas.getContext('2d');
+    var img = new Image();
+    img.src = SRC;
+
+    //处理toDataURL遇跨域资源导致的报错
+    img.crossOrigin = 'Anonymous';
+
+    img.onload = function() {
+        // 起始x,y，终止x,y。左上角放置在画布的x,y,裁剪后的大小width,length
+        //drawImage(image, dx, dy) 在画布指定位置绘制原图
+        cut.drawImage(img, 0, 0, 400, 286)// 左上角x,y，图像大小
+        //cut.drawImage(img,0,0,400,286,0,0,800,286);
+        // var imgbase64 = canvas.toDataURL("image/png");
+        // document.getElementById('result').src =imgbase64;
+    };
 
 </script>
-
-<style scoped>
-    .editor {
-        width: 10%;
-        height: 128px;
-        border: 1px dashed #d9d9d9;
-        border-radius: 100%;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-    }
-</style>
+</body>
 </html>
+

@@ -11,6 +11,11 @@ import static com.cyh.hao_vcs.utils.Converter.nameFromFile2Html;
 
 public class Classifier {
 
+    /**
+     * 图片限制格式为jpg\png\jpeg
+     * @param path
+     * @return
+     */
     public static R getHtmlPath(String path){
         File file = new File(path);
         String fileName = file.getName();
@@ -18,11 +23,18 @@ public class Classifier {
             return R.warn("文件名为空");
         }
         String suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
-        String result = textConverter(suffix, fileName, path);
+        String result = null;
+        result = textConverter(suffix, fileName, path);
         if(!Objects.isNull(result)){
             return R.success(result,FileConfig.TEXT_FILE);
+        }else if(isPic(suffix)){
+            return R.success(PicCombiner.getPicImf(path), FileConfig.PIC_FILE);
         }
         return R.error(null);
+    }
+
+    private static boolean isPic(String suffix){
+        return "jpg".equals(suffix) || "png".equals(suffix) || "jpeg".equals(suffix);
     }
 
     public static String textConverter(String suffix, String fileName, String path) {

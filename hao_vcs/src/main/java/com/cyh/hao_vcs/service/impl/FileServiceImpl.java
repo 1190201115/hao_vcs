@@ -8,6 +8,7 @@ import com.cyh.hao_vcs.service.FileService;
 import com.cyh.hao_vcs.utils.Classifier;
 import com.cyh.hao_vcs.utils.Converter;
 import com.cyh.hao_vcs.utils.FileUtil;
+import com.cyh.hao_vcs.utils.PicCombiner;
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
 import com.qiniu.http.Response;
@@ -112,6 +113,9 @@ public class FileServiceImpl implements FileService {
         if(StatusEnum.SUCCESS.equals(result.getCode())){
             if(FileConfig.TEXT_FILE.equals(result.getMsg())){
                 return R.success(Converter.htmlToString(result.getData().toString()), FileConfig.TEXT_FILE);
+            }
+            if(FileConfig.PIC_FILE.equals(result.getMsg())){
+                return result;
             }
         }
         return R.error("获取文件内容失败");
