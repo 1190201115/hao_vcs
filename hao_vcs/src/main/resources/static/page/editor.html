@@ -29,8 +29,7 @@
             <div style="background-color: #ebebec;text-align: center;border-radius: 20px">
                 <el-button type="text" style="font-size: larger;margin-left: 50px" @click="picSizeVisible=true">调整大小
                 </el-button>
-                <el-button type="text" style="font-size: larger;">裁剪</el-button>
-<!--                <el-button type="text" style="font-size: larger">添加文字</el-button>-->
+                <el-button type="text" style="font-size: larger;" @click="cutPicVisible=true">裁剪</el-button>
                 <el-button type="text" style="font-size: larger">图片拼接</el-button>
                 <el-button type="text" style="font-size: larger" @click="watermarkVisible=true">添加水印</el-button>
                 <el-button type="text" style="font-size: larger;margin-right: 50px">保存</el-button>
@@ -40,11 +39,11 @@
                     :visible.sync="picSizeVisible"
                     width="30%"
                     :before-close="handleClose">
-                <span>原图长 <span style="color: #e74e4e; font-size: larger"> {{pic_width}} </span>像素，
-                    宽 <span style="color: #e74e4e; font-size: larger"> {{pic_height}} </span> 像素</span>
+                <span>原图宽 <span style="color: #e74e4e; font-size: larger"> {{pic_width}} </span>像素，
+                    高 <span style="color: #e74e4e; font-size: larger"> {{pic_height}} </span> 像素</span>
                 <br><br>
-                <span>当前图片长 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_width}} </span>像素，
-                    宽 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_height}} </span> 像素</span>
+                <span>当前图片宽 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_width}} </span>像素，
+                    高 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_height}} </span> 像素</span>
                 <br><br>
                 <span>想要修改为 -></span>
                 <br><br>
@@ -57,7 +56,7 @@
                         show-word-limit
                         oninput="value=value.replace(/[^0-9.]/g,'')"
                 >
-                    <template slot="prepend">长</template>
+                    <template slot="prepend">宽</template>
                     <template slot="append">px</template>
                 </el-input>
                 <el-input
@@ -67,7 +66,7 @@
                         style="width: 200px;margin-left: 50px"
                         show-word-limit
                 >
-                    <template slot="prepend">宽</template>
+                    <template slot="prepend">高</template>
                     <template slot="append">px</template>
                 </el-input>
                 </span>
@@ -81,6 +80,9 @@
                     :visible.sync="watermarkVisible"
                     width="30%"
                     :before-close="handleClose">
+                <span>当前图片宽 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_width}} </span>像素，
+                    高 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_height}} </span> 像素</span>
+                <br><br>
                 <span>水印位置</span>
                 <br><br>
                 <span>
@@ -120,6 +122,66 @@
     <el-button type="primary" @click="addWatermark()">确 定</el-button>
   </span>
             </el-dialog>
+            <el-dialog
+                    title="裁剪图片"
+                    :visible.sync="cutPicVisible"
+                    width="40%"
+                    :before-close="handleClose">
+                <span>当前图片宽 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_width}} </span>像素，
+                    高 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_height}} </span> 像素</span>
+                <br><br><br>
+                <span>裁剪起始坐标(左上角) -></span>
+                <br><br>
+                <span>
+                <el-input
+                        type="text"
+                        v-model="cut_start_x"
+                        maxlength="4"
+                        style="width: 200px"
+                        show-word-limit
+                        oninput="value=value.replace(/[^0-9.]/g,'')"
+                >
+                    <template slot="prepend">x</template>
+                </el-input>
+                <el-input
+                        type="text"
+                        v-model="cut_start_y"
+                        maxlength="4"
+                        style="width: 200px;margin-left: 50px"
+                        show-word-limit
+                >
+                    <template slot="prepend">y</template>
+                </el-input>
+                </span>
+                <br><br><br>
+                <span>裁剪尺寸 -></span>
+                <br><br>
+                <span>
+                <el-input
+                        type="text"
+                        v-model="cut_width"
+                        maxlength="4"
+                        style="width: 200px"
+                        show-word-limit
+                        oninput="value=value.replace(/[^0-9.]/g,'')"
+                >
+                    <template slot="prepend">宽</template>
+                </el-input>
+                <el-input
+                        type="text"
+                        v-model="cut_height"
+                        maxlength="4"
+                        style="width: 200px;margin-left: 50px"
+                        show-word-limit
+                >
+                    <template slot="prepend">高</template>
+                </el-input>
+                </span>
+                <span slot="footer" class="dialog-footer">
+    <el-button @click="cutPicVisible = false">取 消</el-button>
+    <el-button type="primary" @click="cutPic()">确 定</el-button>
+  </span>
+            </el-dialog>
         </div>
     </div>
 
@@ -140,6 +202,7 @@
                     path: 'qq',
                     content: ''
                 },
+                canvas: '',
                 pic_edit: false,
                 pic_url: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
                 pic_url_list: ['https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg'],
@@ -151,9 +214,15 @@
                 temp_pic_height: 572,
                 picSizeVisible: false,
                 watermarkVisible: false,
+                cutPicVisible: false,
                 watermarkContent: '',
                 watermark_width: '',
                 watermark_height: '',
+                cut_start_x: '',
+                cut_start_y: '',
+                cut_width: '',
+                cut_height: '',
+
             }
         },
         mounted() {
@@ -164,54 +233,86 @@
             this.getContent(this.projectId, this.path)
         },
         methods: {
-            createCanvas(kind){
-                canvas = document.getElementById('canvas')
-                canvas.height = this.edit_pic_height
-                canvas.width = this.edit_pic_width
-                cut = canvas.getContext('2d')
+            createCanvas() {
+                this.canvas = document.getElementById('canvas')
+                this.canvas.height = this.edit_pic_height
+                this.canvas.width = this.edit_pic_width
+            },
+            createImg() {
                 let edit_img = new Image();
                 edit_img.src = this.pic_url;
                 edit_img.crossOrigin = 'Anonymous';
                 return edit_img
-                // edit_img.onload = function () {
-                //     cut.drawImage(edit_img, 0, 0, canvas.width, canvas.height);
-                // };
+            },
+            cutPic() {
+                let start_x = this.cut_start_x
+                let start_y = this.cut_start_y
+                this.edit_pic_width = Number(this.cut_width) + Number(start_x) > this.pic_width ? this.pic_width - start_x : this.cut_width
+                this.edit_pic_height = Number(this.cut_height) + Number(start_y) > this.pic_height ? this.pic_height - start_y : this.cut_height
+                let canvas = document.getElementById('canvas')
+                canvas.height = this.edit_pic_height
+                canvas.width = this.edit_pic_width
+                let cut = canvas.getContext('2d')
+                let edit_img = new Image();
+                edit_img.src = this.pic_url;
+                edit_img.crossOrigin = 'Anonymous';
+                edit_img.onload = function () {
+                    cut.drawImage(edit_img, start_x, start_y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+                };
+                let _this = this
+                setTimeout(function () {
+                    _this.pic_url = canvas.toDataURL('image/jpeg');
+                }, 500);
+                this.cutPicVisible = false
+                this.cut_start_x = ''
+                this.cut_start_y = ''
+                this.cut_width = ''
+                this.cut_height = ''
             },
             changePicSize() {
                 this.edit_pic_height = this.temp_pic_height
                 this.edit_pic_width = this.temp_pic_width
-                // canvas = document.getElementById('canvas')
-                // canvas.height = this.edit_pic_height
-                // canvas.width = this.edit_pic_width
-                // cut = canvas.getContext('2d')
-                // let edit_img = new Image();
-                // edit_img.src = this.pic_url;
-                // edit_img.crossOrigin = 'Anonymous';
-                // edit_img.onload = function () {
-                //     cut.drawImage(edit_img, 0, 0, canvas.width, canvas.height);
-                // };
-                let edit_img = this.createCanvas()
+                let canvas = document.getElementById('canvas')
+                canvas.height = this.edit_pic_height
+                canvas.width = this.edit_pic_width
+                let cut = canvas.getContext('2d')
+                let edit_img = new Image();
+                edit_img.src = this.pic_url;
+                edit_img.crossOrigin = 'Anonymous';
                 edit_img.onload = function () {
                     cut.drawImage(edit_img, 0, 0, canvas.width, canvas.height);
+                    console.log(canvas.width)
                 };
+                let _this = this
+                setTimeout(function () {
+                    _this.pic_url = canvas.toDataURL('image/jpeg');
+                }, 500);
                 this.picSizeVisible = false
-                this.pic_edit = true
+                this.temp_pic_height = ''
+                this.temp_pic_width = ''
             },
-            addWatermark(){
-                this.createCanvas()
-                let edit_img = this.createCanvas()
+            addWatermark() {
+                let canvas = document.getElementById('canvas')
+                canvas.height = this.edit_pic_height
+                canvas.width = this.edit_pic_width
+                let cut = canvas.getContext('2d')
                 let content = this.watermarkContent
                 let width = this.watermark_width % this.edit_pic_width
                 let height = this.watermark_height % this.edit_pic_height + 18
+                let edit_img = new Image();
+                edit_img.src = this.pic_url;
+                edit_img.crossOrigin = 'Anonymous';
                 edit_img.onload = function () {
                     cut.drawImage(edit_img, 0, 0, canvas.width, canvas.height);
-                    cut.font="20px Georgia";
+                    cut.font = "20px Georgia";
                     cut.fillStyle = '#ddd'
-                    cut.fillText(content,width,height);
+                    cut.fillText(content, width, height);
                 };
-
+                let _this = this
+                setTimeout(function () {
+                    _this.pic_url = canvas.toDataURL('image/jpeg');
+                }, 500);
                 this.watermarkVisible = false
-                this.pic_edit = true
             },
             getContent(projectId, path) {
                 axios.get('/project/getFileContent', {params: {projectId: projectId, morePath: path}})

@@ -2,45 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Canvas</title>
+    <title>Title</title>
+    <script src="../js/outService.js"></script>
 </head>
-<body>
-<div class="wrapper">
-    <h3>目标</h3>
-    <span>将图片中的最右侧头像剪裁出来</span>
-
-    <h3>原始图预览</h3>
-    <img id="image"  alt=""
-         style="width:800px; height:572px">
-
-    <h3>Canvas裁切视图</h3>
-    <canvas id="canvas-cut" width="800" height="572" ></canvas>
-
-    <h3>Base64结果展示</h3>
-    <img id="result" />
+<body >
+<div id="app">
+    <el-image
+            style="height: 100%;"
+            :src="pic_url"
+            >
+    </el-image>
+    <div style="display: flex;justify-content: center;background-color: aquamarine">
+        <canvas id="canvas"></canvas>
+    </div>
+    <el-button @click="test()">开始</el-button>
 </div>
 <script>
+    var vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                pic_url :'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
+            }
+        },
+        methods: {
+            test(){
+                let canvas = document.getElementById('canvas')
+                let cut = canvas.getContext('2d')
+                let edit_img = new Image();
+                edit_img.src = this.pic_url;
+                edit_img.crossOrigin = 'Anonymous';
+                edit_img.onload = function () {
+                    cut.drawImage(edit_img, 0, 0, 800, 400);
+                    cut.font="20px Georgia";
+                    cut.fillStyle = '#ddd'
+                    cut.fillText('aaaaa',50,50);
+                };
+                let self = this
+                console.log(self)
+                setTimeout(function () {
+                    self.pic_url = canvas.toDataURL('image/jpeg');
+                }, 500);
+                //onwaiting(10)
 
-    const SRC= "https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg";
-    //document.getElementById('image').src = SRC;
-    var canvas = document.getElementById('canvas-cut');
-    var cut = canvas.getContext('2d');
-    var img = new Image();
-    img.src = SRC;
+                // var cvs = document.getElementById('canvas')
+                // let ctx = cvs.getContext('2d')
+                // ctx.fillStyle = "yellow";
+                // ctx.fillRect(0, 0, 300, 400);
+                // this.pic_url = cvs.toDataURL('image/jpeg');
+            }
 
-    //处理toDataURL遇跨域资源导致的报错
-    img.crossOrigin = 'Anonymous';
 
-    img.onload = function() {
-        // 起始x,y，终止x,y。左上角放置在画布的x,y,裁剪后的大小width,length
-        //drawImage(image, dx, dy) 在画布指定位置绘制原图
-        cut.drawImage(img, 0, 0, 400, 286)// 左上角x,y，图像大小
-        //cut.drawImage(img,0,0,400,286,0,0,800,286);
-        // var imgbase64 = canvas.toDataURL("image/png");
-        // document.getElementById('result').src =imgbase64;
-    };
-
+        }
+    })
 </script>
 </body>
 </html>
-
