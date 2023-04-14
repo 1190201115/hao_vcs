@@ -9,10 +9,12 @@ import com.cyh.hao_vcs.utils.FileUtil;
 import com.cyh.hao_vcs.utils.VersionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -36,6 +38,14 @@ public class VersionController {
         fileVersionImfService.updateText(projectId,morePath,content,updateKind, log, (Long)session.getAttribute("user"));
         return R.success("更新成功");
     }
+
+    @PostMapping("/updatePic")
+    public R updatePic(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath,
+                       @RequestBody MultipartFile file, @RequestParam("log") String log, HttpSession session) {
+        fileVersionImfService.updatePic(projectId,morePath,file, log, (Long)session.getAttribute("user"));
+        return R.success("更新成功");
+    }
+
 
     @GetMapping("/getVersionList")
     public R getVersionList(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath) {

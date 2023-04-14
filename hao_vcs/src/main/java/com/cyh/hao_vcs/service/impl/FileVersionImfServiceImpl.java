@@ -2,6 +2,9 @@ package com.cyh.hao_vcs.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.common.StatusEnum;
+import com.cyh.hao_vcs.config.FileConfig;
+import com.cyh.hao_vcs.config.VersionConfig;
 import com.cyh.hao_vcs.entity.FileBaseImf;
 import com.cyh.hao_vcs.entity.FileVersionImf;
 import com.cyh.hao_vcs.mapper.FileVersionImfMapper;
@@ -16,13 +19,16 @@ import com.cyh.hao_vcs.utils.VersionUtil;
 import com.qiniu.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import static com.cyh.hao_vcs.config.VersionConfig.CHECK_FILE;
-import static com.cyh.hao_vcs.config.VersionConfig.UPDATE_FILE;
+import static com.cyh.hao_vcs.common.StatusEnum.DELETE_SAFE;
+import static com.cyh.hao_vcs.common.StatusEnum.INIT_VERSION;
+import static com.cyh.hao_vcs.config.VersionConfig.*;
 import static com.cyh.hao_vcs.utils.FileUtil.getDiffFileName;
 
 @Service
@@ -43,7 +49,6 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
     @Autowired
     UserService userService;
 
-
     @Override
     public String updateText(Long projectId, String morePath, String content, Integer updateKind, String log, Long actorId) {
         String path = projectBaseService.getProjectPath(projectId);
@@ -57,6 +62,21 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         return FileUtil.saveTextAsHtml(morePath.substring(morePath.lastIndexOf("\\") + 1),
                 fileId + VersionUtil.LOGO + version, content);
 
+    }
+
+    @Override
+    public void updatePic(Long projectId, String morePath, MultipartFile file, String log, Long actorId) {
+        String path = projectBaseService.getProjectPath(projectId);
+        if (StringUtils.isNullOrEmpty(log)) {
+            log = UPDATE_FILE;
+        }
+        String version = fileBaseImfService.updateFileLatestVersion(path + morePath, StatusEnum.LIGHT_UPDATE);
+        String fileId = fileBaseImfService.getFileOriginId(path + morePath);
+        fileVersionImfMapper.insert(new FileVersionImf(fileId, version, LocalDateTime.now(),
+                userService.getById(actorId).getUsername(), log));
+        if(!StringUtils.isNullOrEmpty(fileId)){
+            FileUtil.updatePicAndChangeVersion(path+ File.separator+fileId+ VersionUtil.LOGO + version, morePath.substring(morePath.lastIndexOf(".")),file);
+        }
     }
 
     @Override

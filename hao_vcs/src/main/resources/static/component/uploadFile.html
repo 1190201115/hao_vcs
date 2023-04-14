@@ -63,6 +63,7 @@
             uploadFile(file) {
                 let formData = new FormData();
                 formData.append("file",file.file)
+                console.log(file.file)
                 formData.append("id", this.projectId)
                 formData.append("name",this.projectName)
                 formData.append("path", this.path)

@@ -32,13 +32,13 @@
                 <el-button type="text" style="font-size: larger;" @click="cutPicVisible=true">裁剪</el-button>
                 <el-button type="text" style="font-size: larger">图片拼接</el-button>
                 <el-button type="text" style="font-size: larger" @click="watermarkVisible=true">添加水印</el-button>
-                <el-button type="text" style="font-size: larger;margin-right: 50px">保存</el-button>
+                <el-button type="text" style="font-size: larger;margin-right: 50px" @click="savePicVisible=true">保存</el-button>
             </div>
             <el-dialog
                     title="调整图片大小"
                     :visible.sync="picSizeVisible"
                     width="30%"
-                    :before-close="handleClose">
+                    >
                 <span>原图宽 <span style="color: #e74e4e; font-size: larger"> {{pic_width}} </span>像素，
                     高 <span style="color: #e74e4e; font-size: larger"> {{pic_height}} </span> 像素</span>
                 <br><br>
@@ -79,7 +79,7 @@
                     title="添加水印"
                     :visible.sync="watermarkVisible"
                     width="30%"
-                    :before-close="handleClose">
+                    >
                 <span>当前图片宽 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_width}} </span>像素，
                     高 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_height}} </span> 像素</span>
                 <br><br>
@@ -126,7 +126,7 @@
                     title="裁剪图片"
                     :visible.sync="cutPicVisible"
                     width="40%"
-                    :before-close="handleClose">
+                    >
                 <span>当前图片宽 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_width}} </span>像素，
                     高 <span style="color: #e74e4e; font-size: larger"> {{edit_pic_height}} </span> 像素</span>
                 <br><br><br>
@@ -182,6 +182,27 @@
     <el-button type="primary" @click="cutPic()">确 定</el-button>
   </span>
             </el-dialog>
+            <el-dialog
+                    title="保存图片"
+                    :visible.sync="savePicVisible"
+                    width="40%"
+                    >
+                <span>日志信息</span>
+                <br><br>
+                <el-input
+                        type="text"
+                        v-model="save_log"
+                        maxlength="30"
+                        style="width: 500px"
+                        show-word-limit
+                ></el-input>
+                <br>
+                <span slot="footer" class="dialog-footer">
+            <el-button @click="savePicVisible = false">取 消</el-button>
+            <el-button type="primary" @click="savePic()">确 定</el-button>
+                </span>
+            </el-dialog>
+
         </div>
     </div>
 
@@ -215,6 +236,7 @@
                 picSizeVisible: false,
                 watermarkVisible: false,
                 cutPicVisible: false,
+                savePicVisible: false,
                 watermarkContent: '',
                 watermark_width: '',
                 watermark_height: '',
@@ -222,6 +244,7 @@
                 cut_start_y: '',
                 cut_width: '',
                 cut_height: '',
+                save_log: '',
 
             }
         },
@@ -233,16 +256,58 @@
             this.getContent(this.projectId, this.path)
         },
         methods: {
-            createCanvas() {
-                this.canvas = document.getElementById('canvas')
-                this.canvas.height = this.edit_pic_height
-                this.canvas.width = this.edit_pic_width
-            },
-            createImg() {
-                let edit_img = new Image();
-                edit_img.src = this.pic_url;
-                edit_img.crossOrigin = 'Anonymous';
-                return edit_img
+            savePic(){
+                this.savePicVisible = false
+                let arr = this.pic_url.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]), i = bstr.length, u8arr = new Uint8Array(i);
+                while(i--){
+                    u8arr[i] = bstr.charCodeAt(i);
+                }
+                let file = new File([u8arr], "file.jpeg", {type:mime})
+                let formData = new FormData();
+                formData.append("file",file)
+                formData.append("projectId", this.projectId)
+                formData.append("log",this.save_log)
+                formData.append("morePath", this.path)
+                axios.post('/version/updatePic', formData, {
+                    "Content-Type": "multipart/form-data;charset=utf-8"
+                }).then(res => {
+                    if(res.data.code === 40000){
+                        this.$message.error(res.data.msg)
+                    }
+                })
+
+                // let canvas = document.getElementById('canvas')
+                // let cut = canvas.getContext('2d')
+                // let edit_img = new Image();
+                // edit_img.src = this.pic_url;
+                // edit_img.crossOrigin = 'Anonymous';
+                // edit_img.onload = function () {
+                //     cut.drawImage(edit_img, start_x, start_y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+                // };
+                // let _t
+                // axios.get('/version/updatePic', {params: {projectId: projectId, morePath: path}})
+                //     .then(results => {
+                //         if (results.data.code === 20000) {
+                //             console.log(results)
+                //             let msg = results.data.msg
+                //             let data = results.data.data
+                //             if (msg === 'text') {
+                //                 this.initCKEditor()
+                //                 CKEDITOR.instances.textEditor.setData(data)
+                //                 this.showTextEditor = true
+                //             } else if (msg === 'pic') {
+                //                 this.pic_url = data.path
+                //                 this.pic_url_list.push(this.pic_url)
+                //                 this.showPicEditor = true
+                //                 this.pic_width = data.width
+                //                 this.pic_height = data.height
+                //                 this.edit_pic_height = data.height
+                //                 this.edit_pic_width = data.width
+                //             }
+                //         } else {
+                //             this.$message.error(results.data.data)
+                //         }
+                //     })
             },
             cutPic() {
                 let start_x = this.cut_start_x
@@ -281,7 +346,6 @@
                 edit_img.crossOrigin = 'Anonymous';
                 edit_img.onload = function () {
                     cut.drawImage(edit_img, 0, 0, canvas.width, canvas.height);
-                    console.log(canvas.width)
                 };
                 let _this = this
                 setTimeout(function () {
@@ -318,7 +382,6 @@
                 axios.get('/project/getFileContent', {params: {projectId: projectId, morePath: path}})
                     .then(results => {
                         if (results.data.code === 20000) {
-                            console.log(results)
                             let msg = results.data.msg
                             let data = results.data.data
                             if (msg === 'text') {

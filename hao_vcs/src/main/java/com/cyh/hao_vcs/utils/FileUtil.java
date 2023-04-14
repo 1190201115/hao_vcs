@@ -48,10 +48,6 @@ public class FileUtil {
         return publicUrl;
     }
 
-    public static boolean downloadFile(String fileName, String savePath){
-        return false;
-    }
-
     public static boolean fileIsNotExists(MultipartFile file) {
         return Objects.isNull(file) || file.isEmpty();
     }
@@ -97,12 +93,19 @@ public class FileUtil {
         return path;
     }
 
-    public static String saveFile(String dirPath, String version, MultipartFile file){
-        String originalFilename = file.getOriginalFilename();
-        String fileFormat = originalFilename.substring(originalFilename.lastIndexOf("."));
-        String uuid = UUID.randomUUID().toString().trim();
-        File localFile = new File(dirPath + File.separator + uuid +VersionUtil.getVersionSuffix(version)+fileFormat);
-        createDir(dirPath);
+    /**
+     *
+     * @param
+     * @param suffix .jpeg
+     * @return
+     */
+    public static boolean
+    updatePicAndChangeVersion(String fullPath, String suffix, MultipartFile file){
+        return !Objects.isNull(saveFile(fullPath + suffix, file));
+    }
+
+    public static String saveFile(String completePath, MultipartFile file){
+        File localFile = new File(completePath);
         InputStream ins = null;
         OutputStream os = null;
         try {
@@ -126,6 +129,15 @@ public class FileUtil {
                 return null;
             }
         }
+        return "success";
+    }
+
+    public static String saveFile(String dirPath, String version, MultipartFile file){
+        String originalFilename = file.getOriginalFilename();
+        String fileFormat = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String uuid = UUID.randomUUID().toString().trim();
+        createDir(dirPath);
+        saveFile(dirPath + File.separator + uuid +VersionUtil.getVersionSuffix(version)+fileFormat, file);
         return uuid;
     }
 
