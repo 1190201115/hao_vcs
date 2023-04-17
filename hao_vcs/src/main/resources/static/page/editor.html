@@ -30,7 +30,7 @@
                 <el-button type="text" style="font-size: larger;margin-left: 50px" @click="picSizeVisible=true">调整大小
                 </el-button>
                 <el-button type="text" style="font-size: larger;" @click="cutPicVisible=true">裁剪</el-button>
-                <el-button type="text" style="font-size: larger">图片拼接</el-button>
+<!--                <el-button type="text" style="font-size: larger" @click="combinePicVisible = true">图片拼接</el-button>-->
                 <el-button type="text" style="font-size: larger" @click="watermarkVisible=true">添加水印</el-button>
                 <el-button type="text" style="font-size: larger;margin-right: 50px" @click="savePicVisible=true">保存</el-button>
             </div>
@@ -202,7 +202,14 @@
             <el-button type="primary" @click="savePic()">确 定</el-button>
                 </span>
             </el-dialog>
-
+<!--            <el-dialog-->
+<!--                    title="拼接图片位置"-->
+<!--                    :visible.sync="combinePicVisible"-->
+<!--                    width="40%"-->
+<!--            >-->
+<!--                <i class="el-icon-edit" @click="alert('aa')"></i>-->
+<!--            </el-dialog>-->
+<!--            <input type="file" id="uploadCombinePic" style="display:none" />-->
         </div>
     </div>
 
@@ -235,6 +242,7 @@
                 temp_pic_height: 572,
                 picSizeVisible: false,
                 watermarkVisible: false,
+                // combinePicVisible: false,
                 cutPicVisible: false,
                 savePicVisible: false,
                 watermarkContent: '',
@@ -275,40 +283,12 @@
                         this.$message.error(res.data.msg)
                     }
                 })
-
-                // let canvas = document.getElementById('canvas')
-                // let cut = canvas.getContext('2d')
-                // let edit_img = new Image();
-                // edit_img.src = this.pic_url;
-                // edit_img.crossOrigin = 'Anonymous';
-                // edit_img.onload = function () {
-                //     cut.drawImage(edit_img, start_x, start_y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-                // };
-                // let _t
-                // axios.get('/version/updatePic', {params: {projectId: projectId, morePath: path}})
-                //     .then(results => {
-                //         if (results.data.code === 20000) {
-                //             console.log(results)
-                //             let msg = results.data.msg
-                //             let data = results.data.data
-                //             if (msg === 'text') {
-                //                 this.initCKEditor()
-                //                 CKEDITOR.instances.textEditor.setData(data)
-                //                 this.showTextEditor = true
-                //             } else if (msg === 'pic') {
-                //                 this.pic_url = data.path
-                //                 this.pic_url_list.push(this.pic_url)
-                //                 this.showPicEditor = true
-                //                 this.pic_width = data.width
-                //                 this.pic_height = data.height
-                //                 this.edit_pic_height = data.height
-                //                 this.edit_pic_width = data.width
-                //             }
-                //         } else {
-                //             this.$message.error(results.data.data)
-                //         }
-                //     })
             },
+            // combinePic(){
+            //     document.getElementById('uploadCombinePic').click()
+            //     console.log(document.getElementById('uploadCombinePic').files[0])
+            //
+            // },
             cutPic() {
                 let start_x = this.cut_start_x
                 let start_y = this.cut_start_y

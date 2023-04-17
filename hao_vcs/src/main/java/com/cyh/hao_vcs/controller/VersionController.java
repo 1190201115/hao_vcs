@@ -46,6 +46,15 @@ public class VersionController {
         return R.success("更新成功");
     }
 
+    @PostMapping("/combinePic")
+    public R updatePic(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath,
+                       @RequestBody MultipartFile file, @RequestParam("log") String log, @RequestParam("addPath") String addPath,
+                       HttpSession session) {
+
+        fileVersionImfService.updatePic(projectId,morePath,file, log, (Long)session.getAttribute("user"));
+        return R.success("更新成功");
+    }
+
 
     @GetMapping("/getVersionList")
     public R getVersionList(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath) {

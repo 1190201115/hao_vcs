@@ -99,8 +99,7 @@ public class FileUtil {
      * @param suffix .jpeg
      * @return
      */
-    public static boolean
-    updatePicAndChangeVersion(String fullPath, String suffix, MultipartFile file){
+    public static boolean updatePicAndChangeVersion(String fullPath, String suffix, MultipartFile file){
         return !Objects.isNull(saveFile(fullPath + suffix, file));
     }
 
@@ -141,12 +140,13 @@ public class FileUtil {
         return uuid;
     }
 
-    public static String getSuffix(MultipartFile file) {
-        int dotPos = file.getOriginalFilename().lastIndexOf(".");
+    //不包含.
+    public static String getSuffix(String filePath) {
+        int dotPos = filePath.lastIndexOf(".");
         if (dotPos < 0) {
             return null;
         }
-        return file.getOriginalFilename().substring(dotPos + 1).toLowerCase();
+        return filePath.substring(dotPos + 1);
     }
 
     public static String getProjectPath(Long projectID,String projectName){

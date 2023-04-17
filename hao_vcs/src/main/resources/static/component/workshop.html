@@ -7,7 +7,7 @@
 </head>
 <body>
 <div id="app" style="width: 100%;height: 100%; margin:0 auto;">
-    <el-col :span="4">
+    <el-col :span="3">
         <el-menu
                 default-active="textEditor"
                 @select="handleSelect">
@@ -29,7 +29,58 @@
         showText
     </div>
     <div v-show="showPic">
-        showPic
+        <el-col :span="3">
+        <el-menu
+                default-active="besidePic"
+                @select="handleSelect">
+            <el-menu-item index="besidePic">
+                <span slot="title">图像拼接</span>
+            </el-menu-item>
+            <el-menu-item index="containPic">
+                <span slot="title">图像编辑</span>
+            </el-menu-item>
+        </el-menu>
+        </el-col>
+<!--            <span>选择原始图片</span>-->
+<!--            <br><br>-->
+<!--            <input type="file" id="originPic"/>-->
+<!--            <span>选择拼接图片</span>-->
+<!--            <br><br>-->
+<!--            <input type="file" id="addPic"/>-->
+<!--            <span>-->
+<!--                <el-input-->
+<!--                        type="text"-->
+<!--                        v-model="watermark_width"-->
+<!--                        maxlength="4"-->
+<!--                        style="width: 200px"-->
+<!--                        show-word-limit-->
+<!--                        oninput="value=value.replace(/[^0-9.]/g,'')"-->
+<!--                >-->
+<!--                    <template slot="prepend">x</template>-->
+<!--                </el-input>-->
+<!--                <el-input-->
+<!--                        type="text"-->
+<!--                        v-model="watermark_height"-->
+<!--                        maxlength="4"-->
+<!--                        style="width: 200px;margin-left: 50px"-->
+<!--                        show-word-limit-->
+<!--                >-->
+<!--                    <template slot="prepend">y</template>-->
+<!--                </el-input>-->
+<!--                </span>-->
+<!--            <br><br>-->
+<!--            <span>水印内容</span>-->
+<!--            <br><br>-->
+<!--            <el-input-->
+<!--                    type="text"-->
+<!--                    v-model="watermarkContent"-->
+<!--                    maxlength="15"-->
+<!--                    style="width: 300px;"-->
+<!--                    show-word-limit-->
+<!--            >-->
+<!--            </el-input>-->
+<!--            <span slot="footer" class="dialog-footer">-->
+<!--            </span>-->
     </div>
     <div v-show="showAudio">
         showAudio
@@ -50,7 +101,7 @@
             }
         },
         methods: {
-            handleSelect(key, keyPath) {
+            handleSelect(key) {
                 this.hideAll();
                 if (key === 'textEditor') {
                     this.showText = true
