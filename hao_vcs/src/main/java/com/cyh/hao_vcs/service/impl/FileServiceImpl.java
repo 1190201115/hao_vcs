@@ -114,9 +114,7 @@ public class FileServiceImpl implements FileService {
             if(FileConfig.TEXT_FILE.equals(result.getMsg())){
                 return R.success(Converter.htmlToString(result.getData().toString()), FileConfig.TEXT_FILE);
             }
-            if(FileConfig.PIC_FILE.equals(result.getMsg())){
                 return result;
-            }
         }
         return R.error("获取文件内容失败");
 

@@ -1,16 +1,22 @@
 package com.cyh.hao_vcs.utils;
 
-import org.bytedeco.ffmpeg.global.avcodec;
-import org.bytedeco.javacv.FFmpegFrameFilter;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegFrameRecorder;
+import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.Frame;
-
+import sun.font.FontDesignMetrics;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 
-import static org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_MP3;
-
 public class VideoProcessor {
+
+    private static void initRecoder(FFmpegFrameRecorder recorder, FFmpegFrameGrabber grabber){
+        recorder.setFrameRate(grabber.getFrameRate());
+        recorder.setVideoCodec(grabber.getVideoCodec());
+        recorder.setVideoBitrate(grabber.getVideoBitrate());
+        recorder.setSampleRate(grabber.getSampleRate());
+        recorder.setAudioCodec(grabber.getAudioCodec());
+        recorder.setAudioBitrate(grabber.getAudioBitrate());
+    }
 
     /**
      * 抽取视频图像
@@ -19,13 +25,13 @@ public class VideoProcessor {
      * @throws Exception
      */
     public static void videoGetImage(String inputFile, String outputFile) throws Exception{
-        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(new File(inputFile));
+        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
-        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(new File(outputFile), grabber.getImageWidth(), grabber.getImageHeight());
-        recorder.setFormat(grabber.getFormat());
-        recorder.setVideoCodec(grabber.getVideoCodec());//27
-        recorder.setVideoBitrate(grabber.getVideoBitrate());//1991613
-        recorder.setVideoQuality(25);
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight());
+//        recorder.setFormat(grabber.getFormat());
+//        recorder.setVideoCodec(grabber.getVideoCodec());//27
+//        recorder.setVideoBitrate(grabber.getVideoBitrate());//1991613
+        initRecoder(recorder,grabber);
         recorder.start();
         Frame frame;
         while ((frame = grabber.grabImage()) != null) {
@@ -45,11 +51,10 @@ public class VideoProcessor {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getAudioChannels());
-        recorder.setFormat(grabber.getFormat());
-
+//        recorder.setFormat(grabber.getFormat());
         recorder.setAudioBitrate(grabber.getAudioBitrate());//317768
         recorder.setSampleRate(grabber.getSampleRate());//48000
-
+        //initRecoder(recorder,grabber);
         recorder.start();
         Frame frame;
         while ((frame = grabber.grabSamples()) != null) {
@@ -57,6 +62,81 @@ public class VideoProcessor {
         }
         recorder.close();
         grabber.close();
+    }
+
+    public static void videoAddText(String inputFile, String outputFile, String text) throws Exception{
+        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
+        grabber.start();
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight(),
+                grabber.getAudioChannels());
+        initRecoder(recorder,grabber);
+        recorder.start();
+        Java2DFrameConverter converter = new Java2DFrameConverter();
+        Frame frame;
+        while((frame = grabber.grab()) != null){
+            if(frame.image != null){
+                BufferedImage bufImg = converter.getBufferedImage(frame);
+                Font font = new Font("微软雅黑", Font.BOLD, 32);
+                FontDesignMetrics metrics = FontDesignMetrics.getMetrics(font);
+                Graphics2D graphics = bufImg.createGraphics();
+                graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+                //设置图片背景
+                graphics.drawImage(bufImg, 0, 0, bufImg.getWidth(), bufImg.getHeight(), null);
+                // 计算文字长度，计算居中的x点坐标
+                int textWidth = metrics.stringWidth(text);
+                int widthX = (bufImg.getWidth() - textWidth) / 2;
+                graphics.setColor(Color.red);
+                graphics.setFont(font);
+                graphics.drawString(text, widthX, bufImg.getHeight() - 100);
+                graphics.dispose();
+                // 视频帧赋值，写入输出流
+                frame.image = converter.getFrame(bufImg).image;
+                recorder.record(frame);
+            }
+            if(frame.samples != null){
+                recorder.record(frame);
+            }
+        }
+        recorder.close();
+        grabber.close();
+    }
+
+    public static void videoClip(String inputFile, String outputFile, int startMs, int endMs) throws Exception{
+        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
+        grabber.start();
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight(),
+                grabber.getAudioChannels());
+
+//        recorder.setFrameRate(grabber.getFrameRate());
+//        recorder.setVideoCodec(grabber.getVideoCodec());
+//        recorder.setVideoBitrate(grabber.getVideoBitrate());
+//        recorder.setSampleRate(grabber.getSampleRate());
+//        recorder.setAudioCodec(grabber.getAudioCodec());
+        initRecoder(recorder,grabber);
+        recorder.start();
+        Frame frame;
+        int startFrame = (int)(startMs * grabber.getFrameRate());
+        int endFrame = (int)(endMs * grabber.getFrameRate());
+        System.out.println(startFrame + " - "+ endFrame);
+        int frameNumber = 0;
+        while((frame = grabber.grab()) != null){
+            if(frame.image != null){
+                if(frameNumber++ < startFrame){
+                    continue;
+                }
+                recorder.record(frame);
+            }
+            if(frame.samples != null){
+                if(frameNumber < startFrame){
+                    continue;
+                }
+                recorder.record(frame);
+            }
+            if(frameNumber > endFrame) break;
+        }
+        grabber.stop();
+        recorder.stop();
     }
 
     /**
@@ -97,7 +177,12 @@ public class VideoProcessor {
         String video2 = "E:\\project\\test\\video\\luming_s.mp3";
         String video3 = "E:\\project\\test\\video\\luming_i.mp4";
         String video0 = "E:\\project\\test\\video\\luming_t.mp4";
-        videoMixImageAndSamples(video3,video2,video0);
+        String video = "E:\\project\\test\\video\\luming_cut.mp4";
+        videoAddText(video,video0,"create by 陈宇豪");
+        //videoGetSamples(video1,video2);
+        //videoGetImage(video1,video3);
+        //videoMixImageAndSamples(video3,video2,video0);
+        //videoClip(video1,video,5,10);
 //
 //        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(new File(video1));
 //        grabber.start();

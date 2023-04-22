@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/outService.js"></script>
+    <script src="../js/aliplayer-min.js"></script>
+    <link rel="stylesheet" href="https://g.alicdn.com/de/prismplayer/2.15.2/skins/default/aliplayer-min.css"/>
+</head>
+<body>
+<div id="app" style="background-color: black">
+    <div class="prism-player" id="videoPlayer" style="margin-left: auto; margin-right: auto;"></div>
+    <div v-if="showVideo" style="text-align: center;display: flex;justify-content: center;margin-top: 1%">
+        <el-button type="text" style="font-size: larger;color: white;margin-left: 50px" @click="cutVideoVisible=true">
+            视频剪辑
+        </el-button>
+        <el-button type="text" style="font-size: larger; color: white;" @click="watermarkVisible=true">添加水印</el-button>
+        <el-button type="text" style="font-size: larger;color: white;margin-right: 50px" @click="saveVideoVisible=true">
+            保存
+        </el-button>
+    </div>
+    <div v-if="showAudio" style="text-align: center;display: flex;justify-content: center;margin-top: 1%">
+        <el-button type="text" style="font-size: larger;color: white;margin-left: 50px" @click="cutVideoVisible=true">
+            音频剪辑
+        </el-button>
+        <el-button type="text" style="font-size: larger; color: white;" @click="changeSpeedVisible=true">变速</el-button>
+        <el-button type="text" style="font-size: larger; color: white;" @click="changeToneVisible=true">变调</el-button>
+        <el-button type="text" style="font-size: larger;color: white;margin-right: 50px" @click="saveAudioVisible=true">
+            保存
+        </el-button>
+    </div>
+</div>
+<script>
+    var vm = new Vue({
+        el: "#app",
+        props: {
+            player: Object
+        },
+        data() {
+            return {
+                cutVideoVisible: false,
+                showVideo: false,
+                showAudio: false,
+                watermarkVisible: false,
+                saveVideoVisible: false,
+                kind: '',
+            }
+        },
+        mounted() {
+            this.kind = window.location.search.split("?")[1]
+            console.log(this.kind)
+            this.initPlayer(decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
+            console.log(decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
+            //this.initPlayer('https://dl.stream.qqmusic.qq.com/C400001eusf24IEjSC.m4a?guid=2387437896&vkey=2A6762F789FA99C4E5BF7DA19D3C288DAAEF1206231A59633C32BA55453664D0B44EEDDA0A50290314413968A625387AAC1286ACB497AAAF&uin=&fromtag=120032')
+        },
+        methods: {
+            initPlayer(path) {
+                this.player = new Aliplayer({
+                    id: 'videoPlayer',
+                    source: path,
+                    //https://dl.stream.qqmusic.qq.com/C400001eusf24IEjSC.m4a?guid=2387437896&vkey=2A6762F789FA99C4E5BF7DA19D3C288DAAEF1206231A59633C32BA55453664D0B44EEDDA0A50290314413968A625387AAC1286ACB497AAAF&uin=&fromtag=120032
+                    "width": "100%",
+                    "height": "90%",
+                    "autoplay": true,
+                    "isLive": false,
+                    "rePlay": false,
+                    "preload": true,
+                    "controlBarVisibility": "hover",
+                    "useH5Prism": true
+                }, function (player) {
+                    player._switchLevel = 0;
+                });
+            }
+        }
+    })
+</script>
+</body>
+</html>

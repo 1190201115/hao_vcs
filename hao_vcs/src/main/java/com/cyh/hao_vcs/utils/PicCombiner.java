@@ -80,6 +80,8 @@ public class PicCombiner {
     }
 
     public static void main(String[] args) {
+//        combinePic("D:\\ADeskTop\\ccip.jpg",864,1920,"D:\\ADeskTop\\xc.jpg",
+//                0)
             //getPicImf("D:\\ADeskTop\\project\\bigWork\\image\\a.jpeg");
 //        public void demo() throws Exception {
 //

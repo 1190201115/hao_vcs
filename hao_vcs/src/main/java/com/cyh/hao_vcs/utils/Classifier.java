@@ -29,12 +29,24 @@ public class Classifier {
             return R.success(result,FileConfig.TEXT_FILE);
         }else if(isPic(suffix)){
             return R.success(PicCombiner.getPicImf(path), FileConfig.PIC_FILE);
+        }else if(isAudio(suffix)){
+            return R.success(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH), FileConfig.AUDIO_FILE);
+        }else if(isMedio(suffix)){
+            return R.success(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH), FileConfig.VIDEO_FILE);
         }
         return R.error(null);
     }
 
     private static boolean isPic(String suffix){
         return "jpg".equals(suffix) || "png".equals(suffix) || "jpeg".equals(suffix);
+    }
+
+    private static boolean isAudio(String suffix){
+        return "mp3".equals(suffix) || "wav".equals(suffix);
+    }
+
+    private static boolean isMedio(String suffix){
+        return "mp4".equals(suffix) || "avi".equals(suffix) || "wmv".equals(suffix) || "mpeg".equals(suffix);
     }
 
     public static String textConverter(String suffix, String fileName, String path) {
