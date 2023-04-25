@@ -39,4 +39,8 @@ public class VersionUtil {
         return heavyNum + INIT_VERSION_PARSER + INIT_VERSION_PARSER;
     }
 
+    private static String getNextVersion(String version){
+        return String.valueOf(Integer.parseInt(version) + 1);
+    }
+
 }

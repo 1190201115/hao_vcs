@@ -17,4 +17,7 @@ public interface FileVersionImfService {
     boolean checkFileVersion(Long projectId, String morePath, String newVersion, Long userId);
 
     R compareText(Long projectId, String morePath, String version);
+
+    String updateVideo(String waterMark, String path, Integer now_version);
+
 }

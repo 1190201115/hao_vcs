@@ -212,7 +212,6 @@
 <!--            <input type="file" id="uploadCombinePic" style="display:none" />-->
         </div>
     </div>
-
 </div>
 <script>
     let vm = new Vue({
@@ -377,8 +376,7 @@
                                 this.edit_pic_height = data.height
                                 this.edit_pic_width = data.width
                             } else{
-                                console.log(data)
-                                window.location.href = encodeURI('./player.html?' + msg + '?' + data)
+                                window.location.href = encodeURI('./player.html?' + msg + '&' + data.path+'&'+data.time)
                             }
                         } else {
                             this.$message.error(results.data.data)

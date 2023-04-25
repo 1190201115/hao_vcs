@@ -16,6 +16,7 @@ import com.cyh.hao_vcs.service.UserService;
 import com.cyh.hao_vcs.utils.Converter;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.cyh.hao_vcs.utils.VersionUtil;
+import com.cyh.hao_vcs.utils.VideoProcessor;
 import com.qiniu.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,8 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
 
     @Autowired
     UserService userService;
+
+    private static String prefix = "D:\\ADeskTop\\project\\bigWork";
 
     @Override
     public String updateText(Long projectId, String morePath, String content, Integer updateKind, String log, Long actorId) {
@@ -123,6 +126,26 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
             return R.error("差异分析失败");
         }
         return R.success(diffFilePath, "对比成功");
+    }
+
+
+    @Override
+    public String updateVideo(String waterMark, String path, Integer now_version) {
+        String inputPath = prefix + path;
+        String fileName = inputPath.substring(inputPath.lastIndexOf("\\") + 1);
+        String outputPath = inputPath.substring(0, inputPath.lastIndexOf("\\")) + FileConfig.TEMP_REPO;
+        File dir = new File(outputPath);
+        if(!dir.exists()){
+            dir.mkdir();
+        }
+        outputPath = outputPath + now_version + "-" + fileName;
+        try {
+            VideoProcessor.videoAddText(inputPath,outputPath,waterMark);
+            return outputPath.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private FileVersionImf getFileVersionImf(Long projectId, String morePath, String version) {

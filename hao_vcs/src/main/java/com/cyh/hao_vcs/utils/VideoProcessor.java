@@ -1,13 +1,19 @@
 package com.cyh.hao_vcs.utils;
 
+import com.cyh.hao_vcs.config.FileConfig;
+import com.cyh.hao_vcs.entity.AudioImf;
+import com.cyh.hao_vcs.entity.VideoImf;
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.Frame;
 import sun.font.FontDesignMetrics;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 public class VideoProcessor {
+
+
 
     private static void initRecoder(FFmpegFrameRecorder recorder, FFmpegFrameGrabber grabber){
         recorder.setFrameRate(grabber.getFrameRate());
@@ -85,10 +91,10 @@ public class VideoProcessor {
                 graphics.drawImage(bufImg, 0, 0, bufImg.getWidth(), bufImg.getHeight(), null);
                 // 计算文字长度，计算居中的x点坐标
                 int textWidth = metrics.stringWidth(text);
-                int widthX = (bufImg.getWidth() - textWidth) / 2;
+                int widthX = bufImg.getWidth() - textWidth;
                 graphics.setColor(Color.red);
                 graphics.setFont(font);
-                graphics.drawString(text, widthX, bufImg.getHeight() - 100);
+                graphics.drawString(text, widthX, bufImg.getHeight() - 50);
                 graphics.dispose();
                 // 视频帧赋值，写入输出流
                 frame.image = converter.getFrame(bufImg).image;
@@ -170,6 +176,21 @@ public class VideoProcessor {
         recorder.close();
         samplesGrabber.close();
         imageGrabber.close();
+    }
+
+    //返回带有地址和时长的音频信息，但是日志列表与版本号不在这里读取
+    public static VideoImf getVideoImf(String path){
+        try {
+            FFmpegFrameGrabber grabber = FFmpegFrameGrabber.createDefault(path);
+            grabber.start();
+            // 计算时长
+            double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
+            return new VideoImf(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH),
+                    durationInSec,-1,null);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static void main(String[] args) throws Exception {

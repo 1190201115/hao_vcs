@@ -1,7 +1,15 @@
 package com.cyh.hao_vcs.utils;
 
+import com.cyh.hao_vcs.config.FileConfig;
+import com.cyh.hao_vcs.entity.AudioImf;
+import com.cyh.hao_vcs.entity.PicImf;
 import org.bytedeco.javacv.*;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -166,6 +174,21 @@ public class AudioProcessor {
         frameFilter.stop();
         recorder.stop();
         grabber.stop();
+    }
+
+    //返回带有地址和时长的音频信息，但是日志列表不在这里读取
+    public static AudioImf getAudioImf(String path){
+        try {
+            FFmpegFrameGrabber grabber = FFmpegFrameGrabber.createDefault(path);
+            grabber.start();
+            // 计算时长
+            double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
+            return new AudioImf(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH),
+                    durationInSec,-1,null);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

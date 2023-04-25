@@ -50,9 +50,14 @@ public class VersionController {
     public R updatePic(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath,
                        @RequestBody MultipartFile file, @RequestParam("log") String log, @RequestParam("addPath") String addPath,
                        HttpSession session) {
-
         fileVersionImfService.updatePic(projectId,morePath,file, log, (Long)session.getAttribute("user"));
         return R.success("更新成功");
+    }
+
+    @PostMapping("/addVideoWatermark")
+    public R updateVideo(@RequestBody Map<String, String> map) {
+        String newPath = fileVersionImfService.updateVideo(map.get("content"), map.get("path"), Integer.parseInt(map.get("version")));
+        return Objects.isNull(newPath) ? R.error("水印添加失败") : R.success(newPath);
     }
 
 

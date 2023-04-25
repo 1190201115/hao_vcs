@@ -14,11 +14,73 @@
         <el-button type="text" style="font-size: larger;color: white;margin-left: 50px" @click="cutVideoVisible=true">
             视频剪辑
         </el-button>
-        <el-button type="text" style="font-size: larger; color: white;" @click="watermarkVisible=true">添加水印</el-button>
-        <el-button type="text" style="font-size: larger;color: white;margin-right: 50px" @click="saveVideoVisible=true">
+        <el-button type="text" style="font-size: larger; color: white;" @click="videoWatermarkVisible=true">添加水印</el-button>
+        <el-button type="text" style="font-size: larger; color: white;" :disabled="now_version==1"  @click="undoOperation()">撤销上一次修改</el-button>
+        <el-button type="text" style="font-size: larger;color: white;margin-right: 50px" @click="saveVideo()">
             保存
         </el-button>
     </div>
+    <el-dialog
+            title="视频剪辑"
+            :visible.sync="cutVideoVisible"
+            width="40%"
+    >
+        <span>当前视频时长共 <span style="color: #e74e4e; font-size: larger"> {{origin_time}} </span>秒</span>
+        <br><br><br>
+        <span>
+                <el-input
+                        type="text"
+                        v-model="start_time"
+                        maxlength="4"
+                        style="width: 200px"
+                        show-word-limit
+                        oninput="value=value.replace(/[^0-9.]/g,'')"
+                >
+                    <template slot="append">秒</template>
+                </el-input>
+            <span style="margin-left: 50px">——</span>
+                <el-input
+                        type="text"
+                        v-model="end_time"
+                        maxlength="4"
+                        style="width: 200px;margin-left: 50px"
+                        show-word-limit
+                >
+                    <template slot="append">秒</template>
+                </el-input>
+        </span>
+        <br><br><br>
+        <el-radio v-model="radio" label="1">删减</el-radio>
+        <el-radio v-model="radio" label="2">保留</el-radio>
+        <br><br>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="cutVideoVisible = false">取 消</el-button>
+            <el-button type="primary" @click="cutVideo()">确 定</el-button>
+        </span>
+    </el-dialog>
+    <el-dialog
+            title="添加水印"
+            :visible.sync="videoWatermarkVisible"
+            width="40%"
+    >
+        <span>
+                <span>水印内容</span>
+                <br><br>
+                <el-input
+                        type="text"
+                        v-model="watermarkContent"
+                        maxlength="15"
+                        style="width: 300px;"
+                        show-word-limit
+                >
+                </el-input>
+        </span>
+        <br><br><br>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="videoWatermarkVisible = false">取 消</el-button>
+            <el-button type="primary" @click="addWatermark()">确 定</el-button>
+        </span>
+    </el-dialog>
     <div v-if="showAudio" style="text-align: center;display: flex;justify-content: center;margin-top: 1%">
         <el-button type="text" style="font-size: larger;color: white;margin-left: 50px" @click="cutVideoVisible=true">
             音频剪辑
@@ -39,19 +101,32 @@
         data() {
             return {
                 cutVideoVisible: false,
-                showVideo: false,
+                showVideo: true,
                 showAudio: false,
-                watermarkVisible: false,
-                saveVideoVisible: false,
+                videoWatermarkVisible: false,
                 kind: '',
+                origin_time: 1,
+                radio: '1',
+                start_time:'',
+                end_time: '',
+                path: '',
+                now_version: 1,
+                change_list: [],
+                watermarkContent: '',
             }
         },
         mounted() {
-            this.kind = window.location.search.split("?")[1]
-            console.log(this.kind)
-            this.initPlayer(decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
-            console.log(decodeURI(window.location.search.split("?")[2].replaceAll('/', '\\')))
-            //this.initPlayer('https://dl.stream.qqmusic.qq.com/C400001eusf24IEjSC.m4a?guid=2387437896&vkey=2A6762F789FA99C4E5BF7DA19D3C288DAAEF1206231A59633C32BA55453664D0B44EEDDA0A50290314413968A625387AAC1286ACB497AAAF&uin=&fromtag=120032')
+            let param = window.location.search.split("&")
+            console.log(param)
+            this.kind = param[0]
+            if (this.kind === '?audio') {
+                this.showAudio = true;
+            } else {
+                this.showVideo = true;
+            }
+            this.path = decodeURI(param[1].replaceAll('/', '\\'))
+            this.initPlayer(this.path)
+            this.time = param[2]
         },
         methods: {
             initPlayer(path) {
@@ -70,6 +145,91 @@
                 }, function (player) {
                     player._switchLevel = 0;
                 });
+            },
+            undoOperation(){
+                if(this.now_version > 1){
+                    this.now_version--
+                    this.change_list.remove()
+                }
+
+            },
+            recordLog(log,msgS,msgF,code){
+                this.now_version++
+                this.change_list.add(log)
+                console.log(log,msgS,msgF,code)
+                if (code === 20000) {
+                    this.$message.success(msgS)
+                }else{
+                    this.$message.warning(msgF)
+                }
+            },
+            saveVideo(){
+                axios.post('/version/addVideoWatermark', {path: this.path, version: this.now_version,
+                    content: this.watermarkContent})
+                    .then(results => {
+                        console.log(results.data)
+                        if (results.data.code === 20000) {
+                            this.$message.success('保存成功')
+                        }else{
+                            this.$message.warning('保存失败')
+                        }
+                    })
+            },
+            addWatermark() {
+                if(this.watermarkContent === ''){
+                    this.$message.warning('水印内容不应该为空')
+                }else{
+                    axios.post('/version/addVideoWatermark', {
+                        path: this.path,
+                        version: this.now_version,
+                        content: this.watermarkContent})
+                        .then(results => {
+                            console.log(results.data)
+                            // this.now_version++
+                            // this.change_list.add('添加水印： ' + this.watermarkContent)
+                            // if (results.data.code === 20000) {
+                            //     this.$message.success('操作缓存成功')
+                            // }else{
+                            //     this.$message.warning('操作缓存失败')
+                            //}
+                            this.player.source = results.data.msg
+                            this.recordLog('添加水印： ' + this.watermarkContent, '操作缓存成功',
+                                '操作缓存失败', results.data.code)
+                        })
+                    this.videoWatermarkVisible = false
+                }
+            },
+            cutVideo(){
+                if(this.end_time > this.origin_time || this.end_time === this.start_time){
+                    this.$message.warning('输入时间不合法')
+                }else{
+                    if(this.radio === '1'){
+                        axios.get('/version/cutVideoByDel', {params: {path: this.path, startTime: this.start_time
+                        , endTime: this.endTime}})
+                            .then(results => {
+                                this.now_version++
+                                this.change_list.add('裁剪视频: 删减'+ this.start_time + '秒-' + this.end_time+'秒间的内容')
+                                if (results.data.code === 20000) {
+                                    this.$message.success('操作缓存成功')
+                                }else{
+                                    this.$message.warning('操作缓存失败')
+                                }
+                            })
+                    }else {
+                        axios.get('/version/cutVideoBySave', {params: {path: this.path, startTime: this.start_time
+                                , endTime: this.endTime}})
+                            .then(results => {
+                                this.now_version++
+                                this.change_list.add('裁剪视频: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容')
+                                if (results.data.code === 20000) {
+                                    this.$message.success('操作缓存成功')
+                                }else{
+                                    this.$message.warning('操作缓存失败')
+                                }
+                            })
+                    }
+                    this.cutVideoVisible = false
+                }
             }
         }
     })

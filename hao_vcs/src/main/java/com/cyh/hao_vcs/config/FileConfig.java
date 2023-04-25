@@ -24,6 +24,7 @@ public class FileConfig {
     public static final String RELATIVE_PATH = "/bigWork/image/";
     public static final String RELATIVE_DIFF_PATH = "/html/diff/";
     public static final String RELATIVE_PROJECT_PATH = "/repository/";
+    public static final String TEMP_REPO = "\\temp\\";
     public static final String PROJECT_PATH = "D:\\ADeskTop\\project\\bigWork\\repository\\";
     public static final String TEXT_FILE = "text";
     public static final String PIC_FILE = "pic";

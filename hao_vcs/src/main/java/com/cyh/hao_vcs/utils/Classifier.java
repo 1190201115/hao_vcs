@@ -30,9 +30,9 @@ public class Classifier {
         }else if(isPic(suffix)){
             return R.success(PicCombiner.getPicImf(path), FileConfig.PIC_FILE);
         }else if(isAudio(suffix)){
-            return R.success(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH), FileConfig.AUDIO_FILE);
+            return R.success(AudioProcessor.getAudioImf(path), FileConfig.AUDIO_FILE);
         }else if(isMedio(suffix)){
-            return R.success(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH), FileConfig.VIDEO_FILE);
+            return R.success(VideoProcessor.getVideoImf(path), FileConfig.VIDEO_FILE);
         }
         return R.error(null);
     }
