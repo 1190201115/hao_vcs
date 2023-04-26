@@ -60,6 +60,18 @@ public class VersionController {
         return Objects.isNull(newPath) ? R.error("水印添加失败") : R.success(newPath);
     }
 
+    @PostMapping("/cutVideo")
+    public R cutVideoByDel(@RequestBody Map<String, String> map) {
+        System.out.println(map.get("radio"));
+        if("1".equals(map.get("radio"))) {
+            return fileVersionImfService.updateVideoByDel(map.get("path"), Integer.parseInt(map.get("version")),
+                    Double.parseDouble(map.get("startTime")), Double.parseDouble(map.get("endTime")));
+        }else{
+            return fileVersionImfService.updateVideoBySave(map.get("path"), Integer.parseInt(map.get("version")),
+                    Double.parseDouble(map.get("startTime")), Double.parseDouble(map.get("endTime")));
+        }
+    }
+
 
     @GetMapping("/getVersionList")
     public R getVersionList(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath) {

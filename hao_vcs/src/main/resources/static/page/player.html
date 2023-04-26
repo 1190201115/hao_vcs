@@ -112,6 +112,7 @@
                 path: '',
                 now_version: 1,
                 change_list: [],
+                path_list: [],
                 watermarkContent: '',
             }
         },
@@ -126,7 +127,7 @@
             }
             this.path = decodeURI(param[1].replaceAll('/', '\\'))
             this.initPlayer(this.path)
-            this.time = param[2]
+            this.origin_time = param[2]
         },
         methods: {
             initPlayer(path) {
@@ -149,15 +150,19 @@
             undoOperation(){
                 if(this.now_version > 1){
                     this.now_version--
-                    this.change_list.remove()
+                    this.change_list.pop()
+                    this.path = this.path_list.pop()
                 }
-
             },
-            recordLog(log,msgS,msgF,code){
+            recordLog(log,msgS,msgF,data){
+                console.log(data)
+                this.path_list.push(this.path)
+                this.path = data.msg
+                this.player.loadByUrl(data.msg)
+                this.origin_time = data.data
                 this.now_version++
-                this.change_list.add(log)
-                console.log(log,msgS,msgF,code)
-                if (code === 20000) {
+                this.change_list.push(log)
+                if (data.code === 20000) {
                     this.$message.success(msgS)
                 }else{
                     this.$message.warning(msgF)
@@ -184,17 +189,8 @@
                         version: this.now_version,
                         content: this.watermarkContent})
                         .then(results => {
-                            console.log(results.data)
-                            // this.now_version++
-                            // this.change_list.add('添加水印： ' + this.watermarkContent)
-                            // if (results.data.code === 20000) {
-                            //     this.$message.success('操作缓存成功')
-                            // }else{
-                            //     this.$message.warning('操作缓存失败')
-                            //}
-                            this.player.source = results.data.msg
                             this.recordLog('添加水印： ' + this.watermarkContent, '操作缓存成功',
-                                '操作缓存失败', results.data.code)
+                                '操作缓存失败', results.data)
                         })
                     this.videoWatermarkVisible = false
                 }
@@ -203,34 +199,24 @@
                 if(this.end_time > this.origin_time || this.end_time === this.start_time){
                     this.$message.warning('输入时间不合法')
                 }else{
-                    if(this.radio === '1'){
-                        axios.get('/version/cutVideoByDel', {params: {path: this.path, startTime: this.start_time
-                        , endTime: this.endTime}})
-                            .then(results => {
-                                this.now_version++
-                                this.change_list.add('裁剪视频: 删减'+ this.start_time + '秒-' + this.end_time+'秒间的内容')
-                                if (results.data.code === 20000) {
-                                    this.$message.success('操作缓存成功')
-                                }else{
-                                    this.$message.warning('操作缓存失败')
-                                }
-                            })
-                    }else {
-                        axios.get('/version/cutVideoBySave', {params: {path: this.path, startTime: this.start_time
-                                , endTime: this.endTime}})
-                            .then(results => {
-                                this.now_version++
-                                this.change_list.add('裁剪视频: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容')
-                                if (results.data.code === 20000) {
-                                    this.$message.success('操作缓存成功')
-                                }else{
-                                    this.$message.warning('操作缓存失败')
-                                }
-                            })
-                    }
+                    axios.post('/version/cutVideo',{
+                        path: this.path,
+                        startTime: this.start_time,
+                        endTime: this.end_time,
+                        version: this.now_version,
+                        radio: this.radio
+                    }).then(results => {
+                        let log
+                        if(this.radio === '1') {
+                            log = '裁剪视频: 删减'+ this.start_time + '秒-' + this.end_time+'秒间的内容'
+                        }else{
+                            log = '裁剪视频: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容'
+                        }
+                        this.recordLog(log, '操作缓存成功', '操作缓存失败', results.data)
+                    })
+                }
                     this.cutVideoVisible = false
                 }
-            }
         }
     })
 </script>

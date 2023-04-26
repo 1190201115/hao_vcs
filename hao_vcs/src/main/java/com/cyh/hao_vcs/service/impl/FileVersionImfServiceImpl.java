@@ -128,17 +128,24 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         return R.success(diffFilePath, "对比成功");
     }
 
+    private String getOutputPath(String path, Integer nowVersion){
+        String fileName = path.substring(path.lastIndexOf("\\") + 1);
+        String outputPath = path.substring(0, path.lastIndexOf("\\"));
+        if(nowVersion  != 1){
+            outputPath = outputPath + File.separator;
+            outputPath = outputPath.replaceAll("/", "\\\\");
+            fileName = fileName.substring(fileName.indexOf("-")+1);
+        }else{
+            outputPath = outputPath + FileConfig.TEMP_REPO;
+            FileUtil.createDir(outputPath);
+        }
+        return outputPath + nowVersion + "-" + fileName;
+    }
 
     @Override
-    public String updateVideo(String waterMark, String path, Integer now_version) {
+    public String updateVideo(String waterMark, String path, Integer nowVersion) {
         String inputPath = prefix + path;
-        String fileName = inputPath.substring(inputPath.lastIndexOf("\\") + 1);
-        String outputPath = inputPath.substring(0, inputPath.lastIndexOf("\\")) + FileConfig.TEMP_REPO;
-        File dir = new File(outputPath);
-        if(!dir.exists()){
-            dir.mkdir();
-        }
-        outputPath = outputPath + now_version + "-" + fileName;
+        String outputPath = getOutputPath(inputPath, nowVersion);
         try {
             VideoProcessor.videoAddText(inputPath,outputPath,waterMark);
             return outputPath.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH);
@@ -146,6 +153,32 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public R updateVideoByDel(String path, Integer nowVersion, double startTime, double endTime) {
+        String inputPath = prefix + path;
+        String outputPath = getOutputPath(inputPath, nowVersion);
+        try {
+            return R.success(VideoProcessor.videoClipByDel(inputPath, outputPath, startTime, endTime),
+                    outputPath.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return R.error("视频裁剪失败");
+    }
+
+    @Override
+    public R updateVideoBySave(String path, Integer nowVersion, double startTime, double endTime) {
+        String inputPath = prefix + path;
+        String outputPath = getOutputPath(inputPath, nowVersion);
+        try {
+            return R.success(VideoProcessor.videoClip(inputPath, outputPath, startTime, endTime),
+                    outputPath.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return R.error("视频裁剪失败");
     }
 
     private FileVersionImf getFileVersionImf(Long projectId, String morePath, String version) {

@@ -108,17 +108,11 @@ public class VideoProcessor {
         grabber.close();
     }
 
-    public static void videoClip(String inputFile, String outputFile, int startMs, int endMs) throws Exception{
+    public static double videoClip(String inputFile, String outputFile, double startMs, double endMs) throws Exception{
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight(),
                 grabber.getAudioChannels());
-
-//        recorder.setFrameRate(grabber.getFrameRate());
-//        recorder.setVideoCodec(grabber.getVideoCodec());
-//        recorder.setVideoBitrate(grabber.getVideoBitrate());
-//        recorder.setSampleRate(grabber.getSampleRate());
-//        recorder.setAudioCodec(grabber.getAudioCodec());
         initRecoder(recorder,grabber);
         recorder.start();
         Frame frame;
@@ -141,8 +135,47 @@ public class VideoProcessor {
             }
             if(frameNumber > endFrame) break;
         }
-        grabber.stop();
         recorder.stop();
+        grabber = FFmpegFrameGrabber.createDefault(outputFile);
+        grabber.start();
+        double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
+        grabber.stop();
+        return durationInSec;
+    }
+
+    // 返回视频时长
+    public static double videoClipByDel(String inputFile, String outputFile, double startMs, double endMs) throws Exception{
+        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
+        grabber.start();
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight(),
+                grabber.getAudioChannels());
+        initRecoder(recorder,grabber);
+        recorder.start();
+        Frame frame;
+        int endFrame = (int)(startMs * grabber.getFrameRate());
+        int startFrame = (int)(endMs * grabber.getFrameRate());
+        int frameNumber = -1;
+        while((frame = grabber.grab()) != null){
+            if(frame.image != null){
+                frameNumber++;
+                if(frameNumber < startFrame && frameNumber > endFrame){
+                    continue;
+                }
+                recorder.record(frame);
+            }
+            if(frame.samples != null){
+                if(frameNumber < startFrame && frameNumber > endFrame){
+                    continue;
+                }
+                recorder.record(frame);
+            }
+        }
+        recorder.stop();
+        grabber = FFmpegFrameGrabber.createDefault(outputFile);
+        grabber.start();
+        double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
+        grabber.stop();
+        return durationInSec;
     }
 
     /**
