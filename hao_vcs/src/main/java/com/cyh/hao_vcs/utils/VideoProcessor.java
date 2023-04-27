@@ -94,7 +94,7 @@ public class VideoProcessor {
                 int widthX = bufImg.getWidth() - textWidth;
                 graphics.setColor(Color.red);
                 graphics.setFont(font);
-                graphics.drawString(text, widthX, bufImg.getHeight() - 50);
+                graphics.drawString(text, widthX, bufImg.getHeight() - 40);
                 graphics.dispose();
                 // 视频帧赋值，写入输出流
                 frame.image = converter.getFrame(bufImg).image;

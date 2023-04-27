@@ -7,6 +7,7 @@ import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.config.VersionConfig;
 import com.cyh.hao_vcs.entity.FileBaseImf;
 import com.cyh.hao_vcs.entity.FileVersionImf;
+import com.cyh.hao_vcs.mapper.FileBaseImfMapper;
 import com.cyh.hao_vcs.mapper.FileVersionImfMapper;
 import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
 import com.cyh.hao_vcs.service.FileBaseImfService;
@@ -23,9 +24,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static com.cyh.hao_vcs.common.StatusEnum.DELETE_SAFE;
 import static com.cyh.hao_vcs.common.StatusEnum.INIT_VERSION;
@@ -43,6 +50,9 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
 
     @Autowired
     FileBaseImfService fileBaseImfService;
+
+    @Autowired
+    FileBaseImfMapper fileBaseImfMapper;
 
     @Autowired
     ProjectBaseService projectBaseService;
@@ -143,7 +153,7 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
     }
 
     @Override
-    public String updateVideo(String waterMark, String path, Integer nowVersion) {
+    public String addWatermark(String waterMark, String path, Integer nowVersion) {
         String inputPath = prefix + path;
         String outputPath = getOutputPath(inputPath, nowVersion);
         try {
@@ -180,6 +190,43 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         }
         return R.error("视频裁剪失败");
     }
+
+    @Override
+    public R updateVideo(Long actorId, String path, int version, List<String> log) {
+        // 拼接文件夹前缀 D:\ADeskTop\project\bigWork\repository\3- 音视频测试\temp\2-441a614b-f0f4-4f6d-a1e1-2645e414a4e2-v1.0.0.mp4
+        String tempPath = path.replace(FileConfig.RELATIVE_PROJECT_PATH, FileConfig.PROJECT_PATH);
+        //temp文件名， 2-441a614b-f0f4-4f6d-a1e1-2645e414a4e2-v1.0.0.mp4
+        String fileName = tempPath.substring(tempPath.lastIndexOf("\\")+1);
+        //去除前缀 441a614b-f0f4-4f6d-a1e1-2645e414a4e2-v1.0.0.mp4
+        fileName = fileName.substring(fileName.indexOf("-") + 1);
+        path = tempPath.substring(0,tempPath.lastIndexOf("\\"));
+        //D:\ADeskTop\project\bigWork\repository\3- 音视频测试\
+        path = path.substring(0,path.lastIndexOf("\\") + 1);
+        String fileId = fileName.substring(0, fileName.lastIndexOf("-"));
+        //2.0.0
+        String newVersion = fileBaseImfService.updateFileLatestVersion(
+                path + fileBaseImfMapper.selectById(fileId).getFileName(), StatusEnum.HEAVY_UPDATE);
+        String newFileName = fileId + "-v" + newVersion + "." + FileUtil.getSuffix(fileName);
+        String newFilePath = path + newFileName;
+        new File(tempPath).renameTo(new File(newFilePath));
+        try (Stream<Path> walk = Files.walk(Paths.get(tempPath.substring(0, tempPath.lastIndexOf("\\"))))) {
+            walk.sorted(Comparator.reverseOrder())
+                    .forEach(pathIn -> {
+                        try {
+                            Files.delete(pathIn);
+                        } catch (IOException e) {
+                            System.err.printf("无法删除的路径 %s%n%s", pathIn, e);
+                        }
+                    });
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return  R.error("文件保存异常");
+        }
+        fileVersionImfMapper.insert(new FileVersionImf(fileName.substring(0, fileName.lastIndexOf("-")), newVersion,
+                LocalDateTime.now(), userService.getById(actorId).getUsername(), log.toString()));
+        return R.success("保存成功");
+    }
+
 
     private FileVersionImf getFileVersionImf(Long projectId, String morePath, String version) {
         String fileId = fileBaseImfService.getFileOriginId(projectBaseService.getProjectPath(projectId) + morePath);

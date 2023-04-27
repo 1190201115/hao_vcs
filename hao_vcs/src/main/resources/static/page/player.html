@@ -15,7 +15,7 @@
             视频剪辑
         </el-button>
         <el-button type="text" style="font-size: larger; color: white;" @click="videoWatermarkVisible=true">添加水印</el-button>
-        <el-button type="text" style="font-size: larger; color: white;" :disabled="now_version==1"  @click="undoOperation()">撤销上一次修改</el-button>
+        <el-button type="text" style="font-size: larger; color: white;" :disabled="next_version==1"  @click="undoOperation()">撤销上一次修改</el-button>
         <el-button type="text" style="font-size: larger;color: white;margin-right: 50px" @click="saveVideo()">
             保存
         </el-button>
@@ -100,6 +100,7 @@
         },
         data() {
             return {
+                projectId: '',
                 cutVideoVisible: false,
                 showVideo: true,
                 showAudio: false,
@@ -110,7 +111,7 @@
                 start_time:'',
                 end_time: '',
                 path: '',
-                now_version: 1,
+                next_version: 1,
                 change_list: [],
                 path_list: [],
                 watermarkContent: '',
@@ -128,6 +129,7 @@
             this.path = decodeURI(param[1].replaceAll('/', '\\'))
             this.initPlayer(this.path)
             this.origin_time = param[2]
+            this.projectId = param[3]
         },
         methods: {
             initPlayer(path) {
@@ -148,10 +150,13 @@
                 });
             },
             undoOperation(){
-                if(this.now_version > 1){
-                    this.now_version--
+                if(this.next_version > 1){
+                    this.next_version--
                     this.change_list.pop()
                     this.path = this.path_list.pop()
+                    this.player.loadByUrl(this.path)
+                }else{
+                    this.next_version = 1
                 }
             },
             recordLog(log,msgS,msgF,data){
@@ -159,8 +164,7 @@
                 this.path_list.push(this.path)
                 this.path = data.msg
                 this.player.loadByUrl(data.msg)
-                this.origin_time = data.data
-                this.now_version++
+                this.next_version++
                 this.change_list.push(log)
                 if (data.code === 20000) {
                     this.$message.success(msgS)
@@ -169,8 +173,12 @@
                 }
             },
             saveVideo(){
-                axios.post('/version/addVideoWatermark', {path: this.path, version: this.now_version,
-                    content: this.watermarkContent})
+                axios.post('/version/updateVideo', {
+                    projectId: this.projectId,
+                    path: this.path,
+                    version: this.next_version - 1,
+                    log : this.change_list,
+                    })
                     .then(results => {
                         console.log(results.data)
                         if (results.data.code === 20000) {
@@ -186,7 +194,7 @@
                 }else{
                     axios.post('/version/addVideoWatermark', {
                         path: this.path,
-                        version: this.now_version,
+                        version: this.next_version,
                         content: this.watermarkContent})
                         .then(results => {
                             this.recordLog('添加水印： ' + this.watermarkContent, '操作缓存成功',
@@ -203,7 +211,7 @@
                         path: this.path,
                         startTime: this.start_time,
                         endTime: this.end_time,
-                        version: this.now_version,
+                        version: this.next_version,
                         radio: this.radio
                     }).then(results => {
                         let log
@@ -213,6 +221,7 @@
                             log = '裁剪视频: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容'
                         }
                         this.recordLog(log, '操作缓存成功', '操作缓存失败', results.data)
+                        this.origin_time = results.data.data
                     })
                 }
                     this.cutVideoVisible = false

@@ -376,7 +376,7 @@
                                 this.edit_pic_height = data.height
                                 this.edit_pic_width = data.width
                             } else{
-                                window.location.href = encodeURI('./player.html?' + msg + '&' + data.path+'&'+data.time)
+                                window.location.href = encodeURI('./player.html?' + msg + '&' + data.path+'&'+data.time+'&'+this.projectId)
                             }
                         } else {
                             this.$message.error(results.data.data)

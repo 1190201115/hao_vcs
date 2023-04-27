@@ -18,10 +18,12 @@ public interface FileVersionImfService {
 
     R compareText(Long projectId, String morePath, String version);
 
-    String updateVideo(String waterMark, String path, Integer nowVersion);
+    String addWatermark(String waterMark, String path, Integer nowVersion);
 
     R updateVideoByDel(String path, Integer nowVersion, double startTime, double endTime);
 
     R updateVideoBySave(String path, Integer nowVersion, double startTime, double endTime);
+
+    R updateVideo(Long userId, String path, int version, List<String> log);
 
 }

@@ -7,6 +7,7 @@ import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.cyh.hao_vcs.utils.VersionUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,8 +56,8 @@ public class VersionController {
     }
 
     @PostMapping("/addVideoWatermark")
-    public R updateVideo(@RequestBody Map<String, String> map) {
-        String newPath = fileVersionImfService.updateVideo(map.get("content"), map.get("path"), Integer.parseInt(map.get("version")));
+    public R addWatermarkVideo(@RequestBody Map<String, String> map) {
+        String newPath = fileVersionImfService.addWatermark(map.get("content"), map.get("path"), Integer.parseInt(map.get("version")));
         return Objects.isNull(newPath) ? R.error("水印添加失败") : R.success(newPath);
     }
 
@@ -72,6 +73,15 @@ public class VersionController {
         }
     }
 
+    @PostMapping("/updateVideo")
+    public R saveVideo(@RequestBody Map<String, Object> map, HttpSession session) {
+        int version = (int)map.get("version");
+        if(Objects.equals(0,version)) {
+            return R.success("保存成功");
+        }
+        fileVersionImfService.updateVideo((Long)session.getAttribute("user"), (String)map.get("path"), version, (List<String>) map.get("log"));
+        return null;
+    }
 
     @GetMapping("/getVersionList")
     public R getVersionList(@RequestParam("projectId")Long projectId, @RequestParam("morePath")String morePath) {
