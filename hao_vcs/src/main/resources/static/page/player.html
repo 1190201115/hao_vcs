@@ -55,7 +55,7 @@
         <br><br>
         <span slot="footer" class="dialog-footer">
             <el-button @click="cutVideoVisible = false">取 消</el-button>
-            <el-button type="primary" @click="cutVideo()">确 定</el-button>
+            <el-button type="primary" :loading="loading" @click="cutVideo()">确 定</el-button>
         </span>
     </el-dialog>
     <el-dialog
@@ -78,19 +78,79 @@
         <br><br><br>
         <span slot="footer" class="dialog-footer">
             <el-button @click="videoWatermarkVisible = false">取 消</el-button>
-            <el-button type="primary" @click="addWatermark()">确 定</el-button>
+            <el-button type="primary" :loading="loading" @click="addWatermark()">确 定</el-button>
         </span>
     </el-dialog>
     <div v-if="showAudio" style="text-align: center;display: flex;justify-content: center;margin-top: 1%">
-        <el-button type="text" style="font-size: larger;color: white;margin-left: 50px" @click="cutVideoVisible=true">
+        <el-button type="text" style="font-size: larger;color: white;margin-left: 50px" @click="cutAudioVisible=true">
             音频剪辑
         </el-button>
         <el-button type="text" style="font-size: larger; color: white;" @click="changeSpeedVisible=true">变速</el-button>
         <el-button type="text" style="font-size: larger; color: white;" @click="changeToneVisible=true">变调</el-button>
-        <el-button type="text" style="font-size: larger;color: white;margin-right: 50px" @click="saveAudioVisible=true">
+        <el-button type="text" style="font-size: larger;color: white;margin-right: 50px" @click="saveVideo()">
             保存
         </el-button>
     </div>
+    <el-dialog
+            title="音频剪辑"
+            :visible.sync="cutAudioVisible"
+            width="40%"
+    >
+        <span>当前音频时长共 <span style="color: #e74e4e; font-size: larger"> {{origin_time}} </span>秒</span>
+        <br><br><br>
+        <span>
+                <el-input
+                        type="text"
+                        v-model="start_time"
+                        maxlength="4"
+                        style="width: 200px"
+                        show-word-limit
+                        oninput="value=value.replace(/[^0-9.]/g,'')"
+                >
+                    <template slot="append">秒</template>
+                </el-input>
+            <span style="margin-left: 50px">——</span>
+                <el-input
+                        type="text"
+                        v-model="end_time"
+                        maxlength="4"
+                        style="width: 200px;margin-left: 50px"
+                        show-word-limit
+                >
+                    <template slot="append">秒</template>
+                </el-input>
+        </span>
+        <br><br><br>
+        <el-radio v-model="radio" label="1">删减</el-radio>
+        <el-radio v-model="radio" label="2">保留</el-radio>
+        <br><br>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="cutAudioVisible = false">取 消</el-button>
+            <el-button type="primary" :loading="loading" @click="cutAudio()">确 定</el-button>
+        </span>
+    </el-dialog>
+    <el-dialog
+            title="音频变速"
+            :visible.sync="changeSpeedVisible"
+            width="30%"
+    >
+            <el-slider v-model="speedNum" :format-tooltip="formatTooltip"></el-slider>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="changeSpeedVisible = false">取 消</el-button>
+            <el-button type="primary" :loading="loading" @click="changeAudioSpeed()">确 定</el-button>
+        </span>
+    </el-dialog>
+    <el-dialog
+            title="音频变调"
+            :visible.sync="changeToneVisible"
+            width="30%"
+    >
+            <el-slider v-model="toneNum" :format-tooltip="formatTooltip"></el-slider>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="changeToneVisible = false">取 消</el-button>
+            <el-button type="primary" :loading="loading"  @click="changeAudioTone()">确 定</el-button>
+        </span>
+    </el-dialog>
 </div>
 <script>
     var vm = new Vue({
@@ -102,9 +162,12 @@
             return {
                 projectId: '',
                 cutVideoVisible: false,
-                showVideo: true,
-                showAudio: false,
+                showVideo: false,
+                showAudio: true,
                 videoWatermarkVisible: false,
+                changeSpeedVisible: false,
+                changeToneVisible: false,
+                cutAudioVisible : false,
                 kind: '',
                 origin_time: 1,
                 radio: '1',
@@ -115,17 +178,20 @@
                 change_list: [],
                 path_list: [],
                 watermarkContent: '',
+                speedNum: 50,
+                toneNum: 50,
+                loading: false
             }
         },
         mounted() {
             let param = window.location.search.split("&")
             console.log(param)
             this.kind = param[0]
-            if (this.kind === '?audio') {
-                this.showAudio = true;
-            } else {
-                this.showVideo = true;
-            }
+            // if (this.kind === '?audio') {
+            //     this.showAudio = true;
+            // } else {
+            //     this.showVideo = true;
+            // }
             this.path = decodeURI(param[1].replaceAll('/', '\\'))
             this.initPlayer(this.path)
             this.origin_time = param[2]
@@ -149,6 +215,9 @@
                     player._switchLevel = 0;
                 });
             },
+            formatTooltip(val) {
+                return val / 50;
+            },
             undoOperation(){
                 if(this.next_version > 1){
                     this.next_version--
@@ -171,8 +240,34 @@
                 }else{
                     this.$message.warning(msgF)
                 }
+                this.loading = false
+            },
+            changeAudioSpeed(){
+                this.loading = true
+                axios.post('/version/changeAudioSpeed', {
+                    path: this.path,
+                    version: this.next_version,
+                    times: this.speedNum / 50
+                }).then(results => {
+                    this.origin_time = results.data.data
+                    this.changeSpeedVisible = false
+                    this.recordLog('变速： x' + this.speedNum / 50, '操作缓存成功',
+                        '操作缓存失败', results.data)})
+            },
+            changeAudioTone(){
+                this.loading = true
+                axios.post('/version/changeAudioTone', {
+                    path: this.path,
+                    version: this.next_version,
+                    times: this.toneNum / 50
+                }).then(results => {
+                    this.origin_time = results.data.data
+                    this.changeToneVisible = false
+                    this.recordLog('变调： x' + this.toneNum / 50, '操作缓存成功',
+                            '操作缓存失败', results.data)})
             },
             saveVideo(){
+                this.loading = true
                 axios.post('/version/updateVideo', {
                     projectId: this.projectId,
                     path: this.path,
@@ -183,12 +278,15 @@
                         console.log(results.data)
                         if (results.data.code === 20000) {
                             this.$message.success('保存成功')
+                            this.version = 1
+                            this.log = []
                         }else{
                             this.$message.warning('保存失败')
                         }
                     })
             },
             addWatermark() {
+                this.loading = true
                 if(this.watermarkContent === ''){
                     this.$message.warning('水印内容不应该为空')
                 }else{
@@ -203,7 +301,34 @@
                     this.videoWatermarkVisible = false
                 }
             },
+            cutAudio(){
+                this.loading = true
+                if(this.end_time > this.origin_time || this.end_time === this.start_time){
+                    this.$message.warning('输入时间不合法')
+                }else{
+                    axios.post('/version/cutAudio',{
+                        path: this.path,
+                        startTime: this.start_time,
+                        endTime: this.end_time,
+                        version: this.next_version,
+                        radio: this.radio
+                    }).then(results => {
+                        let log
+                        console.log(results.data)
+                        if(this.radio === '1') {
+                            log = '裁剪: 删减'+ this.start_time + '秒-' + this.end_time+'秒间的内容'
+                        }else{
+                            log = '裁剪: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容'
+                        }
+                        this.recordLog(log, '操作缓存成功', '操作缓存失败', results.data)
+                        this.origin_time = results.data.data
+                    })
+                    this.cutAudioVisible  = false
+                }
+
+            },
             cutVideo(){
+                this.loading = true
                 if(this.end_time > this.origin_time || this.end_time === this.start_time){
                     this.$message.warning('输入时间不合法')
                 }else{
@@ -216,15 +341,16 @@
                     }).then(results => {
                         let log
                         if(this.radio === '1') {
-                            log = '裁剪视频: 删减'+ this.start_time + '秒-' + this.end_time+'秒间的内容'
+                            log = '裁剪: 删减'+ this.start_time + '秒-' + this.end_time+'秒间的内容'
                         }else{
-                            log = '裁剪视频: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容'
+                            log = '裁剪: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容'
                         }
                         this.recordLog(log, '操作缓存成功', '操作缓存失败', results.data)
                         this.origin_time = results.data.data
                     })
-                }
                     this.cutVideoVisible = false
+                }
+
                 }
         }
     })

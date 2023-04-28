@@ -27,29 +27,59 @@ public class AudioProcessor {
      * @param endMs 终止时间
      * @throws Exception
      */
-    public static void audioClip(String srcFile, String dstFile, int startMs, int endMs) throws Exception {
+    public static double audioClip(String srcFile, String dstFile, double startMs, double endMs) throws Exception {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(srcFile);
         grabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(dstFile, grabber.getAudioChannels());
         recorder.setSampleRate(grabber.getSampleRate());
         recorder.start();
         Frame frame;
-        int startFrame = startMs * grabber.getSampleRate() / 1000;
-        int endFrame = endMs * grabber.getSampleRate() / 1000;
+        int startFrame = (int)Math.ceil(startMs * grabber.getSampleRate() / 1000);
+        int endFrame = (int)Math.floor(endMs * grabber.getSampleRate() / 1000);
+        System.out.println(startFrame);
+        System.out.println(endFrame);
         int frameNumber = 0;
         while ((frame = grabber.grabFrame()) != null) {
             if (frame.samples == null) {
                 break;
             }
-            if (frameNumber >= startFrame && frameNumber <= endFrame) {
+            if (frameNumber > startFrame && frameNumber < endFrame) {
                 recorder.recordSamples(frame.samples);
             }
-            if (frameNumber++ > endFrame) {
+            if (++frameNumber >= endFrame) {
                 break;
             }
         }
         grabber.stop();
         recorder.stop();
+        return FileUtil.getMediaTime(dstFile);
+    }
+
+    public static double audioClipByDel(String srcFile, String dstFile, double startMs, double endMs) throws Exception {
+        FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(srcFile);
+        grabber.start();
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(dstFile, grabber.getAudioChannels());
+        recorder.setSampleRate(grabber.getSampleRate());
+        recorder.start();
+        Frame frame;
+        int endFrame = (int)(startMs * grabber.getSampleRate() / 1000);
+        int startFrame = (int)(endMs * grabber.getSampleRate() / 1000);
+        System.out.println(startFrame);
+        System.out.println(endFrame);
+        int frameNumber = -1;
+        while ((frame = grabber.grabFrame()) != null) {
+            if (frame.samples == null) {
+                break;
+            }
+            frameNumber++;
+            if (frameNumber <= startFrame && frameNumber >= endFrame) {
+                continue;
+            }
+            recorder.recordSamples(frame.samples);
+        }
+        grabber.stop();
+        recorder.stop();
+        return FileUtil.getMediaTime(dstFile);
     }
 
 
@@ -127,7 +157,7 @@ public class AudioProcessor {
      * @param speed 1.0为基准
      * @throws Exception
      */
-    public static void audioChangeSpeed(String inputFile, String outputFile, double speed) throws Exception{
+    public static double audioChangeSpeed(String inputFile, String outputFile, double speed) throws Exception{
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getAudioChannels());
@@ -148,10 +178,10 @@ public class AudioProcessor {
         frameFilter.stop();
         recorder.stop();
         grabber.stop();
+        return FileUtil.getMediaTime(outputFile);
     }
 
-    public static void audioChangeTone(String inputFile, String outputFile) throws Exception{
-
+    public static void audioChangeTone(String inputFile, String outputFile, double times) throws Exception{
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getAudioChannels());
@@ -159,7 +189,7 @@ public class AudioProcessor {
         recorder.setAudioBitrate(grabber.getAudioBitrate());
         recorder.start();
 
-        String filter = String.format("asetrate=%d,atempo=%.2f", 88200,0.5f);
+        String filter = String.format("asetrate=%d,atempo=%.2f", (int)(44100 * times), 1/times);
         FFmpegFrameFilter frameFilter = new FFmpegFrameFilter(filter, grabber.getAudioChannels());
         frameFilter.start();
 
@@ -205,7 +235,7 @@ public class AudioProcessor {
            // audioClip(audio1,audio0,5,15);
            // audioMix(audio1,audio2,audio0);
             //audioChangeSpeed(audio1,audio0,0.5);
-            audioChangeTone(audio2,audio0);
+            //audioChangeTone(audio2,audio0);
         } catch (Exception e) {
             e.printStackTrace();
         }

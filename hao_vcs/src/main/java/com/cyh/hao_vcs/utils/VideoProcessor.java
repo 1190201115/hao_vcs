@@ -136,11 +136,14 @@ public class VideoProcessor {
             if(frameNumber > endFrame) break;
         }
         recorder.stop();
-        grabber = FFmpegFrameGrabber.createDefault(outputFile);
-        grabber.start();
-        double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
         grabber.stop();
-        return durationInSec;
+
+        return FileUtil.getMediaTime(outputFile);
+//        grabber = FFmpegFrameGrabber.createDefault(outputFile);
+//        grabber.start();
+//        double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
+//        grabber.stop();
+//        return durationInSec;
     }
 
     // 返回视频时长

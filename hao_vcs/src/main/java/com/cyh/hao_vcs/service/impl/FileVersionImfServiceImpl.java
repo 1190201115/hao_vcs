@@ -14,10 +14,7 @@ import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.service.UserService;
-import com.cyh.hao_vcs.utils.Converter;
-import com.cyh.hao_vcs.utils.FileUtil;
-import com.cyh.hao_vcs.utils.VersionUtil;
-import com.cyh.hao_vcs.utils.VideoProcessor;
+import com.cyh.hao_vcs.utils.*;
 import com.qiniu.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -189,6 +186,58 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
             e.printStackTrace();
         }
         return R.error("视频裁剪失败");
+    }
+
+    @Override
+    public R updateAudioByDel(String path, Integer nowVersion, double startTime, double endTime) {
+        String inputPath = prefix + path;
+        String outputPath = getOutputPath(inputPath, nowVersion);
+        try {
+            return R.success(AudioProcessor.audioClipByDel(inputPath, outputPath, startTime, endTime),
+                    outputPath.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return R.error("音频裁剪失败");
+    }
+
+    @Override
+    public R updateAudioBySave(String path, Integer nowVersion, double startTime, double endTime) {
+        String inputPath = prefix + path;
+        String outputPath = getOutputPath(inputPath, nowVersion);
+        try {
+            return R.success(AudioProcessor.audioClip(inputPath, outputPath, startTime, endTime),
+                    outputPath.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return R.error("音频裁剪失败");
+    }
+
+    @Override
+    public R changeAudioSpeed(String path, Integer nowVersion, double times) {
+        String inputPath = prefix + path;
+        String outputPath = getOutputPath(inputPath, nowVersion);
+        try {
+            return R.success(AudioProcessor.audioChangeSpeed(inputPath, outputPath, times),
+                    outputPath.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return R.error("变速异常");
+    }
+
+    @Override
+    public R changeAudioTone(String path, Integer nowVersion, double times) {
+        String inputPath = prefix + path;
+        String outputPath = getOutputPath(inputPath, nowVersion);
+        try {
+            AudioProcessor.audioChangeTone(inputPath, outputPath, times);
+            return R.success(outputPath.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return R.error("变调异常");
     }
 
     @Override

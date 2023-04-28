@@ -1,10 +1,12 @@
 package com.cyh.hao_vcs.utils;
 
+import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringUtils;
 import org.apache.commons.io.IOUtils;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -129,6 +131,14 @@ public class FileUtil {
             }
         }
         return "success";
+    }
+
+    public static double getMediaTime(String path) throws FFmpegFrameGrabber.Exception {
+        FFmpegFrameGrabber grabber = FFmpegFrameGrabber.createDefault(path);
+        grabber.start();
+        double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
+        grabber.stop();
+        return durationInSec;
     }
 
     public static String saveFile(String dirPath, String version, MultipartFile file){

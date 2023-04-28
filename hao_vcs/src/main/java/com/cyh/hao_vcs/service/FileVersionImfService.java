@@ -24,6 +24,14 @@ public interface FileVersionImfService {
 
     R updateVideoBySave(String path, Integer nowVersion, double startTime, double endTime);
 
+    R updateAudioByDel(String path, Integer nowVersion, double startTime, double endTime);
+
+    R updateAudioBySave(String path, Integer nowVersion, double startTime, double endTime);
+
+    R changeAudioSpeed(String path, Integer nowVersion, double times);
+
+    R changeAudioTone(String path, Integer nowVersion, double times);
+
     R updateVideo(Long userId, String path, int version, List<String> log);
 
 }
