@@ -2,11 +2,16 @@ package com.cyh.hao_vcs.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
+import com.cyh.hao_vcs.entity.ApplyJoinProject;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
+import com.cyh.hao_vcs.entity.User;
 import com.cyh.hao_vcs.entity.UserProject;
+import com.cyh.hao_vcs.mapper.ApplyJoinProjectMapper;
 import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
 import com.cyh.hao_vcs.mapper.User2ProjectMapper;
+import com.cyh.hao_vcs.mapper.UserMapper;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.cyh.hao_vcs.utils.ProjectUtil;
@@ -32,6 +37,14 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
     @Autowired
     ProjectChangeBaseImfServiceImpl projectChangeBaseImfService;
+
+    @Autowired
+    UserMapper userMapper;
+
+    @Autowired
+    ApplyJoinProjectMapper applyJoinProjectMapper;
+
+
 
     private static final String DEFAULT_ACTION = "创建工程";
 
@@ -69,14 +82,14 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
     @Override
     public List<Long> getSelfProjectID(Long userID) {
         QueryWrapper<UserProject> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userID).eq("relation", 1);
+        queryWrapper.eq("user_id", userID).eq("relation", StatusEnum.CREATE_PROJECT);
         return collectList(queryWrapper);
     }
 
     @Override
     public List<Long> getJoinProjectID(Long userID) {
         QueryWrapper<UserProject> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userID).eq("relation", 0);
+        queryWrapper.eq("user_id", userID).eq("relation", StatusEnum.JOIN_PROJECT);
         return collectList(queryWrapper);
     }
 
@@ -102,4 +115,31 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
         }
         return null;
     }
+
+    @Override
+    public List<ProjectBaseImf> getProjectByKey(String key, long userId) {
+        QueryWrapper<ProjectBaseImf> wrapper = new QueryWrapper<>();
+        wrapper.like("project_name", key);
+        List<ProjectBaseImf> projectBaseImfList = projectBaseMapper.selectList(wrapper);
+        QueryWrapper<UserProject> wrapper2 = new QueryWrapper<>();
+        wrapper2.eq("user_id", userId);
+        List<Long> userOwnProjects = user2ProjectMapper.selectList(wrapper2)
+                .stream().map(userProject -> userProject.getProjectId()).collect(Collectors.toList());
+        projectBaseImfList = projectBaseImfList.stream().filter(project -> Objects.equals(project.getPrivacy(), FileConfig.PUBLIC_STATUS) &&
+                        !userOwnProjects.contains(project.getProjectId()))
+                .collect(Collectors.toList());
+        return projectBaseImfList;
+    }
+
+    @Override
+    public User getOwner(Long projectId) {
+        return userMapper.selectById(user2ProjectMapper.selectById(projectId).getUserId());
+    }
+
+    @Override
+    public boolean applyJoin(Long projectId, Long userID, String content) {
+        return applyJoinProjectMapper.insert(new ApplyJoinProject(projectId, userID, StatusEnum.WAIT, content)) == 1;
+    }
+
+
 }

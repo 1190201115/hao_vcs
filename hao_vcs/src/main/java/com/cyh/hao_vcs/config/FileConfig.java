@@ -37,6 +37,10 @@ public class FileConfig {
     public static final Integer TXT_FILE = 3;
     public static final Integer PDF_FILE = 4;
 
+    public static final Integer PUBLIC_STATUS = 1;
+    public static final Integer PRIVATE_STATUS = 0;
+
+
     static {
         pathMap.put(FileConfig.DOC_FILE, DOC_PATH);
         pathMap.put(FileConfig.DOCX_FILE, DOCX_PATH);

@@ -1,11 +1,13 @@
 package com.cyh.hao_vcs.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyh.hao_vcs.common.KeyEnum;
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.ProjectChangeBaseImf;
 
+import com.cyh.hao_vcs.entity.User;
 import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.FileService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
@@ -140,5 +142,33 @@ public class ProjectController {
         }
         return fileService.getFileContent(path);
         }
+
+    @GetMapping("/search")
+    public R searchProjectByKey(String key, HttpSession session) {
+        if (StringUtils.isEmpty(key)) {
+            return R.warn("搜索关键字不能为空");
+        }
+        List<ProjectBaseImf> projectBaseImfList = projectBaseService.getProjectByKey(key, (Long)session.getAttribute("user"));
+        return R.success(projectBaseImfList, "搜索成功");
+    }
+
+    @GetMapping("/getOwner")
+    public R getOwner(Long projectId) {
+        User user = projectBaseService.getOwner(projectId);
+        if(Objects.isNull(user)){
+            return R.warn("查找项目拥有者失败");
+        }
+        return R.success(user, "搜索成功");
+    }
+
+    @GetMapping("/applyJoin")
+    public R applyJoin(Long projectId, String content, HttpSession session) {
+        Long userID = (Long)session.getAttribute("user");
+        if(projectBaseService.applyJoin(projectId, userID, content)){
+            return R.success("发送成功");
+        }
+        return R.error("发送失败");
+    }
+
 
 }

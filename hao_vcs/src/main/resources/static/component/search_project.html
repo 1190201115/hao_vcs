@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/outService.js"></script>
+</head>
+<body >
+<div id="app" style="overflow: hidden">
+    <div v-if="showProjectList">
+        <ul style="overflow:auto;width: 75%">
+            <li v-for="(project,i) in projectList" class="infinite-list-item" style="list-style:none">
+                <el-card class="box-card" @click.native="selectProject(project)">
+                    <div slot="header" class="clearfix">
+                        <span>{{ project.projectName }}</span>
+                        <el-button style="float: right; padding: 3px 0" type="text"
+                                   @click="checkProject(project)">参与项目
+                        </el-button>
+                        <el-button style=" float: right;margin-right: 15px;padding: 3px 0" type="text"
+                                   @click="desVisible=true">项目详情
+                        </el-button>
+                    </div>
+                    <span style=" color: #9f9f9f; font-size: small;">创建时间: {{ project.createTime }}</span>
+
+                </el-card>
+                <p></p>
+            </li>
+        </ul>
+        <el-dialog
+                title="项目详情"
+                :visible.sync="desVisible"
+                width="30%"
+        >
+            {{selectedProject.description}}
+        </el-dialog>
+        <el-dialog
+                title="申请参与此项目？"
+                :visible.sync="applyVisible"
+                width="30%"
+        >
+            <span>向 <span style="color: #e74e4e; font-size: larger">{{owner.username}}</span> 发送加入申请:</span>
+            <br><br><br>
+            <el-input
+                    type="text"
+                    v-model="applyText"
+                    maxlength="30"
+                    style="width: 500px;"
+                    show-word-limit
+            >
+            </el-input>
+            <span slot="footer" class="dialog-footer">
+            <el-button @click="applyVisible = false">取 消</el-button>
+            <el-button type="primary" :loading="loading"  @click="applyJoin()">确 定</el-button>
+        </span>
+        </el-dialog>
+    </div>
+    <div v-if="!showProjectList" >
+        <p style="text-align: center;margin-top: 20%; color: #9f9f9f; font-size: xx-large;">
+            什么也没找到~</p>
+    </div>
+
+</div>
+<script>
+    var vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                search_key: '',
+                showProjectList: true,
+                projectList: [
+                    {
+                        projectId: 1,
+                        projectName: "p1",
+                        description: "this is 1",
+                        privacy: 0,
+                        createTime: '2023-02-09 20:46:27'
+                    },
+                ],
+                owner: '',
+                selectedProject: Object,
+                applyVisible:false,
+                desVisible: false,
+                loading: false,
+                applyText:'',
+            }
+        },
+        mounted(){
+            this.search_key = decodeURI(window.location.search.split("?")[1])
+            this.searchProjectByKey()
+        },
+        methods: {
+            selectProject(project){
+                this.selectedProject = project
+            },
+            applyJoin(){
+                this.loading = true
+                axios.get('/project/applyJoin', {params: {projectId: this.selectedProject.projectId,
+                    content: this.applyText}})
+                    .then(results => {
+                        if (results.data.code === 20000) {
+                            this.$message.success(results.data.data)
+                        } else {
+                            this.$message.error(results.data.data)
+                        }
+                        this.loading = false
+                    })
+                this.applyVisible = false
+            },
+            getOwner(){
+                axios.get('/project/getOwner', {params: {projectId: this.selectedProject.projectId}})
+                    .then(results => {
+                        if (results.data.code === 20000) {
+                            this.owner = results.data.data
+                        } else {
+                            this.$message.error(results.data.msg)
+                        }
+                    })
+            },
+            checkProject(project){
+                this.getOwner()
+                this.applyVisible = true
+            },
+            searchProjectByKey(){
+                axios.get('/project/search', {params: {'key': this.search_key}})
+                    .then(result => {
+                        if (result.data.code === 20000) {
+                            this.projectList = result.data.data
+                            if (this.projectList.length > 0) {
+                                this.showProjectList = true
+                            } else {
+                                this.showProjectList = false
+                            }
+                        }
+                    })
+            }
+
+        }
+    })
+</script>
+</body>
+</html>

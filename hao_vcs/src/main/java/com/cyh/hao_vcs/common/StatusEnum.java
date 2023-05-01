@@ -12,4 +12,11 @@ public class StatusEnum {
     public static Integer MIDDLE_UPDATE = 1;
     public static Integer HEAVY_UPDATE = 2;
 
+    public static Integer JOIN_PROJECT = 0;
+    public static Integer CREATE_PROJECT = 1;
+
+    public static Integer WAIT = 0;
+    public static Integer IGNORE = 1;
+    public static Integer APPROVE = 2;
+
 }
