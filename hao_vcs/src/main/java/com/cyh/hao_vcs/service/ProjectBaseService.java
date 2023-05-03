@@ -1,10 +1,12 @@
 package com.cyh.hao_vcs.service;
 
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.entity.ApplyJoinProject;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.User;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ProjectBaseService {
 
@@ -25,4 +27,17 @@ public interface ProjectBaseService {
     User getOwner(Long projectId);
 
     boolean applyJoin(Long projectId, Long userID, String content);
+
+    int checkApplyNum(long userId);
+
+    int checkReceiveApplyNum(long userId);
+
+    Map<String, List<ApplyJoinProject>> checkAllApply(long userId);
+
+    List<Integer> getLikeList(long userId, List<ProjectBaseImf> projectBaseImfList);
+
+    boolean changeLikedStatus(long userId, long projectId, Integer newLikedStatus);
+
+    List<ProjectBaseImf> getLikeProject(long userId);
+
 }

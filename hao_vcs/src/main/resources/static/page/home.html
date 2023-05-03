@@ -37,7 +37,10 @@
         <el-submenu index="selfSpace">
             <template slot="title"><img class="head-img" :src="headUrl"/></template>
             <el-menu-item index="selfImf">个人信息</el-menu-item>
-            <el-menu-item index="message">消息</el-menu-item>
+            <el-menu-item index="message" >
+                消息
+                <span v-if="messageNum > 0" class="messageNum" style="margin-left: 2px">{{messageNum}}</span>
+            </el-menu-item>
             <el-menu-item index="logOut">登出</el-menu-item>
         </el-submenu>
     </el-menu>
@@ -53,10 +56,12 @@
         </el-carousel>
         </div>
         <div v-show="showWorkspace">
-            <iframe src="../component/workspace.html" style="width: 100%;border: medium none;height: 800px;"></iframe>
+            <iframe id="wordSpaceIframe" src="../component/workspace.html" style="width: 100%;border: medium none;height: 800px;"></iframe>
         </div>
         <div v-show="showSettings">
             showSettings
+            同意或拒绝自动发送邮件通知
+            接受/拒绝所有请求
         </div>
         <div v-show="showWorkshop">
             <iframe src="../component/workshop.html" style="width: 100%;border: medium none;height: 400px"></iframe>
@@ -67,7 +72,7 @@
         </div>
         <div v-if="showMessage">
             <iframe id="messageIframe" src= "../component/message.html"
-                    style="border: medium none;height: 100%; width: 100%;margin-top: 20px;"></iframe>
+                    style="width: 100%;border: none;height: 800px;"></iframe>
         </div>
         <div v-if="showSearchProjects">
             <iframe id="searchIframe" :src= "search_url"  style="border: medium none;height: 89vh; width: 100%;">
@@ -93,7 +98,9 @@
                 showSettings: false,
                 showWorkspace: false,
                 showSelfImf: false,
+                showMessage: false,
                 showSearchProjects: false,
+                messageNum: 1,
                 urls:[
                     {url: '../image/home/pic1.jpg'},
                     {url: '../image/home/pic2.jpg'},
@@ -106,6 +113,7 @@
         created() {
             this.getHeadUrl()
             window.addEventListener('message', this.handleMessage)
+            this.checkMessageNum()
         },
         methods: {
             picChange(index){
@@ -114,8 +122,13 @@
             async getHeadUrl() {
                 axios.get('/file/head').then(res => {
                     if (res.data.code === 20000) {
-                        this.headUrl = res.data.data
+                        this.headUrl = res.data.msg
                     }
+                })
+            },
+            async checkMessageNum(){
+                axios.get('/project/checkMessageNum').then(res => {
+                    this.messageNum = res.data
                 })
             },
             searchProject() {
@@ -124,7 +137,11 @@
                 this.handleSelect('search')
             },
             handleMessage(e) {
-                this.headUrl = e.data
+                if(e.data.status === 'baseImf'){
+                    this.headUrl = e.data.params.url
+                }else if(e.data.status === 'like'){
+                    document.getElementById('wordSpaceIframe').contentWindow.location.reload(true)
+                }
             },
             handleSelect(key) {
                 this.hideAll();
@@ -147,6 +164,8 @@
                     this.showHome = true
                 } else if (key === 'selfImf') {
                     this.showSelfImf = true
+                }else if (key === 'message') {
+                    this.showMessage = true
                 } else if(key === 'search') {
                     this.showSearchProjects = true
                 }
@@ -157,9 +176,9 @@
                 this.showSettings = false
                 this.showHome = false
                 this.showSelfImf = false
+                this.showMessage = false
                 this.showSearchProjects = false
             },
-
         }
     })
 </script>
@@ -189,6 +208,17 @@
         margin-top: 10%;
         position: relative;
         top: -90vh;
+    }
+    .messageNum{
+        display:inline-table;
+        border-radius:15px;
+        background-color:#d53535;
+        width:15px;
+        height:15px;
+        line-height:15px;
+        text-align:center;
+        vertical-align:middle;
+        color:#fff;
     }
 
 

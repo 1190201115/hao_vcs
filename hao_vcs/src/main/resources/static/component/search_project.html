@@ -12,7 +12,7 @@
             <li v-for="(project,i) in projectList" class="infinite-list-item" style="list-style:none">
                 <el-card class="box-card" @click.native="selectProject(project)">
                     <div slot="header" class="clearfix">
-                        <span>{{ project.projectName }}</span>
+                            <span>{{ project.projectName }}</span>
                         <el-button style="float: right; padding: 3px 0" type="text"
                                    @click="checkProject(project)">参与项目
                         </el-button>
@@ -21,7 +21,10 @@
                         </el-button>
                     </div>
                     <span style=" color: #9f9f9f; font-size: small;">创建时间: {{ project.createTime }}</span>
-
+                    <el-button v-if="project.liked == 0" type="text" icon="el-icon-star-off"  style=" float: right; font-size:15px;"
+                               @click="changeLikeStatus(project, 1)"></el-button>
+                    <el-button v-if="project.liked == 1" type="text" icon="el-icon-star-on"  style=" float: right; font-size:18px;"
+                               @click="changeLikeStatus(project, 0)"></el-button>
                 </el-card>
                 <p></p>
             </li>
@@ -73,7 +76,16 @@
                         projectName: "p1",
                         description: "this is 1",
                         privacy: 0,
-                        createTime: '2023-02-09 20:46:27'
+                        createTime: '2023-02-09 20:46:27',
+                        liked: 0
+                    },
+                    {
+                        projectId: 2,
+                        projectName: "p2",
+                        description: "this is 2",
+                        privacy: 0,
+                        createTime: '2023-02-09 20:46:27',
+                        liked: 1
                     },
                 ],
                 owner: '',
@@ -82,13 +94,52 @@
                 desVisible: false,
                 loading: false,
                 applyText:'',
+                icon: '',
+                likeOff: 'el-icon-star-off',
+                likeOn: 'el-icon-star-on',
+                source:'',
             }
         },
         mounted(){
-            this.search_key = decodeURI(window.location.search.split("?")[1])
-            this.searchProjectByKey()
+            this.search_key = decodeURI(window.location.search.split("?"))
+            if(this.search_key.length === 0){
+                this.source = 'like'
+                this.search_like()
+            }else{
+                this.source = 'search'
+                this.search_key = this.search_key[1]
+                this.searchProjectByKey()
+            }
+
         },
         methods: {
+            changeLikeStatus(project, status){
+                this.actualChangeLikeStatus(project.projectId, status)
+                project.liked = status
+                this.$forceUpdate()
+                if(this.source === 'search'){
+                    window.parent.postMessage({
+                        status: 'like',
+                    }, "*")
+                }
+            },
+            async actualChangeLikeStatus(projectId, status){
+                axios.get('/project/changeLikeStatus', {params: {projectId: projectId, newLikeStatus: status
+                    }})
+                    .then(results => {
+                        if (results.data.code === 20000) {
+                            this.$message.success(results.data.msg)
+                        } else {
+                            this.$message.error(results.data.msg)
+                        }
+                    })
+            },
+            search_like(){
+                axios.get('/project/getLikeProject').then(results => {
+                    this.projectList = results.data.data
+                    let len = this.projectList.length
+                })
+            },
             selectProject(project){
                 this.selectedProject = project
             },
@@ -124,8 +175,13 @@
                 axios.get('/project/search', {params: {'key': this.search_key}})
                     .then(result => {
                         if (result.data.code === 20000) {
-                            this.projectList = result.data.data
-                            if (this.projectList.length > 0) {
+                            let likeList = result.data.data.likeList
+                            this.projectList = result.data.data.baseImf
+                            let len = this.projectList.length
+                            for(let i = 0; i < len; ++i){
+                                this.projectList[i].liked = likeList[i]
+                            }
+                            if (len > 0) {
                                 this.showProjectList = true
                             } else {
                                 this.showProjectList = false

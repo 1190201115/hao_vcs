@@ -1,17 +1,12 @@
 package com.cyh.hao_vcs.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
-import com.cyh.hao_vcs.entity.ApplyJoinProject;
-import com.cyh.hao_vcs.entity.ProjectBaseImf;
-import com.cyh.hao_vcs.entity.User;
-import com.cyh.hao_vcs.entity.UserProject;
-import com.cyh.hao_vcs.mapper.ApplyJoinProjectMapper;
-import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
-import com.cyh.hao_vcs.mapper.User2ProjectMapper;
-import com.cyh.hao_vcs.mapper.UserMapper;
+import com.cyh.hao_vcs.entity.*;
+import com.cyh.hao_vcs.mapper.*;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.cyh.hao_vcs.utils.ProjectUtil;
@@ -20,8 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.cyh.hao_vcs.utils.FileUtil.createDir;
@@ -44,6 +38,8 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
     @Autowired
     ApplyJoinProjectMapper applyJoinProjectMapper;
 
+    @Autowired
+    UserLikeProjectMapper userLikeProjectMapper;
 
 
     private static final String DEFAULT_ACTION = "创建工程";
@@ -138,8 +134,78 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
     @Override
     public boolean applyJoin(Long projectId, Long userID, String content) {
-        return applyJoinProjectMapper.insert(new ApplyJoinProject(projectId, userID, StatusEnum.WAIT, content)) == 1;
+        return applyJoinProjectMapper.insert(new ApplyJoinProject(projectId, userID, StatusEnum.WAIT, content, StatusEnum.UNCHECKED)) == 1;
     }
 
+    @Override
+    public int checkReceiveApplyNum(long userId) {
+        return checkReceiveApply(userId).size();
+    }
+
+    @Override
+    public int checkApplyNum(long userId) {
+        return checkApply(userId).size();
+    }
+
+
+    @Override
+    public Map<String, List<ApplyJoinProject>> checkAllApply(long userId) {
+        HashMap<String, List<ApplyJoinProject>> map = new HashMap<>();
+        map.put("receive", checkReceiveApply(userId));
+        map.put("apply", checkApply(userId));
+        return map;
+    }
+
+    @Override
+    public List<Integer> getLikeList(long userId, List<ProjectBaseImf> projectBaseImfList) {
+        QueryWrapper<UserLikeProject> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        List<Long> collect = userLikeProjectMapper.selectList(wrapper).stream().map(index -> index.getProjectId()).collect(Collectors.toList());
+        List<Integer> res = new ArrayList<>(projectBaseImfList.size());
+        for(ProjectBaseImf baseImf : projectBaseImfList){
+            if(collect.contains(baseImf.getProjectId())){
+                res.add(StatusEnum.LIKED);
+            }else{
+                res.add(StatusEnum.UNLIKED);
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public boolean changeLikedStatus(long userId, long projectId, Integer newLikedStatus) {
+        if(StatusEnum.LIKED.equals(newLikedStatus)){
+            return userLikeProjectMapper.insert(new UserLikeProject(userId, projectId)) == 1;
+        }
+        QueryWrapper<UserLikeProject> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        wrapper.eq("project_id", projectId);
+        return userLikeProjectMapper.delete(wrapper) == 1;
+    }
+
+    @Override
+    public List<ProjectBaseImf> getLikeProject(long userId) {
+        QueryWrapper<UserLikeProject> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        List<Long> projectIds =  userLikeProjectMapper.selectList(wrapper)
+                .stream().map(index -> index.getProjectId()).collect(Collectors.toList());
+        return getProjects(projectIds);
+    }
+
+    private List<ApplyJoinProject> checkReceiveApply(long userId){
+        List<Long> selfProjectID = getSelfProjectID(userId);
+        QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", StatusEnum.WAIT);
+        wrapper.eq("checked", StatusEnum.UNCHECKED);
+        wrapper.in("project_id", selfProjectID);
+        return applyJoinProjectMapper.selectList(wrapper);
+    }
+
+    private List<ApplyJoinProject> checkApply(long userId){
+        QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        wrapper.eq("checked", StatusEnum.UNCHECKED);
+        return applyJoinProjectMapper.selectList(wrapper);
+    }
 
 }

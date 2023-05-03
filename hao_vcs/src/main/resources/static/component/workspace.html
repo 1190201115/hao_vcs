@@ -42,11 +42,11 @@
             <div v-show="showProjectList">
                 <ul style="overflow:auto;width: 75%">
                     <li v-for="(project,i) in projectList" class="infinite-list-item" style="list-style:none">
-                        <el-card class="box-card" @click.native="checkProject(project)">
+                        <el-card class="box-card" @click.native="checkProject(project, 'depot')">
                             <div slot="header" class="clearfix">
                                 <span>{{ project.projectName }}</span>
                                 <el-button style="float: right; padding: 3px 0" type="text"
-                                           @click="checkProject(project)">进入项目
+                                           @click="checkProject(project, 'depot')">进入项目
                                 </el-button>
                             </div>
                             <span style=" color: #9f9f9f; font-size: small;">创建时间: {{ project.createTime }}</span>
@@ -66,10 +66,11 @@
 
         </el-col>
     </div>
-    <div v-show="showMyLike" style="overflow:auto;">
-        <p style="text-align: center; margin-top: 20%;color: #9f9f9f; font-size: xx-large;">
-            还没有收藏任何工程哦~</p>
+    <div v-if="showMyLike" style="overflow:auto;">
+            <iframe id="searchIframe" src= "./search_project.html?"  style="border: medium none;height: 89vh; width: 100%;">
+            </iframe>
     </div>
+
     <div v-show="showAddProject">
         <el-col :span="20">
             <iframe id="newProjectIframe" src="../page/new_project.html"
@@ -213,6 +214,7 @@
                     latestAction: '更新x'
                 },],
                 currentVersion: 0,
+                checkProjectSource: 'depot',
             }
         },
         mounted() {
@@ -267,7 +269,8 @@
                     this.dirList = []
                     this.fileList = []
                     this.fileNum = 0
-                    this.handleSelect('depot')
+                    console.log(this.source)
+                    this.handleSelect(this.checkProjectSource)
                 } else {
                     this.uploadSrc = this.uploadSrc.substring(0, this.uploadSrc.lastIndexOf('/') - 1)
                     this.path = this.path.substring(0, this.path.lastIndexOf('\\'))
@@ -369,16 +372,16 @@
 
             }
             ,
-            checkProject(project) {
+            checkProject(project, source) {
                 this.hideAll()
                 this.showProject = true
                 this.selectedProject = project
                 this.uploadSrc = './uploadFile.html?' + project.projectId + '?' + project.projectName
                 this.actionBannerSrc = './latestActionBanner.html?' + project.projectId
                 this.handleCurrentChange(1)
+                this.checkProjectSource = source
                 this.getDirContent(project.projectId)
-            }
-            ,
+            },
             handleSelect(key) {
                 this.hideAll();
                 if (key === 'depot') {

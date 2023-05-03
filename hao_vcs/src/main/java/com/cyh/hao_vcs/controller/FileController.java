@@ -56,7 +56,7 @@ public class FileController {
         if (!StringUtils.isEmpty(fileName)) {
             String headUrl = FileUtil.getFileUrl(fileName);
             if (!Objects.isNull(headUrl)) {
-                return R.success(headUrl, "获取头像成功");
+                return R.success(headUrl);
             }
         }
         return R.error(null);

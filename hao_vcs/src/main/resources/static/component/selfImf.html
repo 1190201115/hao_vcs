@@ -128,7 +128,13 @@
                 this.progressPercent = 0
                 if (response.code === 20000) {
                     this.baseImf.headUrl = response.data
-                    window.parent.postMessage(this.baseImf.headUrl, "*");
+                    //window.parent.postMessage(this.baseImf.headUrl, "*");
+                    window.parent.postMessage({
+                        status: 'headUrl',
+                        params: {
+                            url:this.baseImf.headUrl
+                        }
+                    }, "*")
                 }
                 if (response.code === 40000) {
                     this.$message.warn(response.msg)

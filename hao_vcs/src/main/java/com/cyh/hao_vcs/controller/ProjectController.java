@@ -3,6 +3,7 @@ package com.cyh.hao_vcs.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyh.hao_vcs.common.KeyEnum;
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.ProjectChangeBaseImf;
@@ -20,6 +21,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -148,8 +150,13 @@ public class ProjectController {
         if (StringUtils.isEmpty(key)) {
             return R.warn("搜索关键字不能为空");
         }
-        List<ProjectBaseImf> projectBaseImfList = projectBaseService.getProjectByKey(key, (Long)session.getAttribute("user"));
-        return R.success(projectBaseImfList, "搜索成功");
+        long userId = (Long)session.getAttribute("user");
+        Map<String, Object> map = new HashMap<>();
+        List<ProjectBaseImf> projectBaseImfList = projectBaseService.getProjectByKey(key, userId);
+        map.put("baseImf", projectBaseImfList);
+        List<Integer> likeList = projectBaseService.getLikeList(userId, projectBaseImfList);
+        map.put("likeList", likeList);
+        return R.success(map, "搜索成功");
     }
 
     @GetMapping("/getOwner")
@@ -169,6 +176,42 @@ public class ProjectController {
         }
         return R.error("发送失败");
     }
+
+    @GetMapping("/checkMessageNum")
+    public int checkMessageNum(HttpSession session) {
+        long userId = (Long)session.getAttribute("user");
+        return projectBaseService.checkApplyNum(userId) +
+                projectBaseService.checkReceiveApplyNum(userId);
+    }
+
+    @GetMapping("/checkAllMessage")
+    public R checkAllMessage(HttpSession session) {
+         projectBaseService.checkAllApply((Long)session.getAttribute("user"));
+        return null;
+    }
+
+    @GetMapping("/changeLikeStatus")
+    public R changeLikeStatus(Long projectId, Integer newLikeStatus, HttpSession session) {
+        if(projectBaseService.changeLikedStatus((Long)session.getAttribute("user"), projectId, newLikeStatus)){
+            if(StatusEnum.LIKED.equals(newLikeStatus)){
+                return R.success("收藏成功");
+            }
+            return R.success("取消收藏");
+        }else{
+            if(StatusEnum.LIKED.equals(newLikeStatus)){
+                return R.error("收藏失败");
+            }
+            return R.error("取消收藏失败");
+        }
+
+    }
+    @GetMapping("/getLikeProject")
+    public R getLikeProject(HttpSession session) {
+        return R.success(projectBaseService.getLikeProject((Long)session.getAttribute("user")), "获取成功");
+
+    }
+
+
 
 
 }

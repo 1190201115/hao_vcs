@@ -10,4 +10,5 @@ public class ApplyJoinProject {
     private Long userId;
     private Integer status;
     private String content;
+    private Integer checked;
 }

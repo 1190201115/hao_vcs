@@ -16,7 +16,13 @@ public class StatusEnum {
     public static Integer CREATE_PROJECT = 1;
 
     public static Integer WAIT = 0;
-    public static Integer IGNORE = 1;
+    public static Integer REFUSE = 1;
     public static Integer APPROVE = 2;
+
+    public static Integer CHECKED = 1;
+    public static Integer UNCHECKED = 0;
+
+    public static Integer UNLIKED = 0;
+    public static Integer LIKED = 1;
 
 }
