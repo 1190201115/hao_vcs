@@ -2,6 +2,7 @@ package com.cyh.hao_vcs.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
@@ -134,25 +135,46 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
     @Override
     public boolean applyJoin(Long projectId, Long userID, String content) {
-        return applyJoinProjectMapper.insert(new ApplyJoinProject(projectId, userID, StatusEnum.WAIT, content, StatusEnum.UNCHECKED)) == 1;
+        return applyJoinProjectMapper.insert(new ApplyJoinProject(projectId, userID, StatusEnum.WAIT, content, StatusEnum.UNCHECKED, LocalDateTime.now())) == 1;
     }
 
     @Override
     public int checkReceiveApplyNum(long userId) {
-        return checkReceiveApply(userId).size();
+        return getUncheckedReceiveApplyNum(userId).size();
     }
 
     @Override
     public int checkApplyNum(long userId) {
-        return checkApply(userId).size();
+        return getUncheckedApplyNum(userId).size();
     }
 
 
     @Override
-    public Map<String, List<ApplyJoinProject>> checkAllApply(long userId) {
-        HashMap<String, List<ApplyJoinProject>> map = new HashMap<>();
-        map.put("receive", checkReceiveApply(userId));
-        map.put("apply", checkApply(userId));
+    public Map<String, List<Message>> checkAllApply(long userId) {
+        HashMap<String, List<Message>> map = new HashMap<>();
+        List<ApplyJoinProject> receiveList = getReceiveApply(userId);
+        List<ApplyJoinProject> applyList = getApply(userId);
+        List<Message> receiveMessages = new ArrayList<>();
+        List<Message> applyMessages = new ArrayList<>();
+        for(ApplyJoinProject receiveApply : receiveList){
+            ProjectBaseImf projectBaseImf = projectBaseMapper.selectById(receiveApply.getProjectId());
+            Message receiveMessage = new Message(userMapper.selectById(receiveApply.getUserId()).getUsername(),
+                    projectBaseImf.getProjectName(),
+                    projectBaseImf.getDescription(),
+                    receiveApply);
+            receiveMessages.add(receiveMessage);
+        }
+        for(ApplyJoinProject apply : applyList){
+            Long projectId = apply.getProjectId();
+            ProjectBaseImf projectBaseImf = projectBaseMapper.selectById(projectId);
+            Message applyMessage = new Message(userMapper.selectById(user2ProjectMapper.selectById(projectId).getUserId()).getUsername(),
+                    projectBaseImf.getProjectName(),
+                    projectBaseImf.getDescription(),
+                    apply);
+            applyMessages.add(applyMessage);
+        }
+        map.put("receive", receiveMessages);
+        map.put("apply", applyMessages);
         return map;
     }
 
@@ -192,20 +214,43 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
         return getProjects(projectIds);
     }
 
-    private List<ApplyJoinProject> checkReceiveApply(long userId){
+    private List<ApplyJoinProject> getUncheckedReceiveApplyNum(long userId){
         List<Long> selfProjectID = getSelfProjectID(userId);
         QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
-        wrapper.eq("status", StatusEnum.WAIT);
         wrapper.eq("checked", StatusEnum.UNCHECKED);
         wrapper.in("project_id", selfProjectID);
         return applyJoinProjectMapper.selectList(wrapper);
     }
 
-    private List<ApplyJoinProject> checkApply(long userId){
+    private List<ApplyJoinProject> getUncheckedApplyNum(long userId){
         QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
         wrapper.eq("checked", StatusEnum.UNCHECKED);
         return applyJoinProjectMapper.selectList(wrapper);
     }
+
+    private List<ApplyJoinProject> getReceiveApply(long userId){
+        List<Long> selfProjectID = getSelfProjectID(userId);
+        QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
+        wrapper.in("project_id", selfProjectID);
+        List<ApplyJoinProject> res = applyJoinProjectMapper.selectList(wrapper);
+        checkApply(selfProjectID);
+        return res;
+    }
+
+    private List<ApplyJoinProject> getApply(long userId){
+        QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        return applyJoinProjectMapper.selectList(wrapper);
+    }
+
+    private void checkApply(List<Long> selfProjectID){
+        UpdateWrapper<ApplyJoinProject> wrapper = new UpdateWrapper<>();
+        wrapper.in("project_id",selfProjectID);
+        wrapper.set("checked", 1);
+        applyJoinProjectMapper.update(null,wrapper);
+    }
+
+
 
 }

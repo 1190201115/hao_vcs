@@ -180,14 +180,12 @@ public class ProjectController {
     @GetMapping("/checkMessageNum")
     public int checkMessageNum(HttpSession session) {
         long userId = (Long)session.getAttribute("user");
-        return projectBaseService.checkApplyNum(userId) +
-                projectBaseService.checkReceiveApplyNum(userId);
+        return projectBaseService.checkReceiveApplyNum(userId);
     }
 
     @GetMapping("/checkAllMessage")
     public R checkAllMessage(HttpSession session) {
-         projectBaseService.checkAllApply((Long)session.getAttribute("user"));
-        return null;
+         return R.success(projectBaseService.checkAllApply((Long)session.getAttribute("user")),"获取完成");
     }
 
     @GetMapping("/changeLikeStatus")

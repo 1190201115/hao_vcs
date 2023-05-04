@@ -19,31 +19,28 @@
             </el-menu-item>
         </el-menu>
     </el-col>
-    <div v-show="showMessageList">
 
         <div v-show="showApplyMessage">
             <ul style="overflow:auto;width: 75%">
                 <li v-for="(message,i) in applyList" class="infinite-list-item" style="list-style:none">
                     <el-card class="box-card" @click.native="selectMessage(message)">
                         <div slot="header" class="clearfix">
-                            <el-badge v-if="message.checkStatus == 0" value="new">
-                                <el-button  type="text">申请加入项目: {{ message.projectName }} </el-button>
-                            </el-badge>
+                            <el-button  type="text">申请加入项目: {{ message.projectName }} </el-button>
                             <el-popover
                                     placement="right"
-                                    width="600"
+                                    width="750"
                                     trigger="click">
 
                                 <el-table :data="selectedMessage">
-                                    <el-table-column width="100" property="applyName" label="管理员"></el-table-column>
-                                    <el-table-column width="200" property="description" label="项目描述"></el-table-column>
-                                    <el-table-column width="200" property="applyContent" label="申请信息"></el-table-column>
+                                    <el-table-column width="200" property="applyName" label="管理员"></el-table-column>
+                                    <el-table-column width="250" property="description" label="项目描述"></el-table-column>
+                                    <el-table-column width="250" property="apply.content" label="我的申请信息"></el-table-column>
                                 </el-table>
                                 <el-button style="float: right; padding: 3px 0" type="text"  slot="reference">查看详情
                                 </el-button>
                             </el-popover>
                         </div>
-                        <span style=" color: #9f9f9f; font-size: small;">申请时间: {{ message.applyTime }}</span>
+                        <span style=" color: #9f9f9f; font-size: small;">申请时间: {{ message.apply.applyTime }}</span>
                         <span v-if="message.status==2"
                               style=" color: #3a9edc; font-size: small;float: right;">通过</span>
                         <span v-if="message.status==1"
@@ -61,23 +58,24 @@
                 <li v-for="(message,i) in receiveList" class="infinite-list-item" style="list-style:none">
                     <el-card class="box-card" @click.native="selectMessage(message)">
                         <div slot="header" class="clearfix">
-                        <el-badge v-if="message.checkStatus == 0" value="new">
                             <el-button  type="text"> 申请加入项目: {{ message.projectName }} </el-button>
+                        <el-badge v-if="message.apply.checked == 0" value="new">
+
                         </el-badge>
                         <el-popover
                                 placement="right"
-                                width="600"
+                                width="750"
                                 trigger="click">
                             <el-table :data="selectedMessage">
-                                <el-table-column width="100" property="applyName" label="申请人"></el-table-column>
-                                <el-table-column width="200" property="description" label="个人简介"></el-table-column>
-                                <el-table-column width="200" property="applyContent" label="申请信息"></el-table-column>
+                                <el-table-column width="200" property="applyName" label="申请人"></el-table-column>
+                                <el-table-column width="250" property="description" label="项目描述"></el-table-column>
+                                <el-table-column width="250" property="apply.content" label="申请信息"></el-table-column>
                             </el-table>
                             <el-button style="float: right; padding: 3px 0" type="text"  slot="reference">查看详情
                             </el-button>
                         </el-popover>
                         </div>
-                        <span style=" color: #9f9f9f; font-size: small;">申请时间: {{ message.applyTime }}</span>
+                        <span style=" color: #9f9f9f; font-size: small;">申请时间: {{ message.apply.applyTime }}</span>
                         <el-radio v-model="radio" label="1" style="float: right;margin-right:5%" @change="reply()" >同意</el-radio>
                         <el-radio v-model="radio" label="2" style="float: right;margin-right: 3%" @change="reply()">拒绝</el-radio>
                     </el-card>
@@ -87,8 +85,7 @@
 
         </div>
 
-    </div>
-    <div v-if="!showMessageList">
+    <div v-if="showEmptyMessage">
         <p style="text-align: center;margin-top: 20%;color: #9f9f9f; font-size: xx-large;">
             这里人迹罕至~</p>
     </div>
@@ -104,10 +101,12 @@
                         applyName: 'cyh2',
                         projectName: "receive",
                         description: "this is cyh2",
-                        applyContent: "I want to join2I want to joinI want to joinI want to joinI want to join",
-                        applyTime: '2023-05-09 20:46:27',
-                        status: 0,
-                        checkStatus: 0,
+                        apply: {
+                            content: "I want to join2I want to joinI want to joinI want to joinI want to join",
+                            applyTime: '2023-05-09 20:46:27',
+                            status: 0,
+                            checked: 0,
+                        }
                     },
                 ],
                 applyList:[
@@ -115,15 +114,17 @@
                         applyName: 'cyh',
                         projectName: "apply",
                         description: "this is 1",
-                        applyContent: "I want to joinI want to joinI want to joinI want to joinI want to join",
-                        applyTime: '2023-05-09 20:46:27',
-                        status: 0,
-                        checkStatus: 0,
+                        apply: {
+                            content: "I want to joinI want to joinI want to joinI want to joinI want to join",
+                            applyTime: '2023-05-09 20:46:27',
+                            status: 0,
+                            checked: 0,
+                        }
                     },
                 ],
-                showReceiveMessage: true,
+                showReceiveMessage: false,
                 showApplyMessage: false,
-                showMessageList: true,
+                showEmptyMessage: true,
                 selectedMessage: [],
                 projectDetailVisible:false,
                 messageDetailVisible: false,
@@ -131,6 +132,7 @@
         },
         mounted() {
             this.getAllMessage()
+            this.handleSelect('apply')
         },
         methods: {
             reply(choice){
@@ -158,10 +160,20 @@
             handleSelect(key) {
                 if (key === 'apply') {
                     this.showReceiveMessage = false
-                    this.showApplyMessage = true
+                    if(this.applyList.length > 0){
+                        this.showEmptyMessage = false
+                        this.showApplyMessage = true
+                    }else{
+                        this.showEmptyMessage = true
+                    }
                 } else if (key === 'receive') {
                     this.showApplyMessage = false
-                    this.showReceiveMessage = true
+                    if(this.receiveList.length > 0){
+                        this.showReceiveMessage = true
+                        this.showEmptyMessage = false
+                    }else{
+                        this.showEmptyMessage = true
+                    }
                 }
             },
             selectMessage(message){
@@ -171,15 +183,10 @@
             getAllMessage() {
                 axios.get('/project/checkAllMessage').then(results => {
                     if (results.data.code === 20000) {
-                        this.showMessageList = results.data.data
-                        let len = this.showMessageList.length
-                        if (len > 0) {
-                            for (let i = 0; i < len; ++i) {
-                                this.showMessageList[i].liked = 1
-                            }
-                            this.showLikeProjectList = true
-                        }
-                        this.$message.success(results.data.msg)
+                        let map = results.data.data
+                        console.log(map)
+                        this.receiveList=map.receive
+                        this.applyList = map.apply
                     } else {
                         this.$message.error(results.data.msg)
                     }

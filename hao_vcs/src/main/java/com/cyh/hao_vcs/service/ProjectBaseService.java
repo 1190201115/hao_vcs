@@ -2,6 +2,7 @@ package com.cyh.hao_vcs.service;
 
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.entity.ApplyJoinProject;
+import com.cyh.hao_vcs.entity.Message;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.User;
 
@@ -32,7 +33,7 @@ public interface ProjectBaseService {
 
     int checkReceiveApplyNum(long userId);
 
-    Map<String, List<ApplyJoinProject>> checkAllApply(long userId);
+    Map<String, List<Message>> checkAllApply(long userId);
 
     List<Integer> getLikeList(long userId, List<ProjectBaseImf> projectBaseImfList);
 

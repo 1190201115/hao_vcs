@@ -149,9 +149,9 @@
                     content: this.applyText}})
                     .then(results => {
                         if (results.data.code === 20000) {
-                            this.$message.success(results.data.data)
+                            this.$message.success(results.data.msg)
                         } else {
-                            this.$message.error(results.data.data)
+                            this.$message.error(results.data.msg)
                         }
                         this.loading = false
                     })
@@ -168,6 +168,7 @@
                     })
             },
             checkProject(project){
+                this.selectedProject = project
                 this.getOwner()
                 this.applyVisible = true
             },
