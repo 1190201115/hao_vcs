@@ -26,6 +26,7 @@
                     <el-card class="box-card" @click.native="selectMessage(message)">
                         <div slot="header" class="clearfix">
                             <el-button  type="text">申请加入项目: {{ message.projectName }} </el-button>
+                            <el-badge v-if="message.apply.checked == 0" value="new"></el-badge>
                             <el-popover
                                     placement="right"
                                     width="750"
@@ -41,11 +42,11 @@
                             </el-popover>
                         </div>
                         <span style=" color: #9f9f9f; font-size: small;">申请时间: {{ message.apply.applyTime }}</span>
-                        <span v-if="message.status==2"
+                        <span v-if="message.apply.status==2"
                               style=" color: #3a9edc; font-size: small;float: right;">通过</span>
-                        <span v-if="message.status==1"
+                        <span v-if="message.apply.status==1"
                               style=" color: #e57161; font-size: small;float: right;">拒绝</span>
-                        <span v-if="message.status==0"
+                        <span v-if="message.apply.status==0"
                               style=" color: #858484; font-size: small;float: right;">等待处理</span>
                     </el-card>
                     <p></p>
@@ -59,7 +60,7 @@
                     <el-card class="box-card" @click.native="selectMessage(message)">
                         <div slot="header" class="clearfix">
                             <el-button  type="text"> 申请加入项目: {{ message.projectName }} </el-button>
-                        <el-badge v-if="message.apply.checked == 0" value="new">
+                        <el-badge v-if="message.apply.checked == 0 && message.apply.status == 0" value="new">
 
                         </el-badge>
                         <el-popover
@@ -76,8 +77,16 @@
                         </el-popover>
                         </div>
                         <span style=" color: #9f9f9f; font-size: small;">申请时间: {{ message.apply.applyTime }}</span>
-                        <el-radio v-model="radio" label="1" style="float: right;margin-right:5%" @change="reply()" >同意</el-radio>
-                        <el-radio v-model="radio" label="2" style="float: right;margin-right: 3%" @change="reply()">拒绝</el-radio>
+                        <span v-if="message.apply.status == 0">
+                        <el-radio v-model="radio" :label="1+i*2" style="float: right;margin-right:5%" @change="reply(message)" >同意</el-radio>
+                        <el-radio v-model="radio" :label="2+i*2" style="float: right;margin-right: 3%" @change="reply(message)">拒绝</el-radio>
+                        </span>
+                        <span v-if="message.apply.status == 1" >
+                            <span style=" color: #e57161; font-size: small;float: right;">已拒绝</span>
+                        </span>
+                        <span v-if="message.apply.status == 2" >
+                            <span style=" color: #43b443; font-size: small;float: right;">已同意</span>
+                        </span>
                     </el-card>
                     <p></p>
                 </li>
@@ -108,6 +117,17 @@
                             checked: 0,
                         }
                     },
+                    {
+                        applyName: 'cyh3',
+                        projectName: "receive",
+                        description: "this is cyh2",
+                        apply: {
+                            content: "I want to join2I want to joinI want to joinI want to joinI want to join",
+                            applyTime: '2023-05-09 20:46:27',
+                            status: 0,
+                            checked: 0,
+                        }
+                    },
                 ],
                 applyList:[
                     {
@@ -118,7 +138,7 @@
                             content: "I want to joinI want to joinI want to joinI want to joinI want to join",
                             applyTime: '2023-05-09 20:46:27',
                             status: 0,
-                            checked: 0,
+                            checked: 1,
                         }
                     },
                 ],
@@ -135,26 +155,36 @@
             this.handleSelect('apply')
         },
         methods: {
-            reply(choice){
-                let msg = '拒绝该申请?'
-                if(this.radio === '1'){
+            reply(message){
+                let msg
+                let apply = message.apply
+                let agree = this.radio % 2 === 1
+                if(agree){
                     msg = '同意该申请?'
+                }else{
+                    msg = '拒绝该申请?'
                 }
                 this.$confirm(msg, '提示', {
                         confirmButtonText: '确定',
                         cancelButtonText: '取消',
                         type: 'warning'
                     }).then(() => {
-                        // this.$message({
-                        //     type: 'success',
-                        //     message: '!'
-                        // });
+                    if(agree){
+                        apply.status = 2
+                    }else{
+                        apply.status = 1
+                    }
+                    axios.post('/project/reply', apply).then(results => {
+                        if (results.data.code === 20000) {
+                            this.$message.success(results.data.msg)
+                        }else{
+                            this.$message.error(results.data.msg)
+                            message.apply.status = 0
+                            this.radio = ''
+                        }
+                    })
                     }).catch(() => {
                         this.radio = ''
-                        // this.$message({
-                        //     type: 'info',
-                        //     message: '已取消删除'
-                        // });
                     });
             },
             handleSelect(key) {

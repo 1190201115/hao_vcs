@@ -41,4 +41,6 @@ public interface ProjectBaseService {
 
     List<ProjectBaseImf> getLikeProject(long userId);
 
+    boolean setReply(ApplyJoinProject applyJoinProject);
+
 }

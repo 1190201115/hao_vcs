@@ -14,4 +14,8 @@ public class ApplyJoinProject {
     private String content;
     private Integer checked;
     private LocalDateTime applyTime;
+
+    public ApplyJoinProject(){
+
+    }
 }

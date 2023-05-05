@@ -14,6 +14,7 @@ import com.cyh.hao_vcs.utils.ProjectUtil;
 import com.qiniu.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -41,6 +42,9 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
     @Autowired
     UserLikeProjectMapper userLikeProjectMapper;
+
+    @Autowired
+    ProjectBaseService projectBaseService;
 
 
     private static final String DEFAULT_ACTION = "创建工程";
@@ -130,7 +134,10 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
     @Override
     public User getOwner(Long projectId) {
-        return userMapper.selectById(user2ProjectMapper.selectById(projectId).getUserId());
+        QueryWrapper<UserProject> wrapper =new QueryWrapper<>();
+        wrapper.eq("project_id", projectId);
+        wrapper.eq("relation", StatusEnum.CREATE_PROJECT);
+        return userMapper.selectById( user2ProjectMapper.selectOne(wrapper).getUserId());
     }
 
     @Override
@@ -167,7 +174,7 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
         for(ApplyJoinProject apply : applyList){
             Long projectId = apply.getProjectId();
             ProjectBaseImf projectBaseImf = projectBaseMapper.selectById(projectId);
-            Message applyMessage = new Message(userMapper.selectById(user2ProjectMapper.selectById(projectId).getUserId()).getUsername(),
+            Message applyMessage = new Message(projectBaseService.getOwner(projectId).getUsername(),
                     projectBaseImf.getProjectName(),
                     projectBaseImf.getDescription(),
                     apply);
@@ -212,6 +219,21 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
         List<Long> projectIds =  userLikeProjectMapper.selectList(wrapper)
                 .stream().map(index -> index.getProjectId()).collect(Collectors.toList());
         return getProjects(projectIds);
+    }
+
+    @Override
+    public boolean setReply( ApplyJoinProject applyJoinProject) {
+        UpdateWrapper<ApplyJoinProject> wrapper = new UpdateWrapper<>();
+        long projectId = applyJoinProject.getProjectId();
+        long userId = applyJoinProject.getUserId();
+        wrapper.eq("project_id",projectId);
+        wrapper.eq("user_id",userId);
+        wrapper.eq("apply_time",applyJoinProject.getApplyTime());
+        boolean res = true;
+        if(StatusEnum.APPROVE.equals(applyJoinProject.getStatus())){
+            res = user2ProjectMapper.insert(new UserProject(userId, applyJoinProject.getProjectId(), StatusEnum.JOIN_PROJECT)) == 1;
+        }
+        return res && applyJoinProjectMapper.update(applyJoinProject,wrapper) == 1;
     }
 
     private List<ApplyJoinProject> getUncheckedReceiveApplyNum(long userId){

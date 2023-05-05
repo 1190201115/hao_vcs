@@ -5,6 +5,7 @@ import com.cyh.hao_vcs.common.KeyEnum;
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
+import com.cyh.hao_vcs.entity.ApplyJoinProject;
 import com.cyh.hao_vcs.entity.ProjectBaseImf;
 import com.cyh.hao_vcs.entity.ProjectChangeBaseImf;
 
@@ -207,6 +208,13 @@ public class ProjectController {
     public R getLikeProject(HttpSession session) {
         return R.success(projectBaseService.getLikeProject((Long)session.getAttribute("user")), "获取成功");
 
+    }
+    @PostMapping("/reply")
+    public R getReply(@RequestBody ApplyJoinProject applyJoinProject){
+        if(projectBaseService.setReply(applyJoinProject)){
+            return R.success("回复成功");
+        }
+        return R.error("回复失败");
     }
 
 

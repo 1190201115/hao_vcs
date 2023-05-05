@@ -33,7 +33,7 @@
 
         <el-menu-item index="workspace" style="margin-left: 2%">我的工作台</el-menu-item>
         <el-menu-item index="settings">配置中心</el-menu-item>
-        <el-menu-item index="workshop">加工坊</el-menu-item>
+<!--        <el-menu-item index="workshop">加工坊</el-menu-item>-->
         <el-submenu index="selfSpace">
             <template slot="title"><img class="head-img" :src="headUrl"/></template>
             <el-menu-item index="selfImf">个人信息</el-menu-item>
@@ -63,9 +63,9 @@
             同意或拒绝自动发送邮件通知
             接受/拒绝所有请求
         </div>
-        <div v-show="showWorkshop">
-            <iframe src="../component/workshop.html" style="width: 100%;border: medium none;height: 400px"></iframe>
-        </div>
+<!--        <div v-show="showWorkshop">-->
+<!--            <iframe src="../component/workshop.html" style="width: 100%;border: medium none;height: 400px"></iframe>-->
+<!--        </div>-->
         <div v-if="showSelfImf" class="self-imf">
             <iframe id="selfImfIframe" src= "../component/selfImf.html"
                     style="border: medium none;height: 100%; width: 100%;margin-top: 20px;"></iframe>
@@ -94,7 +94,7 @@
                 search_key: '',
                 search_url: '',
                 showHome: true,
-                showWorkshop: false,
+                // showWorkshop: false,
                 showSettings: false,
                 showWorkspace: false,
                 showSelfImf: false,
@@ -154,9 +154,11 @@
                     setTimeout(function () {
                         window.location.href = './login.html'
                     }, 1000)
-                } else if (key === 'workshop') {
-                    this.showWorkshop = true
-                } else if (key === 'workspace') {
+                 }
+                //else if (key === 'workshop') {
+                //     this.showWorkshop = true
+                // }
+                    else if (key === 'workspace') {
                     this.showWorkspace = true
                 } else if (key === 'settings') {
                     this.showSettings = true
@@ -172,7 +174,7 @@
                 }
             },
             hideAll() {
-                this.showWorkshop = false
+                //this.showWorkshop = false
                 this.showWorkspace = false
                 this.showSettings = false
                 this.showHome = false
