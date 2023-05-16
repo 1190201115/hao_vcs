@@ -25,4 +25,12 @@ public class StatusEnum {
     public static Integer UNLIKED = 0;
     public static Integer LIKED = 1;
 
+    public static Integer AUTO_DELETE_CACHE_ON = 1;
+    public static Integer AUTO_DELETE_CACHE_OFF = 0;
+
+    public static String LOG_PIC_CUT = "cut";
+    public static String LOG_PIC_SIZE = "size";
+    public static String LOG_PIC_WATER = "water";
+
+
 }

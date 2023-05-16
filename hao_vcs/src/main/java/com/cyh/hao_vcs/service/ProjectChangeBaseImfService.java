@@ -11,4 +11,7 @@ public interface ProjectChangeBaseImfService {
     ProjectChangeBaseImf getProjectChangeBaseImfByID(Long projectID);
 
     boolean deleteProjectByID(Long projectID);
+
+    boolean checkAuthority(Long userID, Long projectID);
+
 }

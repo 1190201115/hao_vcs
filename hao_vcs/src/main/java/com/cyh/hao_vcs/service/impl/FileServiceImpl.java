@@ -5,6 +5,7 @@ import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.cyh.hao_vcs.service.FileService;
+import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.utils.Classifier;
 import com.cyh.hao_vcs.utils.Converter;
 import com.cyh.hao_vcs.utils.FileUtil;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -33,6 +36,7 @@ public class FileServiceImpl implements FileService {
     private final UploadManager uploadManager;
 
     private static final int successStatus = 200;
+
 
     @Autowired
     public void init() {

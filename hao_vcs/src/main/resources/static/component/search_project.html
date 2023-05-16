@@ -128,7 +128,7 @@
                     }})
                     .then(results => {
                         if (results.data.code === 20000) {
-                            this.$message.success(results.data.msg)
+                            console.log(results.data)
                         } else {
                             this.$message.error(results.data.msg)
                         }

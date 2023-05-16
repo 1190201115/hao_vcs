@@ -80,7 +80,7 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         if (StringUtils.isNullOrEmpty(log)) {
             log = UPDATE_FILE;
         }
-        String version = fileBaseImfService.updateFileLatestVersion(path + morePath, StatusEnum.LIGHT_UPDATE);
+        String version = fileBaseImfService.updateFileLatestVersion(path + morePath, StatusEnum.HEAVY_UPDATE);
         String fileId = fileBaseImfService.getFileOriginId(path + morePath);
         fileVersionImfMapper.insert(new FileVersionImf(fileId, version, LocalDateTime.now(),
                 userService.getById(actorId).getUsername(), log));
@@ -99,8 +99,10 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
 
     @Override
     public boolean checkFileVersion(Long projectId, String morePath, String newVersion, Long actorId) {
+        //更新数据库中当前版本
         boolean checkCurrentVersion = fileBaseImfService.checkCurrentVersion
                 (projectBaseService.getProjectPath(projectId) + morePath, newVersion);
+
         FileVersionImf fileVersionImf = getFileVersionImf(projectId, morePath, newVersion);
         if (Objects.isNull(fileVersionImf)) return false;
         fileVersionImf.setSaveTime(LocalDateTime.now());

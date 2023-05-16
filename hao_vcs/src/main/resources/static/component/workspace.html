@@ -151,7 +151,23 @@
                 </div>
 
                 <div v-show="showProjectSettings">
+                    <el-switch
+                            v-model="config"
+                            active-text="保留旧版本文件"
+                            inactive-text="存储节约"
+                    @change="changeConfig()">
+                    </el-switch>
+                    <el-popover
+                            placement="top-start"
+                            title="重要配置说明"
+                            width="200"
+                            trigger="hover"
+                            content="开启存储节约，可以显著减小系统对存储空间的需求，但在进行版本切换时需要等待额外的时间">
+                        <el-button slot="reference" type="text" ><i class="el-icon-info"></i></el-button>
+                    </el-popover>
+                    <div style="margin-top: 30px">
                     <el-button type="danger" @click="deleteProject">删除项目</el-button>
+                    </div>
                 </div>
             </el-main>
             <el-footer>
@@ -215,6 +231,7 @@
                 },],
                 currentVersion: 0,
                 checkProjectSource: 'depot',
+                config: true,
             }
         },
         mounted() {
@@ -222,6 +239,21 @@
             this.getAllProject()
         },
         methods: {
+            changeConfig(){
+              axios.get('/config/changeCache',{
+                  params:
+                      {
+                          projectId: this.selectedProject.projectId,
+                          switches: this.config,
+                      }
+              }).then(
+                  result => {
+                      if(result.data.code !== 20000){
+                          this.$message.warn(result.data.msg)
+                      }
+                  }
+              )
+            },
             compareTwoFile(row) {
                 axios.get('/version/compareText',
                     {
@@ -360,6 +392,10 @@
                     this.showProjectSettings = false
                 } else {
                     this.showProjectContent = false
+                    axios.get("/config/getCacheStrategy", {params: {projectId: this.selectedProject.projectId}}).then(
+                        result=>{
+                            this.config = result.data
+                    })
                     this.showProjectSettings = true
                 }
             }

@@ -5,6 +5,7 @@ import com.cyh.hao_vcs.entity.FileVersionImf;
 import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
+import com.cyh.hao_vcs.service.impl.ProjectChangeBaseImfServiceImpl;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.cyh.hao_vcs.utils.VersionUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +33,9 @@ public class VersionController {
     @Autowired
     FileVersionImfService fileVersionImfService;
 
+    @Autowired
+    ProjectChangeBaseImfServiceImpl projectChangeBaseImfService;
+
     @PostMapping("/updateText")
     public R updateText(@RequestParam("projectId") Long projectId, @RequestParam("morePath") String morePath,
                         @RequestParam("content") String content, @RequestParam("updateKind") Integer updateKind,
@@ -42,8 +46,11 @@ public class VersionController {
 
     @PostMapping("/updatePic")
     public R updatePic(@RequestParam("projectId") Long projectId, @RequestParam("morePath") String morePath,
-                       @RequestBody MultipartFile file, @RequestParam("log") String log, HttpSession session) {
-        fileVersionImfService.updatePic(projectId, morePath, file, log, (Long) session.getAttribute("user"));
+                       @RequestBody MultipartFile file, @RequestParam("log") List<String> logList, HttpSession session) {
+        if(Objects.isNull(logList) || logList.isEmpty()){
+            return R.warn("没有更新");
+        }
+        fileVersionImfService.updatePic(projectId, morePath, file, logList.toString(), (Long) session.getAttribute("user"));
         return R.success("更新成功");
     }
 
@@ -130,5 +137,18 @@ public class VersionController {
                          @RequestParam("version") String newVersion) {
         return fileVersionImfService.compareText(projectId, morePath, newVersion);
     }
+
+//    @PostMapping("/deleteCache")
+//    public R deleteCache(@RequestBody Map<String, Object> map, HttpSession session){
+//        Long projectId = (Long)map.get("projectId");
+//        Long userId = (Long) session.getAttribute("user");
+//        //验证是否有权限
+//        if(projectChangeBaseImfService.checkAuthority(userId, projectId)){
+//            //删除除当前版本外的文件
+//            projectChangeBaseImfService.deleteCache(projectId);
+//        }
+//
+//        //返回结果
+//    }
 
 }

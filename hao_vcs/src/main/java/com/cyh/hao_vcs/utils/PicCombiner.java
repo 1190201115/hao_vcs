@@ -1,6 +1,7 @@
 package com.cyh.hao_vcs.utils;
 
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.entity.PicImf;
 import com.freewayso.image.combiner.ImageCombiner;
@@ -13,12 +14,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class PicCombiner {
 
-    public static Map<String, OutputFormat> picKindMap;
+    public static Map<String, OutputFormat> picKindMap= new HashMap<>();
 
     static{
         picKindMap.put("jpg",OutputFormat.JPG);
@@ -29,6 +31,13 @@ public class PicCombiner {
 
     public static PicImf getPicImf(String path){
         File picture = new File(path);
+        if(!picture.exists()){
+            String version = VersionUtil.getVersion(path);
+            path = findLastExistPath(version, path);
+            if(Objects.isNull(path)){
+                return null;
+            }
+        }
         try {
             BufferedImage sourceImg = ImageIO.read(new FileInputStream(picture));
             return new PicImf(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH),
@@ -37,6 +46,23 @@ public class PicCombiner {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private static String findLastExistPath(String version, String path){
+        if(StatusEnum.INIT_VERSION.equals(version)){
+            return null;
+        }
+        String previousVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
+        path = path.replaceFirst(version, previousVersion);
+        while(!new File(path).exists()){
+            version = previousVersion;
+            if(StatusEnum.INIT_VERSION.equals(version)){
+                return null;
+            }
+            previousVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
+            path = path.replaceFirst(version, previousVersion);
+        }
+        return path;
     }
 
     private static OutputFormat getPicKind(String path){
@@ -80,6 +106,7 @@ public class PicCombiner {
     }
 
     public static void main(String[] args) {
+        getPicImf("D:\\ADeskTop\\project\\bigWork\\repository\\3- 音视频测试\\ae649190-fc3c-4552-a946-01e228b7d880-v5.0.0.mp3");
 //        combinePic("D:\\ADeskTop\\ccip.jpg",864,1920,"D:\\ADeskTop\\xc.jpg",
 //                0)
             //getPicImf("D:\\ADeskTop\\project\\bigWork\\image\\a.jpeg");

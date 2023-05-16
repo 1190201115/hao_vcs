@@ -32,7 +32,7 @@
                 <el-button type="text" style="font-size: larger;" @click="cutPicVisible=true">裁剪</el-button>
 <!--                <el-button type="text" style="font-size: larger" @click="combinePicVisible = true">图片拼接</el-button>-->
                 <el-button type="text" style="font-size: larger" @click="watermarkVisible=true">添加水印</el-button>
-                <el-button type="text" style="font-size: larger;margin-right: 50px" @click="savePicVisible=true">保存</el-button>
+                <el-button type="text" style="font-size: larger;margin-right: 50px" @click="savePic()">保存</el-button>
             </div>
             <el-dialog
                     title="调整图片大小"
@@ -182,26 +182,26 @@
     <el-button type="primary" @click="cutPic()">确 定</el-button>
   </span>
             </el-dialog>
-            <el-dialog
-                    title="保存图片"
-                    :visible.sync="savePicVisible"
-                    width="40%"
-                    >
-                <span>日志信息</span>
-                <br><br>
-                <el-input
-                        type="text"
-                        v-model="save_log"
-                        maxlength="30"
-                        style="width: 500px"
-                        show-word-limit
-                ></el-input>
-                <br>
-                <span slot="footer" class="dialog-footer">
-            <el-button @click="savePicVisible = false">取 消</el-button>
-            <el-button type="primary" @click="savePic()">确 定</el-button>
-                </span>
-            </el-dialog>
+<!--            <el-dialog-->
+<!--                    title="保存图片"-->
+<!--                    :visible.sync="savePicVisible"-->
+<!--                    width="40%"-->
+<!--                    >-->
+<!--                <span>日志信息</span>-->
+<!--                <br><br>-->
+<!--                <el-input-->
+<!--                        type="text"-->
+<!--                        v-model="save_log"-->
+<!--                        maxlength="30"-->
+<!--                        style="width: 500px"-->
+<!--                        show-word-limit-->
+<!--                ></el-input>-->
+<!--                <br>-->
+<!--                <span slot="footer" class="dialog-footer">-->
+<!--            <el-button @click="savePicVisible = false">取 消</el-button>-->
+<!--            <el-button type="primary" @click="savePic()">确 定</el-button>-->
+<!--                </span>-->
+<!--            </el-dialog>-->
 <!--            <el-dialog-->
 <!--                    title="拼接图片位置"-->
 <!--                    :visible.sync="combinePicVisible"-->
@@ -251,7 +251,8 @@
                 cut_start_y: '',
                 cut_width: '',
                 cut_height: '',
-                save_log: '',
+                //save_log: '',
+                log_list: [],
 
             }
         },
@@ -264,7 +265,7 @@
         },
         methods: {
             savePic(){
-                this.savePicVisible = false
+                //this.savePicVisible = false
                 let arr = this.pic_url.split(','), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]), i = bstr.length, u8arr = new Uint8Array(i);
                 while(i--){
                     u8arr[i] = bstr.charCodeAt(i);
@@ -273,7 +274,7 @@
                 let formData = new FormData();
                 formData.append("file",file)
                 formData.append("projectId", this.projectId)
-                formData.append("log",this.save_log)
+                formData.append("log",this.log_list)
                 formData.append("morePath", this.path)
                 axios.post('/version/updatePic', formData, {
                     "Content-Type": "multipart/form-data;charset=utf-8"
@@ -303,6 +304,7 @@
                 edit_img.onload = function () {
                     cut.drawImage(edit_img, start_x, start_y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                 };
+                this.log_list.push("cut-" + start_x + "-" + start_y + "-" + this.cut_width + "-" + this.cut_height)
                 let _this = this
                 setTimeout(function () {
                     _this.pic_url = canvas.toDataURL('image/jpeg');
@@ -326,6 +328,7 @@
                 edit_img.onload = function () {
                     cut.drawImage(edit_img, 0, 0, canvas.width, canvas.height);
                 };
+                this.log_list.push("size-" + canvas.width + "-" + canvas.height)
                 let _this = this
                 setTimeout(function () {
                     _this.pic_url = canvas.toDataURL('image/jpeg');
@@ -351,6 +354,7 @@
                     cut.fillStyle = '#ddd'
                     cut.fillText(content, width, height);
                 };
+                this.log_list.push("water-" + content)
                 let _this = this
                 setTimeout(function () {
                     _this.pic_url = canvas.toDataURL('image/jpeg');
@@ -385,41 +389,9 @@
             },
             initCKEditor() {
                 this.editor = CKEDITOR.replace('textEditor', {
-                    // uiColor: '#3a9edc',
                     width: '100%',
                     height: screen.height * 0.77,
-                    // toolbar: [
-                    //     ['Source', 'Save', 'Preview'],
-                    //     ['Find', 'Scayt'],
-                    //     ['Bold', 'Italic', 'Underline', 'Blockquote', '-', 'Link', 'Unlink', '-', 'Image', 'Smiley', 'oembed']
-                    // ]
                 });
-                // CKEDITOR.plugins.registered['save'] =
-                //     {
-                //         init : function( editor)
-                //         {
-                //             editor.addCommand( 'save',
-                //                 {
-                //                     modes : { wysiwyg:1, source:1 },
-                //                     exec : function(editor) {
-                //                         let form = new FormData()
-                //                         form.append("content", editor.getData())
-                //                         form.append("morePath", decodeURI(window.location.search.split("?")[2].replaceAll('/','\\')))
-                //                         form.append("projectId", window.location.search.split("?")[1])
-                //                         console.log(form)
-                //                         axios.post('/version/updateText', form).then(results => {
-                //                             if(results.data.code === 20000){
-                //                                 this.$message.success(results.data.msg)
-                //                             }else{
-                //                                 this.$message.error(results.data.msg)
-                //                             }
-                //                         })
-                //                     }
-                //                 }
-                //             );
-                //             editor.ui.addButton( 'Save', {label : '小版本保存', command : 'save'} );
-                //         }
-                //     }
             },
 
 

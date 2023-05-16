@@ -5,15 +5,9 @@ import com.cyh.hao_vcs.common.KeyEnum;
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
-import com.cyh.hao_vcs.entity.ApplyJoinProject;
-import com.cyh.hao_vcs.entity.ProjectBaseImf;
-import com.cyh.hao_vcs.entity.ProjectChangeBaseImf;
+import com.cyh.hao_vcs.entity.*;
 
-import com.cyh.hao_vcs.entity.User;
-import com.cyh.hao_vcs.service.FileBaseImfService;
-import com.cyh.hao_vcs.service.FileService;
-import com.cyh.hao_vcs.service.ProjectBaseService;
-import com.cyh.hao_vcs.service.ProjectChangeBaseImfService;
+import com.cyh.hao_vcs.service.*;
 import com.cyh.hao_vcs.service.impl.FileBaseImfServiceImpl;
 import com.cyh.hao_vcs.utils.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +16,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/project")
@@ -44,6 +36,9 @@ public class ProjectController {
 
     @Autowired
     FileService fileService;
+
+    @Autowired
+    FileVersionImfService fileVersionImfService;
 
     private static Integer OWN_PROJECT_STATUS = 1;
 
@@ -143,7 +138,16 @@ public class ProjectController {
             String fileId = fileBaseImfService.getFileIdWithCurrentVersion(projectBaseService.getProjectPath(projectId)+morePath);
             path = path + morePath.substring(0,morePath.lastIndexOf("\\")+1)+fileId;
         }
-        return fileService.getFileContent(path);
+            R res = fileService.getFileContent(path);
+//        if(Objects.isNull(res.getData()) && !FileConfig.TXT_FILE.toString().equals(res.getMsg())){
+//            //文件不存在，尝试修复
+//            //获取所有日志信息
+//            List<String> logList = fileVersionImfService.getVersionList(projectId, morePath).stream().map(FileVersionImf::getLatestAction).collect(Collectors.toList());
+//
+//
+//
+//        }
+            return res;
         }
 
     @GetMapping("/search")

@@ -7,7 +7,7 @@ import org.springframework.util.StringUtils;
 import java.io.File;
 import java.util.Objects;
 
-import static com.cyh.hao_vcs.utils.Converter.nameFromFile2Html;
+
 
 public class Classifier {
 
@@ -82,12 +82,16 @@ public class Classifier {
     }
 
     public static String checkHtmlExists(String fileName, String format){
-        String path = format + nameFromFile2Html(fileName);
+        String path = format + Converter.nameFromFile2Html(fileName);
         File file = new File(path);
         if(file.exists()){
             return path;
         }
         return null;
+    }
+
+    public static void main(String[] args) {
+        PicCombiner.getPicImf("");
     }
 
 }

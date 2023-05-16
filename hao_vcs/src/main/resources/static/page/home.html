@@ -137,7 +137,7 @@
                 this.handleSelect('search')
             },
             handleMessage(e) {
-                if(e.data.status === 'baseImf'){
+                if(e.data.status === 'headUrl'){
                     this.headUrl = e.data.params.url
                 }else if(e.data.status === 'like'){
                     document.getElementById('wordSpaceIframe').contentWindow.location.reload(true)
