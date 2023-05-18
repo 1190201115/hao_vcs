@@ -1,19 +1,22 @@
 package com.cyh.hao_vcs.utils;
 
-import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.entity.PicImf;
+import com.cyh.hao_vcs.log.PicLog;
 import com.freewayso.image.combiner.ImageCombiner;
 import com.freewayso.image.combiner.enums.OutputFormat;
 import com.freewayso.image.combiner.enums.ZoomMode;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.CropImageFilter;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -32,11 +35,7 @@ public class PicCombiner {
     public static PicImf getPicImf(String path){
         File picture = new File(path);
         if(!picture.exists()){
-            String version = VersionUtil.getVersion(path);
-            path = findLastExistPath(version, path);
-            if(Objects.isNull(path)){
-                return null;
-            }
+            return null;
         }
         try {
             BufferedImage sourceImg = ImageIO.read(new FileInputStream(picture));
@@ -46,23 +45,6 @@ public class PicCombiner {
             e.printStackTrace();
             return null;
         }
-    }
-
-    private static String findLastExistPath(String version, String path){
-        if(StatusEnum.INIT_VERSION.equals(version)){
-            return null;
-        }
-        String previousVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
-        path = path.replaceFirst(version, previousVersion);
-        while(!new File(path).exists()){
-            version = previousVersion;
-            if(StatusEnum.INIT_VERSION.equals(version)){
-                return null;
-            }
-            previousVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
-            path = path.replaceFirst(version, previousVersion);
-        }
-        return path;
     }
 
     private static OutputFormat getPicKind(String path){
@@ -92,21 +74,100 @@ public class PicCombiner {
         return combiner;
     }
 
-    public static boolean savePic(ImageCombiner combiner, String savePath){
-        if(Objects.isNull(combiner) || Objects.isNull(savePath)){
-            return false;
+    public static void savePic(String savePath, BufferedImage newImg) {
+        if (savePath != null && newImg != null) {
+            try {
+                File outputFile = new File(savePath);
+                ImageIO.write(newImg, FileUtil.getSuffix(savePath), outputFile);
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
         }
-        try {
-            combiner.save(savePath);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
     }
 
-    public static void main(String[] args) {
-        getPicImf("D:\\ADeskTop\\project\\bigWork\\repository\\3- 音视频测试\\ae649190-fc3c-4552-a946-01e228b7d880-v5.0.0.mp3");
+    public static BufferedImage cutPic(BufferedImage image, int x, int y, int width, int height){
+        int srcWidth = image.getWidth();
+        int srcHeight = image.getHeight();
+        Image instance = image.getScaledInstance(srcWidth, srcHeight, Image.SCALE_DEFAULT);
+        ImageFilter cropFilter = new CropImageFilter(x, y, width, height);
+        Image img = Toolkit.getDefaultToolkit().createImage(new FilteredImageSource(instance.getSource(), cropFilter));
+        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics g = image.getGraphics();
+        g.drawImage(img, 0, 0, width, height, null); // 绘制切割后的图
+        g.dispose();
+        return image;
+    }
+
+    public static BufferedImage createImage(String path) {
+        try {
+            return ImageIO.read(new File(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public static BufferedImage changePicSize(BufferedImage image,int width, int height) {
+        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        //创建画布
+        Graphics2D g2 = bi.createGraphics();
+        //画图
+        g2.drawImage(image, 0,0,width,height, null);
+        //关闭资源
+        g2.dispose();
+        return bi;
+    }
+
+    public static void addWater(BufferedImage image,int width, int height, String content) {
+        Graphics2D graphics2D = image.createGraphics();
+        // 设置水印字体颜色为红色
+        graphics2D.setColor(Color.black);
+        int size = Math.min(30, Math.min(image.getWidth(), image.getHeight())/ content.length() / 2);
+        // 设置水印字体、字型、字号
+        graphics2D.setFont(new Font("微软雅黑", Font.PLAIN, size));
+        // 设置水印位置：居中
+        graphics2D.drawString(content,width,height);
+        // 安排---画板
+        graphics2D.dispose();
+    }
+
+    //把log中的属性加到picLog上
+    public static BufferedImage mapStringToPicLog(String log, String target, BufferedImage image ){
+        log = log.substring(1, log.length() - 1).replaceAll(", ", "");
+        String[] split = log.split("##&");
+        int len = split.length;
+        for(int i = 0; i < len; ++i){
+            String imf = split[i];
+            String[] data;
+            if(StatusEnum.LOG_PIC_CUT.equals(imf)){
+                imf = split[++i];
+                data = imf.split("-");
+                image = cutPic(image, Integer.parseInt(data[0]),  Integer.parseInt(data[1]),  Integer.parseInt(data[2]),  Integer.parseInt(data[3]));
+            }else if(StatusEnum.LOG_PIC_SIZE.equals(imf)){
+                imf = split[++i];
+                data = imf.split("-");
+                image = changePicSize(image, Integer.parseInt(data[0]), Integer.parseInt(data[1]));
+            }else if(StatusEnum.LOG_PIC_WATER.equals(imf)){
+                imf = split[++i];
+                data = imf.split("-");
+                addWater(image, Integer.parseInt(data[0]), Integer.parseInt(data[1]), data[2]);
+            }
+        }
+        return image;
+    }
+
+    public static void main(String[] args) throws Exception {
+        BufferedImage image = createImage("D:\\ADeskTop\\project\\bigWork\\repository\\2-图片测试\\d71e7214-abde-46cc-826d-d8ff9c71763e-v1.0.0.jpg");
+        //image = changePicSize(image, 100, 120);
+        //image = cutPic(image, 0, 0, 720, 1920);
+        //addWater(image, 100,500,"陈宇豪嘎嘎陈宇豪嘎嘎陈宇豪嘎嘎陈宇豪嘎嘎陈宇豪嘎嘎");
+        savePic("D:\\ADeskTop\\project\\bigWork\\repository\\2-图片测试\\test.jpg", image);
+//        ImageCombiner combiner = new ImageCombiner("file:///D:\\ADeskTop\\project\\bigWork\\repository\\2-图片测试\\d71e7214-abde-46cc-826d-d8ff9c71763e-v1.0.0.jpg",
+//                100, 120, ZoomMode.Height,OutputFormat.JPG);
+//        combiner.combine();
+//        combiner.save("D:\\ADeskTop\\project\\bigWork\\repository\\2-图片测试\\test.jpg");
+        //getPicImf("D:\\ADeskTop\\project\\bigWork\\repository\\3- 音视频测试\\ae649190-fc3c-4552-a946-01e228b7d880-v5.0.0.mp3");
 //        combinePic("D:\\ADeskTop\\ccip.jpg",864,1920,"D:\\ADeskTop\\xc.jpg",
 //                0)
             //getPicImf("D:\\ADeskTop\\project\\bigWork\\image\\a.jpeg");

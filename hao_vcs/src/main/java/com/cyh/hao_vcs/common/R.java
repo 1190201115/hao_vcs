@@ -38,6 +38,14 @@ public class R<T> implements Serializable {
         r.code = 30000;
         return r;
     }
+    public static <T> R<T> warn(T object, String msg) {
+        R r = new R();
+        r.data = object;
+        r.msg = msg;
+        r.code = 30000;
+        return r;
+    }
+
 
     public static <T> R<T> error(String msg) {
         R r = new R();

@@ -5,11 +5,9 @@ import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.config.QiNiuConfig;
 import com.cyh.hao_vcs.service.FileService;
-import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.utils.Classifier;
 import com.cyh.hao_vcs.utils.Converter;
 import com.cyh.hao_vcs.utils.FileUtil;
-import com.cyh.hao_vcs.utils.PicCombiner;
 import com.qiniu.common.QiniuException;
 import com.qiniu.common.Zone;
 import com.qiniu.http.Response;
@@ -114,13 +112,10 @@ public class FileServiceImpl implements FileService {
 
     public R getFileContent(String path){
         R result = Classifier.getHtmlPath(path);
-        if(StatusEnum.SUCCESS.equals(result.getCode())){
-            if(FileConfig.TEXT_FILE.equals(result.getMsg())){
-                return R.success(Converter.htmlToString(result.getData().toString()), FileConfig.TEXT_FILE);
-            }
-                return result;
+        if(StatusEnum.SUCCESS.equals(result.getCode()) && FileConfig.TEXT_FILE.equals(result.getMsg())){
+            return R.success(Converter.htmlToString(result.getData().toString()), FileConfig.TEXT_FILE);
         }
-        return R.error("获取文件内容失败");
+        return result;
 
     }
 

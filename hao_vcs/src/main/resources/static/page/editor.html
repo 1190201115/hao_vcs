@@ -281,6 +281,15 @@
                 }).then(res => {
                     if(res.data.code === 40000){
                         this.$message.error(res.data.msg)
+                    }else{
+                        this.pic_url = res.data.msg
+                        this.pic_url_list.push(this.pic_url)
+                        this.pic_width = data.width
+                        this.pic_height = data.height
+                        this.edit_pic_height = data.height
+                        this.edit_pic_width = data.width
+                        this.log_list = []
+                        this.$message.success(res.data.msg)
                     }
                 })
             },
@@ -304,7 +313,7 @@
                 edit_img.onload = function () {
                     cut.drawImage(edit_img, start_x, start_y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
                 };
-                this.log_list.push("cut-" + start_x + "-" + start_y + "-" + this.cut_width + "-" + this.cut_height)
+                this.log_list.push("cut##&" + start_x + "-" + start_y + "-" + this.cut_width + "-" + this.cut_height+ "##&")
                 let _this = this
                 setTimeout(function () {
                     _this.pic_url = canvas.toDataURL('image/jpeg');
@@ -328,7 +337,7 @@
                 edit_img.onload = function () {
                     cut.drawImage(edit_img, 0, 0, canvas.width, canvas.height);
                 };
-                this.log_list.push("size-" + canvas.width + "-" + canvas.height)
+                this.log_list.push("size##&" + canvas.width + "-" + canvas.height+"##&")
                 let _this = this
                 setTimeout(function () {
                     _this.pic_url = canvas.toDataURL('image/jpeg');
@@ -351,10 +360,10 @@
                 edit_img.onload = function () {
                     cut.drawImage(edit_img, 0, 0, canvas.width, canvas.height);
                     cut.font = "20px Georgia";
-                    cut.fillStyle = '#ddd'
+                    cut.fillStyle = '#1c1a03'
                     cut.fillText(content, width, height);
                 };
-                this.log_list.push("water-" + content)
+                this.log_list.push("water##&" + width  + "-" + height + "-" + content +"##&")
                 let _this = this
                 setTimeout(function () {
                     _this.pic_url = canvas.toDataURL('image/jpeg');
@@ -364,6 +373,7 @@
             getContent(projectId, path) {
                 axios.get('/project/getFileContent', {params: {projectId: projectId, morePath: path}})
                     .then(results => {
+                        console.log(results)
                         if (results.data.code === 20000) {
                             let msg = results.data.msg
                             let data = results.data.data

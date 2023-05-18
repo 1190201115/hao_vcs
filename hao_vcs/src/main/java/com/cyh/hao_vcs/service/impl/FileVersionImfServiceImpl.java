@@ -7,13 +7,11 @@ import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.config.VersionConfig;
 import com.cyh.hao_vcs.entity.FileBaseImf;
 import com.cyh.hao_vcs.entity.FileVersionImf;
+import com.cyh.hao_vcs.entity.ProjectConfig;
 import com.cyh.hao_vcs.mapper.FileBaseImfMapper;
 import com.cyh.hao_vcs.mapper.FileVersionImfMapper;
 import com.cyh.hao_vcs.mapper.ProjectBaseMapper;
-import com.cyh.hao_vcs.service.FileBaseImfService;
-import com.cyh.hao_vcs.service.FileVersionImfService;
-import com.cyh.hao_vcs.service.ProjectBaseService;
-import com.cyh.hao_vcs.service.UserService;
+import com.cyh.hao_vcs.service.*;
 import com.cyh.hao_vcs.utils.*;
 import com.qiniu.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +55,9 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
     @Autowired
     UserService userService;
 
+    @Autowired
+    ProjectConfigService projectConfigService;
+
     private static String prefix = "D:\\ADeskTop\\project\\bigWork";
 
     @Override
@@ -75,7 +76,7 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
     }
 
     @Override
-    public void updatePic(Long projectId, String morePath, MultipartFile file, String log, Long actorId) {
+    public String updatePic(Long projectId, String morePath, MultipartFile file, String log, Long actorId) {
         String path = projectBaseService.getProjectPath(projectId);
         if (StringUtils.isNullOrEmpty(log)) {
             log = UPDATE_FILE;
@@ -85,8 +86,24 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         fileVersionImfMapper.insert(new FileVersionImf(fileId, version, LocalDateTime.now(),
                 userService.getById(actorId).getUsername(), log));
         if(!StringUtils.isNullOrEmpty(fileId)){
-            FileUtil.updatePicAndChangeVersion(path+ File.separator+fileId+ VersionUtil.LOGO + version, morePath.substring(morePath.lastIndexOf(".")),file);
+            String suffix = '.' + FileUtil.getSuffix(morePath);
+            ProjectConfig projectConfig = projectConfigService.getById(projectId);
+            if(!Objects.isNull(projectConfig) && StatusEnum.AUTO_DELETE_CACHE_ON.equals(projectConfig.getAutoDeleteCache())){
+                try {
+                    String preVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
+                    if(!INIT_VERSION.equals(preVersion)){
+                        Files.delete(new File(path+ File.separator+fileId+ VersionUtil.LOGO
+                                + preVersion + suffix).toPath() );
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            String resPath = path+ File.separator+fileId+ VersionUtil.LOGO + version;
+            FileUtil.updatePicAndChangeVersion(resPath, suffix,file);
+            return resPath + morePath.substring(morePath.lastIndexOf("."));
         }
+        return null;
     }
 
     @Override

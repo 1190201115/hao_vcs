@@ -2,11 +2,13 @@ package com.cyh.hao_vcs.controller;
 
 import com.cyh.hao_vcs.common.R;
 import com.cyh.hao_vcs.entity.FileVersionImf;
+import com.cyh.hao_vcs.entity.PicImf;
 import com.cyh.hao_vcs.service.FileBaseImfService;
 import com.cyh.hao_vcs.service.FileVersionImfService;
 import com.cyh.hao_vcs.service.ProjectBaseService;
 import com.cyh.hao_vcs.service.impl.ProjectChangeBaseImfServiceImpl;
 import com.cyh.hao_vcs.utils.FileUtil;
+import com.cyh.hao_vcs.utils.PicCombiner;
 import com.cyh.hao_vcs.utils.VersionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +52,11 @@ public class VersionController {
         if(Objects.isNull(logList) || logList.isEmpty()){
             return R.warn("没有更新");
         }
-        fileVersionImfService.updatePic(projectId, morePath, file, logList.toString(), (Long) session.getAttribute("user"));
-        return R.success("更新成功");
+        String path = fileVersionImfService.updatePic(projectId, morePath, file, logList.toString(), (Long) session.getAttribute("user"));
+        if(Objects.isNull(path)){
+            return R.error("更新失败");
+        }
+        return R.success(PicCombiner.getPicImf(path),"更新成功");
     }
 
     @PostMapping("/combinePic")

@@ -10,12 +10,15 @@ import com.cyh.hao_vcs.entity.*;
 import com.cyh.hao_vcs.service.*;
 import com.cyh.hao_vcs.service.impl.FileBaseImfServiceImpl;
 import com.cyh.hao_vcs.utils.FileUtil;
+import com.cyh.hao_vcs.utils.PicCombiner;
+import com.cyh.hao_vcs.utils.VersionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -138,16 +141,26 @@ public class ProjectController {
             String fileId = fileBaseImfService.getFileIdWithCurrentVersion(projectBaseService.getProjectPath(projectId)+morePath);
             path = path + morePath.substring(0,morePath.lastIndexOf("\\")+1)+fileId;
         }
-            R res = fileService.getFileContent(path);
-//        if(Objects.isNull(res.getData()) && !FileConfig.TXT_FILE.toString().equals(res.getMsg())){
-//            //文件不存在，尝试修复
-//            //获取所有日志信息
-//            List<String> logList = fileVersionImfService.getVersionList(projectId, morePath).stream().map(FileVersionImf::getLatestAction).collect(Collectors.toList());
-//
-//
-//
-//        }
-            return res;
+        R result = fileService.getFileContent(path);
+        if(StatusEnum.WARN.equals(result.getCode())){
+            //修复文件
+            String prePath = (String) result.getData();
+            List<String> logList = fileVersionImfService.getVersionList(projectId, morePath)
+                    .stream().map(FileVersionImf::getLatestAction).collect(Collectors.toList());
+            String s1 = VersionUtil.getVersion(prePath);
+            s1 = s1.substring(0, s1.indexOf('.'));
+            int index = Integer.parseInt(s1);
+            BufferedImage image = PicCombiner.createImage(prePath);
+            while(!prePath.equals(path)){
+                String logStr = logList.get(index);
+                // 解析日志字符串
+                image = PicCombiner.mapStringToPicLog(logStr, path, image);
+                prePath = VersionUtil.getNextVersionPath(prePath);
+            }
+            PicCombiner.savePic(path, image);
+            return R.success(PicCombiner.getPicImf(path), FileConfig.PIC_FILE);
+        }
+            return result;
         }
 
     @GetMapping("/search")

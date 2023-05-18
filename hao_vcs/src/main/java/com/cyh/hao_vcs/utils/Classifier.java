@@ -1,7 +1,9 @@
 package com.cyh.hao_vcs.utils;
 
 import com.cyh.hao_vcs.common.R;
+import com.cyh.hao_vcs.common.StatusEnum;
 import com.cyh.hao_vcs.config.FileConfig;
+import com.cyh.hao_vcs.entity.PicImf;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -28,13 +30,39 @@ public class Classifier {
         if(!Objects.isNull(result)){
             return R.success(result,FileConfig.TEXT_FILE);
         }else if(isPic(suffix)){
-            return R.success(PicCombiner.getPicImf(path), FileConfig.PIC_FILE);
+            PicImf picImf = PicCombiner.getPicImf(path);
+            if(Objects.isNull(picImf)){
+                String version = VersionUtil.getVersion(path);
+                path = findLastExistPath(version, path);
+                if(Objects.isNull(path)){
+                    return R.error("找不到文件");
+                }
+                return R.warn(path,FileConfig.PIC_FILE);
+            }
+            return R.success(picImf, FileConfig.PIC_FILE);
         }else if(isAudio(suffix)){
             return R.success(AudioProcessor.getAudioImf(path), FileConfig.AUDIO_FILE);
         }else if(isMedio(suffix)){
             return R.success(VideoProcessor.getVideoImf(path), FileConfig.VIDEO_FILE);
         }
-        return R.error(null);
+        return R.error("获取文件内容失败");
+    }
+
+    private static String findLastExistPath(String version, String path){
+        if(StatusEnum.INIT_VERSION.equals(version)){
+            return null;
+        }
+        String previousVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
+        path = path.replaceFirst(version, previousVersion);
+        while(!new File(path).exists()){
+            version = previousVersion;
+            if(StatusEnum.INIT_VERSION.equals(version)){
+                return null;
+            }
+            previousVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
+            path = path.replaceFirst(version, previousVersion);
+        }
+        return path;
     }
 
     private static boolean isPic(String suffix){
@@ -91,7 +119,6 @@ public class Classifier {
     }
 
     public static void main(String[] args) {
-        PicCombiner.getPicImf("");
     }
 
 }

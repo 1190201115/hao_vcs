@@ -10,7 +10,7 @@ import java.util.List;
 public interface FileVersionImfService {
     String updateText(Long projectId, String morePath, String content, Integer updateKind, String log, Long actorId);
 
-    void updatePic(Long projectId, String morePath, MultipartFile file, String log, Long actorId);
+    String updatePic(Long projectId, String morePath, MultipartFile file, String log, Long actorId);
 
     List<FileVersionImf> getVersionList(Long projectId, String morePath);
 

@@ -26,6 +26,12 @@ public class VersionUtil {
 
     }
 
+    public static String getNextVersionPath(String path){
+        String version = VersionUtil.getVersion(path);
+        String nextVersion = getNextVersionWithHeavyUpdate(version);
+        return path.replaceFirst(version, nextVersion);
+    }
+
     private static String getNextVersionWithLightUpdate(String version){
         int lightNum = Integer.parseInt(version.substring(version.lastIndexOf(".")+1));
         lightNum++;
@@ -63,24 +69,7 @@ public class VersionUtil {
         return  null;
     }
 
-//    //把log中的属性加到picLog上
-//    private static void mapStringToPicLog(String log, PicLog picLog){
-//        String[] split = log.split("##&");
-//        int len = split.length;
-//        for(int i = 0; i < len; ++i){
-//            String imf = split[i];
-//            if(StatusEnum.LOG_PIC_CUT.equals(imf)){
-//                String[] data = imf.split("-");
-//                picLog.setStartX(picLog.getStartX() + Double.parseDouble(data[0]));
-//                picLog.setStartY(picLog.getStartY() + Double.parseDouble(data[1]));
-//                picLog.setPic_width(Double.parseDouble(data[2]));
-//                picLog.setPic_height(Double.parseDouble(data[3]));
-//            }else if(StatusEnum.LOG_PIC_SIZE.equals(imf)){
-//
-//            }
-//        }
-//        return null;
-//    }
+
 //
 //    public static void main(String[] args) {
 //        mapStringToPicLog("cut##&100-100-100-100##&water##&陈宇豪yoyo##&");

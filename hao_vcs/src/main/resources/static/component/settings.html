@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../js/outService.js"></script>
+</head>
+<body >
+<div id="app">
+    <el-switch
+            v-model="config"
+            active-text="消息自动回应"
+            @change="changeConfig()">
+    </el-switch>
+    <div v-if="showConfig" style="margin-top: 20px">
+        <el-switch
+                v-model="reply"
+                active-text="自动批准加入项目申请"
+                inactive-text="自动拒绝加入项目申请"
+                @change="changeApplyStatus()"
+                style="margin-left: 50px;">
+        </el-switch>
+        <el-divider></el-divider>
+    </div>
+
+</div>
+<script>
+    var vm = new Vue({
+        el: "#app",
+        data() {
+            return {
+                config: false,
+                showConfig: false,
+                reply: false,
+            }
+        },
+        methods: {
+            changeConfig(){
+                this.showConfig = this.config;
+            }
+        }
+    })
+</script>
+</body>
+</html>
