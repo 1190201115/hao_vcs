@@ -19,13 +19,13 @@ public class SelfSpaceController {
     UserDetailService userDetailService;
 
     @GetMapping
-    private R getUserDetail(HttpSession session){
-        return userDetailService.getUserDetail((Long)session.getAttribute("user"));
+    private R getUserDetail(HttpSession session) {
+        return userDetailService.getUserDetail((Long) session.getAttribute("user"));
     }
 
     @PostMapping
-    public R tryReset(@RequestBody Map<String, String> map, HttpSession session){
-        if(userDetailService.updateImf(map.get("username"), map.get("signature"), (Long)session.getAttribute("user"))){
+    public R tryReset(@RequestBody Map<String, String> map, HttpSession session) {
+        if (userDetailService.updateImf(map.get("username"), map.get("signature"), (Long) session.getAttribute("user"))) {
             return R.success("更新信息成功");
         }
         return R.error("用户状态异常");

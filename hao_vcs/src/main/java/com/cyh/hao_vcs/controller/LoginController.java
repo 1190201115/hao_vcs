@@ -19,16 +19,17 @@ public class LoginController {
     public LoginController(UserService loginService) {
         this.userService = loginService;
     }
+
     @PostMapping
-    public R tryLogin(@RequestBody User user, HttpSession session){
+    public R tryLogin(@RequestBody User user, HttpSession session) {
         R r = null;
-        if(Objects.isNull(session.getAttribute("user"))){
+        if (Objects.isNull(session.getAttribute("user"))) {
             r = userService.signInWithPassword(user);
-            User findUser = (User)r.getData();
-            if(Objects.equals(r.getCode(), StatusEnum.SUCCESS)){
-                session.setAttribute("user",findUser.getId());
+            User findUser = (User) r.getData();
+            if (Objects.equals(r.getCode(), StatusEnum.SUCCESS)) {
+                session.setAttribute("user", findUser.getId());
             }
-        }else{
+        } else {
             r = R.warn("不允许多账号登录");
         }
         return r;

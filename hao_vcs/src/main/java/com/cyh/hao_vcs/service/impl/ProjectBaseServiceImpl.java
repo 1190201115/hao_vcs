@@ -9,6 +9,7 @@ import com.cyh.hao_vcs.config.FileConfig;
 import com.cyh.hao_vcs.entity.*;
 import com.cyh.hao_vcs.mapper.*;
 import com.cyh.hao_vcs.service.ProjectBaseService;
+import com.cyh.hao_vcs.service.UserConfigService;
 import com.cyh.hao_vcs.utils.FileUtil;
 import com.cyh.hao_vcs.utils.ProjectUtil;
 import com.qiniu.util.StringUtils;
@@ -45,6 +46,9 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
     @Autowired
     ProjectBaseService projectBaseService;
+
+    @Autowired
+    UserConfigService userConfigService;
 
 
     private static final String DEFAULT_ACTION = "创建工程";
@@ -111,8 +115,8 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
     @Override
     public String getProjectPath(Long projectId) {
         String projectName = projectBaseMapper.selectById(projectId).getProjectName();
-        if(!StringUtils.isNullOrEmpty(projectName)){
-            return FileConfig.PROJECT_PATH + ProjectUtil.getProjectName(projectName,projectId);
+        if (!StringUtils.isNullOrEmpty(projectName)) {
+            return FileConfig.PROJECT_PATH + ProjectUtil.getProjectName(projectName, projectId);
         }
         return null;
     }
@@ -134,15 +138,33 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
     @Override
     public User getOwner(Long projectId) {
-        QueryWrapper<UserProject> wrapper =new QueryWrapper<>();
+        QueryWrapper<UserProject> wrapper = new QueryWrapper<>();
         wrapper.eq("project_id", projectId);
         wrapper.eq("relation", StatusEnum.CREATE_PROJECT);
-        return userMapper.selectById( user2ProjectMapper.selectOne(wrapper).getUserId());
+        return userMapper.selectById(user2ProjectMapper.selectOne(wrapper).getUserId());
     }
 
     @Override
     public boolean applyJoin(Long projectId, Long userID, String content) {
-        return applyJoinProjectMapper.insert(new ApplyJoinProject(projectId, userID, StatusEnum.WAIT, content, StatusEnum.UNCHECKED, LocalDateTime.now())) == 1;
+        Long ownerId = getOwner(projectId).getId();
+        UserConfig userConfig = userConfigService.getById(ownerId);
+        if (!Objects.isNull(userConfig)) {
+            if (StatusEnum.AUTO_REPLY_MSG_EFFECTIVE.equals(userConfig.getEffective())) {
+                if (StatusEnum.AUTO_REFUSE_MSG.equals(userConfig.getMessageAuto())) {
+                    return applyJoinProjectMapper.insert(
+                            new ApplyJoinProject(projectId, userID, StatusEnum.REFUSE, content, StatusEnum.UNCHECKED,
+                                    LocalDateTime.now())) == 1;
+                } else {
+                    return applyJoinProjectMapper.insert(
+                            new ApplyJoinProject(projectId, userID, StatusEnum.APPROVE, content, StatusEnum.UNCHECKED,
+                                    LocalDateTime.now())) == 1 && user2ProjectMapper.insert(new UserProject(userID, projectId,
+                            StatusEnum.JOIN_PROJECT)) == 1;
+                }
+            }
+        }
+        return applyJoinProjectMapper.insert(
+                new ApplyJoinProject(projectId, userID, StatusEnum.WAIT, content, StatusEnum.UNCHECKED,
+                        LocalDateTime.now())) == 1;
     }
 
     @Override
@@ -163,7 +185,7 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
         List<ApplyJoinProject> applyList = getApply(userId);
         List<Message> receiveMessages = new ArrayList<>();
         List<Message> applyMessages = new ArrayList<>();
-        for(ApplyJoinProject receiveApply : receiveList){
+        for (ApplyJoinProject receiveApply : receiveList) {
             ProjectBaseImf projectBaseImf = projectBaseMapper.selectById(receiveApply.getProjectId());
             Message receiveMessage = new Message(userMapper.selectById(receiveApply.getUserId()).getUsername(),
                     projectBaseImf.getProjectName(),
@@ -171,7 +193,7 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
                     receiveApply);
             receiveMessages.add(receiveMessage);
         }
-        for(ApplyJoinProject apply : applyList){
+        for (ApplyJoinProject apply : applyList) {
             Long projectId = apply.getProjectId();
             ProjectBaseImf projectBaseImf = projectBaseMapper.selectById(projectId);
             Message applyMessage = new Message(projectBaseService.getOwner(projectId).getUsername(),
@@ -191,10 +213,10 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
         wrapper.eq("user_id", userId);
         List<Long> collect = userLikeProjectMapper.selectList(wrapper).stream().map(index -> index.getProjectId()).collect(Collectors.toList());
         List<Integer> res = new ArrayList<>(projectBaseImfList.size());
-        for(ProjectBaseImf baseImf : projectBaseImfList){
-            if(collect.contains(baseImf.getProjectId())){
+        for (ProjectBaseImf baseImf : projectBaseImfList) {
+            if (collect.contains(baseImf.getProjectId())) {
                 res.add(StatusEnum.LIKED);
-            }else{
+            } else {
                 res.add(StatusEnum.UNLIKED);
             }
         }
@@ -203,7 +225,7 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
 
     @Override
     public boolean changeLikedStatus(long userId, long projectId, Integer newLikedStatus) {
-        if(StatusEnum.LIKED.equals(newLikedStatus)){
+        if (StatusEnum.LIKED.equals(newLikedStatus)) {
             return userLikeProjectMapper.insert(new UserLikeProject(userId, projectId)) == 1;
         }
         QueryWrapper<UserLikeProject> wrapper = new QueryWrapper<>();
@@ -216,63 +238,69 @@ public class ProjectBaseServiceImpl implements ProjectBaseService {
     public List<ProjectBaseImf> getLikeProject(long userId) {
         QueryWrapper<UserLikeProject> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
-        List<Long> projectIds =  userLikeProjectMapper.selectList(wrapper)
+        List<Long> projectIds = userLikeProjectMapper.selectList(wrapper)
                 .stream().map(index -> index.getProjectId()).collect(Collectors.toList());
         return getProjects(projectIds);
     }
 
     @Override
-    public boolean setReply( ApplyJoinProject applyJoinProject) {
+    public boolean setReply(ApplyJoinProject applyJoinProject) {
         UpdateWrapper<ApplyJoinProject> wrapper = new UpdateWrapper<>();
         long projectId = applyJoinProject.getProjectId();
         long userId = applyJoinProject.getUserId();
-        wrapper.eq("project_id",projectId);
-        wrapper.eq("user_id",userId);
-        wrapper.eq("apply_time",applyJoinProject.getApplyTime());
+        wrapper.eq("project_id", projectId);
+        wrapper.eq("user_id", userId);
+        wrapper.eq("apply_time", applyJoinProject.getApplyTime());
         boolean res = true;
-        if(StatusEnum.APPROVE.equals(applyJoinProject.getStatus())){
+        if (StatusEnum.APPROVE.equals(applyJoinProject.getStatus())) {
             res = user2ProjectMapper.insert(new UserProject(userId, applyJoinProject.getProjectId(), StatusEnum.JOIN_PROJECT)) == 1;
         }
-        return res && applyJoinProjectMapper.update(applyJoinProject,wrapper) == 1;
+        return res && applyJoinProjectMapper.update(applyJoinProject, wrapper) == 1;
     }
 
-    private List<ApplyJoinProject> getUncheckedReceiveApplyNum(long userId){
+    private List<ApplyJoinProject> getUncheckedReceiveApplyNum(long userId) {
         List<Long> selfProjectID = getSelfProjectID(userId);
-        QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
-        wrapper.eq("checked", StatusEnum.UNCHECKED);
-        wrapper.in("project_id", selfProjectID);
-        return applyJoinProjectMapper.selectList(wrapper);
+        List<ApplyJoinProject> applyJoinProjects = new ArrayList<>();
+        if(!Objects.isNull(selfProjectID) && !selfProjectID.isEmpty()) {
+            QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
+            wrapper.eq("checked", StatusEnum.UNCHECKED);
+            wrapper.in("project_id", selfProjectID);
+            applyJoinProjects = applyJoinProjectMapper.selectList(wrapper);
+        }
+        return applyJoinProjects;
     }
 
-    private List<ApplyJoinProject> getUncheckedApplyNum(long userId){
+    private List<ApplyJoinProject> getUncheckedApplyNum(long userId) {
         QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
         wrapper.eq("checked", StatusEnum.UNCHECKED);
         return applyJoinProjectMapper.selectList(wrapper);
     }
 
-    private List<ApplyJoinProject> getReceiveApply(long userId){
+    private List<ApplyJoinProject> getReceiveApply(long userId) {
         List<Long> selfProjectID = getSelfProjectID(userId);
-        QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
-        wrapper.in("project_id", selfProjectID);
-        List<ApplyJoinProject> res = applyJoinProjectMapper.selectList(wrapper);
-        checkApply(selfProjectID);
+        List<ApplyJoinProject> res = new ArrayList<>();
+        if(!Objects.isNull(selfProjectID)&& !selfProjectID.isEmpty()){
+            QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
+            wrapper.in("project_id", selfProjectID);
+            res = applyJoinProjectMapper.selectList(wrapper);
+            checkApply(selfProjectID);
+        }
         return res;
     }
 
-    private List<ApplyJoinProject> getApply(long userId){
+    private List<ApplyJoinProject> getApply(long userId) {
         QueryWrapper<ApplyJoinProject> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
         return applyJoinProjectMapper.selectList(wrapper);
     }
 
-    private void checkApply(List<Long> selfProjectID){
+    private void checkApply(List<Long> selfProjectID) {
         UpdateWrapper<ApplyJoinProject> wrapper = new UpdateWrapper<>();
-        wrapper.in("project_id",selfProjectID);
+        wrapper.in("project_id", selfProjectID);
         wrapper.set("checked", 1);
-        applyJoinProjectMapper.update(null,wrapper);
+        applyJoinProjectMapper.update(null, wrapper);
     }
-
 
 
 }

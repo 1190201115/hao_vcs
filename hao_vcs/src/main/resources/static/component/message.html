@@ -106,41 +106,41 @@
             return {
                 radio: '',
                 receiveList: [
-                    {
-                        applyName: 'cyh2',
-                        projectName: "receive",
-                        description: "this is cyh2",
-                        apply: {
-                            content: "I want to join2I want to joinI want to joinI want to joinI want to join",
-                            applyTime: '2023-05-09 20:46:27',
-                            status: 0,
-                            checked: 0,
-                        }
-                    },
-                    {
-                        applyName: 'cyh3',
-                        projectName: "receive",
-                        description: "this is cyh2",
-                        apply: {
-                            content: "I want to join2I want to joinI want to joinI want to joinI want to join",
-                            applyTime: '2023-05-09 20:46:27',
-                            status: 0,
-                            checked: 0,
-                        }
-                    },
+                    // {
+                    //     applyName: 'cyh2',
+                    //     projectName: "receive",
+                    //     description: "this is cyh2",
+                    //     apply: {
+                    //         content: "I want to join2I want to joinI want to joinI want to joinI want to join",
+                    //         applyTime: '2023-05-09 20:46:27',
+                    //         status: 0,
+                    //         checked: 0,
+                    //     }
+                    // },
+                    // {
+                    //     applyName: 'cyh3',
+                    //     projectName: "receive",
+                    //     description: "this is cyh2",
+                    //     apply: {
+                    //         content: "I want to join2I want to joinI want to joinI want to joinI want to join",
+                    //         applyTime: '2023-05-09 20:46:27',
+                    //         status: 0,
+                    //         checked: 0,
+                    //     }
+                    // },
                 ],
                 applyList:[
-                    {
-                        applyName: 'cyh',
-                        projectName: "apply",
-                        description: "this is 1",
-                        apply: {
-                            content: "I want to joinI want to joinI want to joinI want to joinI want to join",
-                            applyTime: '2023-05-09 20:46:27',
-                            status: 0,
-                            checked: 1,
-                        }
-                    },
+                    // {
+                    //     applyName: 'cyh',
+                    //     projectName: "apply",
+                    //     description: "this is 1",
+                    //     apply: {
+                    //         content: "I want to joinI want to joinI want to joinI want to joinI want to join",
+                    //         applyTime: '2023-05-09 20:46:27',
+                    //         status: 0,
+                    //         checked: 1,
+                    //     }
+                    // },
                 ],
                 showReceiveMessage: false,
                 showApplyMessage: false,
@@ -152,7 +152,7 @@
         },
         mounted() {
             this.getAllMessage()
-            this.handleSelect('apply')
+
         },
         methods: {
             reply(message){
@@ -217,6 +217,7 @@
                         console.log(map)
                         this.receiveList=map.receive
                         this.applyList = map.apply
+                        this.handleSelect('apply')
                     } else {
                         this.$message.error(results.data.msg)
                     }

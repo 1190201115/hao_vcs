@@ -54,7 +54,7 @@ public class UserDetailServiceImpl extends ServiceImpl<UserDetailMapper, UserDet
     public R getUserDetail(Long id) {
         UserDetail userDetail = userDetailMapper.selectById(id);
         R r = new R();
-        if (!Objects.isNull(userDetail)){
+        if (!Objects.isNull(userDetail)) {
             userDetail.setHead(FileUtil.getFileUrl(userDetail.getHead()));
             r.add("user", userService.getById(id));
             r.add("userDetail", userDetail);
@@ -65,12 +65,12 @@ public class UserDetailServiceImpl extends ServiceImpl<UserDetailMapper, UserDet
     @Override
     public boolean updateImf(String username, String signature, Long id) {
         UserDetail userDetail = userDetailMapper.selectById(id);
-        if (!Objects.isNull(userDetail)){
+        if (!Objects.isNull(userDetail)) {
             userDetail.setSignature(signature);
             userDetailMapper.updateById(userDetail);
         }
         User user = userService.getById(id);
-        if (!Objects.isNull(user)){
+        if (!Objects.isNull(user)) {
             user.setUsername(username);
             userService.updateById(user);
         }

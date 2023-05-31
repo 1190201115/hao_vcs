@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script src="../js/outService.js"></script>
-    <script src="../js/aliplayer-min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="https://g.alicdn.com/de/prismplayer/2.9.21/aliplayer-min.js"></script>
     <link rel="stylesheet" href="https://g.alicdn.com/de/prismplayer/2.15.2/skins/default/aliplayer-min.css"/>
 </head>
 <body>
@@ -187,14 +187,14 @@
             let param = window.location.search.split("&")
             console.log(param)
             this.kind = param[0]
-            // if (this.kind === '?audio') {
-            //     this.showAudio = true;
-            // } else {
-            //     this.showVideo = true;
-            // }
+            if (this.kind === '?audio') {
+                this.showAudio = true;
+            } else {
+                this.showVideo = true;
+            }
             this.path = decodeURI(param[1].replaceAll('/', '\\'))
             this.initPlayer(this.path)
-            this.origin_time = param[2]
+            this.origin_time = parseInt(param[2])
             this.projectId = param[3]
         },
         methods: {
@@ -249,7 +249,7 @@
                     version: this.next_version,
                     times: this.speedNum / 50
                 }).then(results => {
-                    this.origin_time = results.data.data
+                    this.origin_time = parseInt(results.data.data)
                     this.changeSpeedVisible = false
                     this.recordLog('变速： x' + this.speedNum / 50, '操作缓存成功',
                         '操作缓存失败', results.data)})
@@ -261,7 +261,7 @@
                     version: this.next_version,
                     times: this.toneNum / 50
                 }).then(results => {
-                    this.origin_time = results.data.data
+                    this.origin_time = parseInt(results.data.data)
                     this.changeToneVisible = false
                     this.recordLog('变调： x' + this.toneNum / 50, '操作缓存成功',
                             '操作缓存失败', results.data)})
@@ -275,7 +275,7 @@
                     log : this.change_list,
                     })
                     .then(results => {
-                        console.log(results.data)
+                        this.loading = false
                         if (results.data.code === 20000) {
                             this.$message.success('保存成功')
                             this.version = 1
@@ -313,15 +313,13 @@
                         version: this.next_version,
                         radio: this.radio
                     }).then(results => {
-                        let log
-                        console.log(results.data)
                         if(this.radio === '1') {
                             log = '裁剪: 删减'+ this.start_time + '秒-' + this.end_time+'秒间的内容'
                         }else{
                             log = '裁剪: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容'
                         }
                         this.recordLog(log, '操作缓存成功', '操作缓存失败', results.data)
-                        this.origin_time = results.data.data
+                        this.origin_time = parseInt(results.data.data)
                     })
                     this.cutAudioVisible  = false
                 }
@@ -339,14 +337,13 @@
                         version: this.next_version,
                         radio: this.radio
                     }).then(results => {
-                        let log
                         if(this.radio === '1') {
                             log = '裁剪: 删减'+ this.start_time + '秒-' + this.end_time+'秒间的内容'
                         }else{
                             log = '裁剪: 仅保存 '+ this.start_time + '秒 - ' + this.end_time+'秒 间的内容'
                         }
                         this.recordLog(log, '操作缓存成功', '操作缓存失败', results.data)
-                        this.origin_time = results.data.data
+                        this.origin_time = parseInt(results.data.data)
                     })
                     this.cutVideoVisible = false
                 }

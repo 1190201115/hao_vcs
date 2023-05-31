@@ -63,15 +63,14 @@ public class FileController {
     }
 
     @PostMapping("/uploadFile")
-    public R uploadFile(HttpSession session,@RequestParam("id") Long projectId, @RequestParam("file") MultipartFile file,
-                             @RequestParam("name") String projectName, @RequestParam("path") String path) {
-        Long userID = (Long)session.getAttribute("user");
-        if(fileBaseImfService.insertFileIntoProject(projectId, projectName, file, path, userID)){
+    public R uploadFile(HttpSession session, @RequestParam("id") Long projectId, @RequestParam("file") MultipartFile file,
+                        @RequestParam("name") String projectName, @RequestParam("path") String path) {
+        Long userID = (Long) session.getAttribute("user");
+        if (fileBaseImfService.insertFileIntoProject(projectId, projectName, file, path, userID)) {
             return R.success("上传成功");
         }
         return R.error("上传失败");
     }
-
 
 
 }

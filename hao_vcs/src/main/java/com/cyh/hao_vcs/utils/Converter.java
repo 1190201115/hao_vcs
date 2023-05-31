@@ -70,7 +70,8 @@ public class Converter {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.METHOD, "html");
             targetPath = FileConfig.DOC_PATH + nameFromFile2Html(fileName);
-            transformer.transform(new DOMSource(wordToHtmlConverter.getDocument()), new StreamResult(new File(targetPath)));
+            transformer.transform(new DOMSource(wordToHtmlConverter.getDocument()), new StreamResult
+                    (new File(targetPath)));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -130,7 +131,8 @@ public class Converter {
             PDDocument document = PDDocument.load(new File(path));
             PDFDomTree pdfDomTree = new PDFDomTree();
             targetPth = FileConfig.PDF_PATH + nameFromFile2Html(fileName);
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(targetPth), StandardCharsets.UTF_8));
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(targetPth),
+                    StandardCharsets.UTF_8));
             //加载PDF文档
             //PDDocument document = PDDocument.load(bytes);
             pdfDomTree.writeText(document, out);
@@ -234,9 +236,9 @@ public class Converter {
      * @param diffFileName   差异文件名称（包含后缀）
      *                       return diffFile's path
      */
-    public static String showHtmlDiff(String htmlPathOrigin, String htmlPathNew, String diffFileName) {
-        if (new File(DIFF_PATH + diffFileName).exists()) {
-            return FileConfig.RELATIVE_DIFF_PATH + diffFileName;
+    public static String showHtmlDiff(String htmlPathOrigin, String htmlPathNew, String diffFileName, String dirName) {
+        if (new File(DIFF_PATH + dirName + File.separator + diffFileName).exists()) {
+            return FileConfig.RELATIVE_DIFF_PATH + dirName + File.separator + diffFileName;
         }
         Document originDocument = htmlToDocument(htmlPathOrigin);
         Document newDocument = htmlToDocument(htmlPathNew);
@@ -245,8 +247,12 @@ public class Converter {
         }
         markImageDiff(originDocument, newDocument);
         markTextDiff(originDocument, newDocument);
-        FileUtil.saveFile(DIFF_PATH + diffFileName, newDocument.html());
-        return FileConfig.RELATIVE_DIFF_PATH + diffFileName;
+        File temp = new File(DIFF_PATH + dirName);
+        if(!temp.exists()){
+            temp.mkdir();
+        }
+        FileUtil.saveFile(DIFF_PATH + dirName + File.separator + diffFileName, newDocument.html());
+        return FileConfig.RELATIVE_DIFF_PATH + dirName + File.separator + diffFileName;
     }
 
     private static void markTextDiff(Document originDocument, Document newDocument) {
@@ -289,7 +295,7 @@ public class Converter {
         List<String> originImgList = getImgSrcList(originImgElements);
         Elements newImgElements = newDocument.getElementsByTag("img");
         List<String> newImgList = getImgSrcList(newImgElements);
-        List<AbstractDelta<String>>  deltas = DiffUtils.diff(originImgList, newImgList).getDeltas();
+        List<AbstractDelta<String>> deltas = DiffUtils.diff(originImgList, newImgList).getDeltas();
         Chunk<String> source = null;
         Chunk<String> target = null;
         List<String> targetLines = null;
@@ -301,12 +307,16 @@ public class Converter {
             targetLines = target.getLines();
             sourceLines = source.getLines();
             if (type.equals(DeltaType.INSERT)) {
-                handleInsertDiff(targetLines.size(), target.getPosition(), newImgElements, VersionConfig.INSERT_IMG_STYLE);
+                handleInsertDiff(targetLines.size(), target.getPosition(), newImgElements,
+                        VersionConfig.INSERT_IMG_STYLE);
             } else if (type.equals(DeltaType.DELETE)) {
-                handleDeleteDiff(sourceLines.size(), source.getPosition(), originImgElements, VersionConfig.DELETE_IMG_STYLE);
+                handleDeleteDiff(sourceLines.size(), source.getPosition(), originImgElements,
+                        VersionConfig.DELETE_IMG_STYLE);
             } else if (type.equals(DeltaType.CHANGE)) {
-                handleInsertDiff(targetLines.size(), target.getPosition(), newImgElements, VersionConfig.INSERT_IMG_STYLE);
-                handleDeleteDiff(sourceLines.size(), source.getPosition(), originImgElements, VersionConfig.DELETE_IMG_STYLE);
+                handleInsertDiff(targetLines.size(), target.getPosition(), newImgElements,
+                        VersionConfig.INSERT_IMG_STYLE);
+                handleDeleteDiff(sourceLines.size(), source.getPosition(), originImgElements,
+                        VersionConfig.DELETE_IMG_STYLE);
             }
         }
     }
@@ -331,7 +341,7 @@ public class Converter {
     public static void main(String[] args) {
         showHtmlDiff("D:\\ADeskTop\\project\\bigWork\\html\\doc\\9b027760-f424-44b4-9ef6-4f16ffd80215-v1.0.0.html",
                 "D:\\ADeskTop\\project\\bigWork\\html\\doc\\9b027760-f424-44b4-9ef6-4f16ffd80215-v1.1.0.html",
-                "newDiffWithPic.html");
+                "newDiffWithPic.html", "\\");
     }
 
 }

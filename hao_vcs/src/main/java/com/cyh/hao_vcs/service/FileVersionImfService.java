@@ -12,6 +12,8 @@ public interface FileVersionImfService {
 
     String updatePic(Long projectId, String morePath, MultipartFile file, String log, Long actorId);
 
+    void deleteOldPic(Long projectId, String morePath);
+
     List<FileVersionImf> getVersionList(Long projectId, String morePath);
 
     boolean checkFileVersion(Long projectId, String morePath, String newVersion, Long userId);

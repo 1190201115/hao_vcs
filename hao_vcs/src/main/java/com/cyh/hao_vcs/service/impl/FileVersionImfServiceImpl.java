@@ -87,23 +87,32 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
                 userService.getById(actorId).getUsername(), log));
         if(!StringUtils.isNullOrEmpty(fileId)){
             String suffix = '.' + FileUtil.getSuffix(morePath);
-            ProjectConfig projectConfig = projectConfigService.getById(projectId);
-            if(!Objects.isNull(projectConfig) && StatusEnum.AUTO_DELETE_CACHE_ON.equals(projectConfig.getAutoDeleteCache())){
-                try {
-                    String preVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
-                    if(!INIT_VERSION.equals(preVersion)){
-                        Files.delete(new File(path+ File.separator+fileId+ VersionUtil.LOGO
-                                + preVersion + suffix).toPath() );
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
             String resPath = path+ File.separator+fileId+ VersionUtil.LOGO + version;
             FileUtil.updatePicAndChangeVersion(resPath, suffix,file);
             return resPath + morePath.substring(morePath.lastIndexOf("."));
         }
         return null;
+    }
+
+    @Override
+    public void deleteOldPic(Long projectId, String morePath) {
+        String path = projectBaseService.getProjectPath(projectId);
+        String fileId = fileBaseImfService.getFileOriginId(path + morePath);
+        String suffix = '.' + FileUtil.getSuffix(morePath);
+        ProjectConfig projectConfig = projectConfigService.getById(projectId);
+        if(!Objects.isNull(projectConfig) && StatusEnum.AUTO_DELETE_CACHE_ON.equals(projectConfig.getAutoDeleteCache())){
+
+            try {
+                String version = fileBaseImfService.getFileLatestVersion(path + morePath);
+                String preVersion = VersionUtil.getPreviousVersionWithHeavyUpdate(version);
+                if(!INIT_VERSION.equals(preVersion)){
+                    Files.delete(new File(path+ File.separator+fileId+ VersionUtil.LOGO
+                            + preVersion + suffix).toPath() );
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -146,8 +155,9 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
             return R.error("文件类型错误");
         }
         String pathPrefix = fileSuffix + fileId + VersionUtil.LOGO;
-        String diffFilePath = Converter.showHtmlDiff(pathPrefix + version + htmlSuffix, pathPrefix + currentVersion + htmlSuffix,
-                getDiffFileName(fileName, version, currentVersion));
+        String diffFilePath = Converter.showHtmlDiff(pathPrefix + version + htmlSuffix,
+                pathPrefix + currentVersion + htmlSuffix,
+                getDiffFileName(fileName, version, currentVersion), morePath);
         if (StringUtils.isNullOrEmpty(diffFilePath)) {
             return R.error("差异分析失败");
         }
@@ -277,7 +287,8 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
         String newFileName = fileId + "-v" + newVersion + "." + FileUtil.getSuffix(fileName);
         String newFilePath = path + newFileName;
         new File(tempPath).renameTo(new File(newFilePath));
-        try (Stream<Path> walk = Files.walk(Paths.get(tempPath.substring(0, tempPath.lastIndexOf("\\"))))) {
+        String frontPath = tempPath.substring(0, tempPath.lastIndexOf("\\"));
+        try (Stream<Path> walk = Files.walk(Paths.get(frontPath))) {
             walk.sorted(Comparator.reverseOrder())
                     .forEach(pathIn -> {
                         try {
@@ -287,8 +298,17 @@ public class FileVersionImfServiceImpl implements FileVersionImfService {
                         }
                     });
         }catch (Exception e){
-            System.out.println(e.toString());
+            System.out.println(e);
             return  R.error("文件保存异常");
+        }
+        try {
+            File temp = new File(frontPath);
+            if(temp.exists()){
+                Files.delete(temp.toPath());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return  R.error("文件夹保存异常");
         }
         fileVersionImfMapper.insert(new FileVersionImf(fileName.substring(0, fileName.lastIndexOf("-")), newVersion,
                 LocalDateTime.now(), userService.getById(actorId).getUsername(), log.toString()));

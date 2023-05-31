@@ -28,6 +28,11 @@ public class StatusEnum {
     public static Integer AUTO_DELETE_CACHE_ON = 1;
     public static Integer AUTO_DELETE_CACHE_OFF = 0;
 
+    public static Integer AUTO_ACCEPT_MSG = 1;
+    public static Integer AUTO_REFUSE_MSG = 0;
+    public static Integer AUTO_REPLY_MSG_EFFECTIVE = 1;
+    public static Integer AUTO_REPLY_MSG_INEFFECTIVE = 0;
+
     public static String LOG_PIC_CUT = "cut";
     public static String LOG_PIC_SIZE = "size";
     public static String LOG_PIC_WATER = "water";

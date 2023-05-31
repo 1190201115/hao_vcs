@@ -27,7 +27,7 @@ public class ResetController {
     }
 
     @PostMapping
-    public R tryReset(@RequestBody Map<String, String> map){
+    public R tryReset(@RequestBody Map<String, String> map) {
         String code = map.get("code");
         Object codeSaved = redisTemplate.opsForValue().get(redisKey);
         if (codeSaved != null && codeSaved.equals(code)) {

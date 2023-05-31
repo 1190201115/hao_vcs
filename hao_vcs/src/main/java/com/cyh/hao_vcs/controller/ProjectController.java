@@ -50,16 +50,16 @@ public class ProjectController {
         String projectName = map.get("projectName");
         String textarea = map.get("textarea");
         int radio = PUBLIC_STATUS.equals(map.get("radio")) ? 1 : 0;
-        ProjectBaseImf baseImf = new ProjectBaseImf(projectName,textarea,radio);
-        Long userID = (Long)session.getAttribute("user");
+        ProjectBaseImf baseImf = new ProjectBaseImf(projectName, textarea, radio);
+        Long userID = (Long) session.getAttribute("user");
         return projectBaseService.insertBaseProject(baseImf, userID, OWN_PROJECT_STATUS);
     }
 
     @GetMapping("/all")
     public R getAllProject(HttpSession session) {
-        Long userID = (Long)session.getAttribute("user");
+        Long userID = (Long) session.getAttribute("user");
         List<Long> idList = projectBaseService.getAllProjectID(userID);
-        if(Objects.isNull(idList) || idList.isEmpty()) {
+        if (Objects.isNull(idList) || idList.isEmpty()) {
             return R.warn("还没有任何项目~");
         }
         List<ProjectBaseImf> projectList = projectBaseService.getProjects(idList);
@@ -68,9 +68,9 @@ public class ProjectController {
 
     @GetMapping("/own")
     public R getOwnProject(HttpSession session) {
-        Long userID = (Long)session.getAttribute("user");
+        Long userID = (Long) session.getAttribute("user");
         List<Long> idList = projectBaseService.getSelfProjectID(userID);
-        if(Objects.isNull(idList) || idList.isEmpty()) {
+        if (Objects.isNull(idList) || idList.isEmpty()) {
             return R.warn("还没有任何项目~");
         }
         List<ProjectBaseImf> projectList = projectBaseService.getProjects(idList);
@@ -79,9 +79,9 @@ public class ProjectController {
 
     @GetMapping("/join")
     public R getJoinProject(HttpSession session) {
-        Long userID = (Long)session.getAttribute("user");
+        Long userID = (Long) session.getAttribute("user");
         List<Long> idList = projectBaseService.getJoinProjectID(userID);
-        if(Objects.isNull(idList) || idList.isEmpty()) {
+        if (Objects.isNull(idList) || idList.isEmpty()) {
             return R.warn("还没有任何项目~");
         }
         List<ProjectBaseImf> projectList = projectBaseService.getProjects(idList);
@@ -89,47 +89,50 @@ public class ProjectController {
     }
 
     @GetMapping("/changeImf")
-    public R getChangeImf(Long projectId){
+    public R getChangeImf(Long projectId) {
         ProjectChangeBaseImf projectChangeBaseImf = projectChangeBaseImfService.getProjectChangeBaseImfByID(projectId);
-        if( Objects.isNull(projectChangeBaseImf)){
+        if (Objects.isNull(projectChangeBaseImf)) {
             return R.error("项目信息异常");
         }
         return R.success(projectChangeBaseImf, "项目更新基础信息");
     }
 
     @DeleteMapping("/deleteProject")
-    public R deleteProject(Long projectId){
-        if(projectChangeBaseImfService.deleteProjectByID(projectId)){
+    public R deleteProject(Long projectId) {
+        if (projectChangeBaseImfService.deleteProjectByID(projectId)) {
             return R.success("删除成功");
         }
         return R.error("删除失败");
     }
 
     @GetMapping("/getDirContent")
-    public R getDirContent(Long projectId,String morePath){
-        if(Objects.isNull(projectId) || projectId <= 0){
+    public R getDirContent(Long projectId, String morePath) {
+        if (Objects.isNull(projectId) || projectId <= 0) {
             return R.error("工程信息异常");
         }
         String path = projectBaseService.getProjectPath(projectId);
-        if(StringUtils.isEmpty(path)){
+        if (StringUtils.isEmpty(path)) {
             return R.warn("空白工程");
         }
-        if(!Objects.isNull(morePath))
-        {
+        if (!Objects.isNull(morePath)) {
             path += morePath;
         }
-        if (FileUtil.isDirectory(path)){
+        if (FileUtil.isDirectory(path)) {
             Map<String, List<String>> pageFile = FileUtil.getPageFile(path);
-            List<String> fileRealName = fileBaseImfService.getFileRealName(pageFile.get(KeyEnum.FILE_KEY));
-            pageFile.put(KeyEnum.FILE_KEY, fileRealName);
-            return R.success(pageFile,"dir");
-        }else{
+            List<String> names = pageFile.get(KeyEnum.FILE_KEY);
+            if(!Objects.isNull(names) && !names.isEmpty()){
+                List<String> fileRealName = fileBaseImfService.getFileRealName(names);
+                pageFile.put(KeyEnum.FILE_KEY, fileRealName);
+            }
+            return R.success(pageFile, "dir");
+        } else {
             return R.error("不是文件夹");
         }
     }
+
     // morePath自带\
     @GetMapping("/getFileContent")
-    public R getLatestFileContent(Long projectId,String morePath) {
+    public R getLatestFileContent(Long projectId, String morePath) {
         if (Objects.isNull(projectId) || projectId <= 0) {
             return R.error("工程信息异常");
         }
@@ -138,11 +141,12 @@ public class ProjectController {
             return R.error("工程信息异常");
         }
         if (!Objects.isNull(morePath)) {
-            String fileId = fileBaseImfService.getFileIdWithCurrentVersion(projectBaseService.getProjectPath(projectId)+morePath);
-            path = path + morePath.substring(0,morePath.lastIndexOf("\\")+1)+fileId;
+            String fileId = fileBaseImfService.getFileIdWithCurrentVersion(
+                    projectBaseService.getProjectPath(projectId) + morePath);
+            path = path + morePath.substring(0, morePath.lastIndexOf("\\") + 1) + fileId;
         }
         R result = fileService.getFileContent(path);
-        if(StatusEnum.WARN.equals(result.getCode())){
+        if (StatusEnum.WARN.equals(result.getCode())) {
             //修复文件
             String prePath = (String) result.getData();
             List<String> logList = fileVersionImfService.getVersionList(projectId, morePath)
@@ -151,7 +155,7 @@ public class ProjectController {
             s1 = s1.substring(0, s1.indexOf('.'));
             int index = Integer.parseInt(s1);
             BufferedImage image = PicCombiner.createImage(prePath);
-            while(!prePath.equals(path)){
+            while (!prePath.equals(path)) {
                 String logStr = logList.get(index);
                 // 解析日志字符串
                 image = PicCombiner.mapStringToPicLog(logStr, path, image);
@@ -160,15 +164,15 @@ public class ProjectController {
             PicCombiner.savePic(path, image);
             return R.success(PicCombiner.getPicImf(path), FileConfig.PIC_FILE);
         }
-            return result;
-        }
+        return result;
+    }
 
     @GetMapping("/search")
     public R searchProjectByKey(String key, HttpSession session) {
         if (StringUtils.isEmpty(key)) {
             return R.warn("搜索关键字不能为空");
         }
-        long userId = (Long)session.getAttribute("user");
+        long userId = (Long) session.getAttribute("user");
         Map<String, Object> map = new HashMap<>();
         List<ProjectBaseImf> projectBaseImfList = projectBaseService.getProjectByKey(key, userId);
         map.put("baseImf", projectBaseImfList);
@@ -180,7 +184,7 @@ public class ProjectController {
     @GetMapping("/getOwner")
     public R getOwner(Long projectId) {
         User user = projectBaseService.getOwner(projectId);
-        if(Objects.isNull(user)){
+        if (Objects.isNull(user)) {
             return R.warn("查找项目拥有者失败");
         }
         return R.success(user, "搜索成功");
@@ -188,8 +192,8 @@ public class ProjectController {
 
     @GetMapping("/applyJoin")
     public R applyJoin(Long projectId, String content, HttpSession session) {
-        Long userID = (Long)session.getAttribute("user");
-        if(projectBaseService.applyJoin(projectId, userID, content)){
+        Long userID = (Long) session.getAttribute("user");
+        if (projectBaseService.applyJoin(projectId, userID, content)) {
             return R.success("发送成功");
         }
         return R.error("发送失败");
@@ -197,44 +201,44 @@ public class ProjectController {
 
     @GetMapping("/checkMessageNum")
     public int checkMessageNum(HttpSession session) {
-        long userId = (Long)session.getAttribute("user");
+        long userId = (Long) session.getAttribute("user");
         return projectBaseService.checkReceiveApplyNum(userId);
     }
 
     @GetMapping("/checkAllMessage")
     public R checkAllMessage(HttpSession session) {
-         return R.success(projectBaseService.checkAllApply((Long)session.getAttribute("user")),"获取完成");
+        return R.success(projectBaseService.checkAllApply((Long) session.getAttribute("user")), "获取完成");
     }
 
     @GetMapping("/changeLikeStatus")
     public R changeLikeStatus(Long projectId, Integer newLikeStatus, HttpSession session) {
-        if(projectBaseService.changeLikedStatus((Long)session.getAttribute("user"), projectId, newLikeStatus)){
-            if(StatusEnum.LIKED.equals(newLikeStatus)){
+        if (projectBaseService.changeLikedStatus((Long) session.getAttribute("user"), projectId, newLikeStatus)) {
+            if (StatusEnum.LIKED.equals(newLikeStatus)) {
                 return R.success("收藏成功");
             }
             return R.success("取消收藏");
-        }else{
-            if(StatusEnum.LIKED.equals(newLikeStatus)){
+        } else {
+            if (StatusEnum.LIKED.equals(newLikeStatus)) {
                 return R.error("收藏失败");
             }
             return R.error("取消收藏失败");
         }
 
     }
+
     @GetMapping("/getLikeProject")
     public R getLikeProject(HttpSession session) {
-        return R.success(projectBaseService.getLikeProject((Long)session.getAttribute("user")), "获取成功");
+        return R.success(projectBaseService.getLikeProject((Long) session.getAttribute("user")), "获取成功");
 
     }
+
     @PostMapping("/reply")
-    public R getReply(@RequestBody ApplyJoinProject applyJoinProject){
-        if(projectBaseService.setReply(applyJoinProject)){
+    public R getReply(@RequestBody ApplyJoinProject applyJoinProject) {
+        if (projectBaseService.setReply(applyJoinProject)) {
             return R.success("回复成功");
         }
         return R.error("回复失败");
     }
-
-
 
 
 }

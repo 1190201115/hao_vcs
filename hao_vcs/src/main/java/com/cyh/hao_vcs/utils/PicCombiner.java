@@ -23,47 +23,48 @@ import java.util.Objects;
 
 public class PicCombiner {
 
-    public static Map<String, OutputFormat> picKindMap= new HashMap<>();
+    public static Map<String, OutputFormat> picKindMap = new HashMap<>();
 
-    static{
-        picKindMap.put("jpg",OutputFormat.JPG);
-        picKindMap.put("jpeg",OutputFormat.JPEG);
-        picKindMap.put("png",OutputFormat.PNG);
-        picKindMap.put("bmp",OutputFormat.BMP);
+    static {
+        picKindMap.put("jpg", OutputFormat.JPG);
+        picKindMap.put("jpeg", OutputFormat.JPEG);
+        picKindMap.put("png", OutputFormat.PNG);
+        picKindMap.put("bmp", OutputFormat.BMP);
     }
 
-    public static PicImf getPicImf(String path){
+    public static PicImf getPicImf(String path) {
         File picture = new File(path);
-        if(!picture.exists()){
+        if (!picture.exists()) {
             return null;
         }
         try {
             BufferedImage sourceImg = ImageIO.read(new FileInputStream(picture));
-            return new PicImf(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH),
-                    sourceImg.getWidth(),sourceImg.getHeight());
+            return new PicImf(path.replace(FileConfig.PROJECT_PATH, FileConfig.RELATIVE_PROJECT_PATH),
+                    sourceImg.getWidth(), sourceImg.getHeight());
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    private static OutputFormat getPicKind(String path){
+    private static OutputFormat getPicKind(String path) {
         OutputFormat res = null;
         String suffix = FileUtil.getSuffix(path);
-        if(!Objects.isNull(suffix)){
+        if (!Objects.isNull(suffix)) {
             res = picKindMap.get(suffix);
         }
-        if( Objects.isNull(res)){
+        if (Objects.isNull(res)) {
             res = OutputFormat.PNG;
         }
         return res;
     }
 
     public static ImageCombiner combinePic(String basePicPath, int backgroundWidth, int backgroundHeight,
-                                    String addPicPath, int addWidth, int addHeight ){
+                                           String addPicPath, int addWidth, int addHeight) {
         ImageCombiner combiner = null;
         try {
-            combiner = new ImageCombiner(basePicPath, backgroundWidth, backgroundHeight, ZoomMode.Height,getPicKind(basePicPath));
+            combiner = new ImageCombiner(basePicPath, backgroundWidth, backgroundHeight, ZoomMode.Height,
+                    getPicKind(basePicPath));
             //加图片元素
             combiner.addImageElement(addPicPath, addWidth, addHeight);
             //执行图片合并
@@ -85,7 +86,7 @@ public class PicCombiner {
         }
     }
 
-    public static BufferedImage cutPic(BufferedImage image, int x, int y, int width, int height){
+    public static BufferedImage cutPic(BufferedImage image, int x, int y, int width, int height) {
         int srcWidth = image.getWidth();
         int srcHeight = image.getHeight();
         Image instance = image.getScaledInstance(srcWidth, srcHeight, Image.SCALE_DEFAULT);
@@ -108,47 +109,48 @@ public class PicCombiner {
     }
 
 
-    public static BufferedImage changePicSize(BufferedImage image,int width, int height) {
+    public static BufferedImage changePicSize(BufferedImage image, int width, int height) {
         BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         //创建画布
         Graphics2D g2 = bi.createGraphics();
         //画图
-        g2.drawImage(image, 0,0,width,height, null);
+        g2.drawImage(image, 0, 0, width, height, null);
         //关闭资源
         g2.dispose();
         return bi;
     }
 
-    public static void addWater(BufferedImage image,int width, int height, String content) {
+    public static void addWater(BufferedImage image, int width, int height, String content) {
         Graphics2D graphics2D = image.createGraphics();
         // 设置水印字体颜色为红色
         graphics2D.setColor(Color.black);
-        int size = Math.min(30, Math.min(image.getWidth(), image.getHeight())/ content.length() / 2);
+        int size = Math.min(30, Math.min(image.getWidth(), image.getHeight()) / content.length() / 2);
         // 设置水印字体、字型、字号
         graphics2D.setFont(new Font("微软雅黑", Font.PLAIN, size));
         // 设置水印位置：居中
-        graphics2D.drawString(content,width,height);
+        graphics2D.drawString(content, width, height);
         // 安排---画板
         graphics2D.dispose();
     }
 
     //把log中的属性加到picLog上
-    public static BufferedImage mapStringToPicLog(String log, String target, BufferedImage image ){
+    public static BufferedImage mapStringToPicLog(String log, String target, BufferedImage image) {
         log = log.substring(1, log.length() - 1).replaceAll(", ", "");
         String[] split = log.split("##&");
         int len = split.length;
-        for(int i = 0; i < len; ++i){
+        for (int i = 0; i < len; ++i) {
             String imf = split[i];
             String[] data;
-            if(StatusEnum.LOG_PIC_CUT.equals(imf)){
+            if (StatusEnum.LOG_PIC_CUT.equals(imf)) {
                 imf = split[++i];
                 data = imf.split("-");
-                image = cutPic(image, Integer.parseInt(data[0]),  Integer.parseInt(data[1]),  Integer.parseInt(data[2]),  Integer.parseInt(data[3]));
-            }else if(StatusEnum.LOG_PIC_SIZE.equals(imf)){
+                image = cutPic(image, Integer.parseInt(data[0]), Integer.parseInt(data[1]), Integer.parseInt(data[2]),
+                        Integer.parseInt(data[3]));
+            } else if (StatusEnum.LOG_PIC_SIZE.equals(imf)) {
                 imf = split[++i];
                 data = imf.split("-");
                 image = changePicSize(image, Integer.parseInt(data[0]), Integer.parseInt(data[1]));
-            }else if(StatusEnum.LOG_PIC_WATER.equals(imf)){
+            } else if (StatusEnum.LOG_PIC_WATER.equals(imf)) {
                 imf = split[++i];
                 data = imf.split("-");
                 addWater(image, Integer.parseInt(data[0]), Integer.parseInt(data[1]), data[2]);
@@ -170,7 +172,7 @@ public class PicCombiner {
         //getPicImf("D:\\ADeskTop\\project\\bigWork\\repository\\3- 音视频测试\\ae649190-fc3c-4552-a946-01e228b7d880-v5.0.0.mp3");
 //        combinePic("D:\\ADeskTop\\ccip.jpg",864,1920,"D:\\ADeskTop\\xc.jpg",
 //                0)
-            //getPicImf("D:\\ADeskTop\\project\\bigWork\\image\\a.jpeg");
+        //getPicImf("D:\\ADeskTop\\project\\bigWork\\image\\a.jpeg");
 //        public void demo() throws Exception {
 //
 //            //图片元素可以是Url（支持file协议），也可以是BufferImage对象
@@ -250,7 +252,6 @@ public class PicCombiner {
 //            //也可以保存到本地
 //            //combiner.save("d://image.jpg");
 //        }
-
 
 
     }

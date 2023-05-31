@@ -21,10 +21,11 @@ public class AudioProcessor {
 
     /**
      * 裁剪音频
+     *
      * @param srcFile 原始音频
      * @param dstFile 保存地址
      * @param startMs 起始时间
-     * @param endMs 终止时间
+     * @param endMs   终止时间
      * @throws Exception
      */
     public static double audioClip(String srcFile, String dstFile, double startMs, double endMs) throws Exception {
@@ -34,8 +35,8 @@ public class AudioProcessor {
         recorder.setSampleRate(grabber.getSampleRate());
         recorder.start();
         Frame frame;
-        int startFrame = (int)Math.ceil(startMs * grabber.getSampleRate() / 1000);
-        int endFrame = (int)Math.floor(endMs * grabber.getSampleRate() / 1000);
+        int startFrame = (int) Math.ceil(startMs * grabber.getSampleRate() / 1000);
+        int endFrame = (int) Math.floor(endMs * grabber.getSampleRate() / 1000);
         System.out.println(startFrame);
         System.out.println(endFrame);
         int frameNumber = 0;
@@ -62,8 +63,8 @@ public class AudioProcessor {
         recorder.setSampleRate(grabber.getSampleRate());
         recorder.start();
         Frame frame;
-        int endFrame = (int)(startMs * grabber.getSampleRate() / 1000);
-        int startFrame = (int)(endMs * grabber.getSampleRate() / 1000);
+        int endFrame = (int) (startMs * grabber.getSampleRate() / 1000);
+        int startFrame = (int) (endMs * grabber.getSampleRate() / 1000);
         System.out.println(startFrame);
         System.out.println(endFrame);
         int frameNumber = -1;
@@ -85,8 +86,9 @@ public class AudioProcessor {
 
     /**
      * 连接音频
+     *
      * @param srcFiles 待连接的音频地址列表，正序连接
-     * @param dstFile 连接后的音频保存地址
+     * @param dstFile  连接后的音频保存地址
      * @throws Exception
      */
     public static void audioConcat(List<String> srcFiles, String dstFile) throws Exception {
@@ -120,13 +122,14 @@ public class AudioProcessor {
 
     /**
      * 合成后会将原音频放慢至0.5倍速，时常为最短音频的两倍。输入时应该先将音频做2倍速处理，最好裁剪至相同时长保证合成效果。
+     *
      * @param inputFile1 左声道采样
      * @param inputFile2 右声道采样
      * @param outputFile 合成音乐
      * @throws FrameGrabber.Exception
      * @throws FFmpegFrameRecorder.Exception
      */
-    public static void audioMix(String inputFile1, String inputFile2, String outputFile) throws Exception{
+    public static void audioMix(String inputFile1, String inputFile2, String outputFile) throws Exception {
         FFmpegFrameGrabber grabber1 = new FFmpegFrameGrabber(inputFile1);
         grabber1.start();
         FFmpegFrameGrabber grabber2 = new FFmpegFrameGrabber(inputFile2);
@@ -138,7 +141,7 @@ public class AudioProcessor {
         Frame frame1, frame2;
         while ((frame1 = grabber1.grabFrame()) != null && (frame2 = grabber2.grabFrame()) != null) {
             Frame mixedFrame = new Frame();
-            mixedFrame.samples = new ShortBuffer[] {(ShortBuffer) frame1.samples[0], (ShortBuffer) frame2.samples[0]};
+            mixedFrame.samples = new ShortBuffer[]{(ShortBuffer) frame1.samples[0], (ShortBuffer) frame2.samples[0]};
             mixedFrame.sampleRate = frame1.sampleRate;
             mixedFrame.audioChannels = 2;
             mixedFrame.opaque = frame1.opaque;
@@ -152,12 +155,13 @@ public class AudioProcessor {
 
     /**
      * 变速
+     *
      * @param inputFile
      * @param outputFile
-     * @param speed 1.0为基准
+     * @param speed      1.0为基准
      * @throws Exception
      */
-    public static double audioChangeSpeed(String inputFile, String outputFile, double speed) throws Exception{
+    public static double audioChangeSpeed(String inputFile, String outputFile, double speed) throws Exception {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getAudioChannels());
@@ -181,7 +185,7 @@ public class AudioProcessor {
         return FileUtil.getMediaTime(outputFile);
     }
 
-    public static void audioChangeTone(String inputFile, String outputFile, double times) throws Exception{
+    public static void audioChangeTone(String inputFile, String outputFile, double times) throws Exception {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getAudioChannels());
@@ -189,7 +193,7 @@ public class AudioProcessor {
         recorder.setAudioBitrate(grabber.getAudioBitrate());
         recorder.start();
 
-        String filter = String.format("asetrate=%d,atempo=%.2f", (int)(44100 * times), 1/times);
+        String filter = String.format("asetrate=%d,atempo=%.2f", (int) (44100 * times), 1 / times);
         FFmpegFrameFilter frameFilter = new FFmpegFrameFilter(filter, grabber.getAudioChannels());
         frameFilter.start();
 
@@ -207,20 +211,19 @@ public class AudioProcessor {
     }
 
     //返回带有地址和时长的音频信息，但是日志列表不在这里读取
-    public static AudioImf getAudioImf(String path){
+    public static AudioImf getAudioImf(String path) {
         try {
             FFmpegFrameGrabber grabber = FFmpegFrameGrabber.createDefault(path);
             grabber.start();
             // 计算时长
             double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
-            return new AudioImf(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH),
-                    durationInSec,-1,null);
+            return new AudioImf(path.replace(FileConfig.PROJECT_PATH, FileConfig.RELATIVE_PROJECT_PATH),
+                    durationInSec, -1, null);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
-
 
 
     public static void main(String[] args) {
@@ -232,8 +235,8 @@ public class AudioProcessor {
         list.add(audio2);
         try {
             //audioConcat(list,audio0);
-           // audioClip(audio1,audio0,5,15);
-           // audioMix(audio1,audio2,audio0);
+            // audioClip(audio1,audio0,5,15);
+            // audioMix(audio1,audio2,audio0);
             //audioChangeSpeed(audio1,audio0,0.5);
             //audioChangeTone(audio2,audio0);
         } catch (Exception e) {

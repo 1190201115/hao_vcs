@@ -35,11 +35,60 @@
                 reply: false,
             }
         },
+        mounted() {
+            this.getMsgStrategy()
+        },
         methods: {
+            getMsgStrategy() {
+                axios.get('/config/getMsgStrategy').then(
+                    result => {
+                        console.log(result)
+                        if(result.data.msg === 'closed'){
+                            this.showConfig = false
+                            this.config = false
+                        }else{
+                            this.config = true
+                            this.showConfig = true
+                            if(result.data.msg === 'accept'){
+                                this.reply = true
+                            }else{
+                                this.reply = false
+                            }
+                        }
+                    }
+                )
+            },
             changeConfig(){
+                axios.get('/config/changeMsgAutoEffect',{
+                    params:
+                        {
+                            config: this.config,
+                            reply: this.reply
+                        }
+                }).then(
+                    result => {
+                        if(result.data.code !== 20000){
+                            this.$message.warn(result.data.msg)
+                        }
+                    }
+                )
                 this.showConfig = this.config;
+            },
+            changeApplyStatus(){
+                axios.get('/config/msgAutoReply',{
+                    params:
+                        {
+                            reply: this.reply
+                        }
+                }).then(
+                    result => {
+                        if(result.data.code !== 20000){
+                            this.$message.warn(result.data.msg)
+                        }
+                    }
+                )
+            },
             }
-        }
     })
 </script>
 </body>

@@ -6,6 +6,7 @@ import com.cyh.hao_vcs.entity.VideoImf;
 import org.bytedeco.javacv.*;
 import org.bytedeco.javacv.Frame;
 import sun.font.FontDesignMetrics;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -14,8 +15,7 @@ import java.io.IOException;
 public class VideoProcessor {
 
 
-
-    private static void initRecoder(FFmpegFrameRecorder recorder, FFmpegFrameGrabber grabber){
+    private static void initRecoder(FFmpegFrameRecorder recorder, FFmpegFrameGrabber grabber) {
         recorder.setFrameRate(grabber.getFrameRate());
         recorder.setVideoCodec(grabber.getVideoCodec());
         recorder.setVideoBitrate(grabber.getVideoBitrate());
@@ -26,22 +26,24 @@ public class VideoProcessor {
 
     /**
      * 抽取视频图像
+     *
      * @param inputFile
      * @param outputFile
      * @throws Exception
      */
-    public static void videoGetImage(String inputFile, String outputFile) throws Exception{
+    public static void videoGetImage(String inputFile, String outputFile) throws Exception {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
-        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight());
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(),
+                grabber.getImageHeight());
 //        recorder.setFormat(grabber.getFormat());
 //        recorder.setVideoCodec(grabber.getVideoCodec());//27
 //        recorder.setVideoBitrate(grabber.getVideoBitrate());//1991613
-        initRecoder(recorder,grabber);
+        initRecoder(recorder, grabber);
         recorder.start();
         Frame frame;
         while ((frame = grabber.grabImage()) != null) {
-                recorder.record(frame);
+            recorder.record(frame);
         }
         recorder.close();
         grabber.close();
@@ -49,11 +51,12 @@ public class VideoProcessor {
 
     /**
      * 抽取视频声音
+     *
      * @param inputFile
      * @param outputFile
      * @throws Exception
      */
-    public static void videoGetSamples(String inputFile, String outputFile) throws Exception{
+    public static void videoGetSamples(String inputFile, String outputFile) throws Exception {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getAudioChannels());
@@ -70,17 +73,18 @@ public class VideoProcessor {
         grabber.close();
     }
 
-    public static void videoAddText(String inputFile, String outputFile, String text) throws Exception{
+    public static void videoAddText(String inputFile, String outputFile, String text) throws Exception {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
-        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight(),
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(),
+                grabber.getImageHeight(),
                 grabber.getAudioChannels());
-        initRecoder(recorder,grabber);
+        initRecoder(recorder, grabber);
         recorder.start();
         Java2DFrameConverter converter = new Java2DFrameConverter();
         Frame frame;
-        while((frame = grabber.grab()) != null){
-            if(frame.image != null){
+        while ((frame = grabber.grab()) != null) {
+            if (frame.image != null) {
                 BufferedImage bufImg = converter.getBufferedImage(frame);
                 Font font = new Font("微软雅黑", Font.BOLD, 32);
                 FontDesignMetrics metrics = FontDesignMetrics.getMetrics(font);
@@ -100,7 +104,7 @@ public class VideoProcessor {
                 frame.image = converter.getFrame(bufImg).image;
                 recorder.record(frame);
             }
-            if(frame.samples != null){
+            if (frame.samples != null) {
                 recorder.record(frame);
             }
         }
@@ -108,32 +112,33 @@ public class VideoProcessor {
         grabber.close();
     }
 
-    public static double videoClip(String inputFile, String outputFile, double startMs, double endMs) throws Exception{
+    public static double videoClip(String inputFile, String outputFile, double startMs, double endMs) throws Exception {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
-        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight(),
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(),
+                grabber.getImageHeight(),
                 grabber.getAudioChannels());
-        initRecoder(recorder,grabber);
+        initRecoder(recorder, grabber);
         recorder.start();
         Frame frame;
-        int startFrame = (int)(startMs * grabber.getFrameRate());
-        int endFrame = (int)(endMs * grabber.getFrameRate());
-        System.out.println(startFrame + " - "+ endFrame);
+        int startFrame = (int) (startMs * grabber.getFrameRate());
+        int endFrame = (int) (endMs * grabber.getFrameRate());
+        System.out.println(startFrame + " - " + endFrame);
         int frameNumber = 0;
-        while((frame = grabber.grab()) != null){
-            if(frame.image != null){
-                if(frameNumber++ < startFrame){
+        while ((frame = grabber.grab()) != null) {
+            if (frame.image != null) {
+                if (frameNumber++ < startFrame) {
                     continue;
                 }
                 recorder.record(frame);
             }
-            if(frame.samples != null){
-                if(frameNumber < startFrame){
+            if (frame.samples != null) {
+                if (frameNumber < startFrame) {
                     continue;
                 }
                 recorder.record(frame);
             }
-            if(frameNumber > endFrame) break;
+            if (frameNumber > endFrame) break;
         }
         recorder.stop();
         grabber.stop();
@@ -147,27 +152,28 @@ public class VideoProcessor {
     }
 
     // 返回视频时长
-    public static double videoClipByDel(String inputFile, String outputFile, double startMs, double endMs) throws Exception{
+    public static double videoClipByDel(String inputFile, String outputFile, double startMs, double endMs) throws Exception {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
         grabber.start();
-        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight(),
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(),
+                grabber.getImageHeight(),
                 grabber.getAudioChannels());
-        initRecoder(recorder,grabber);
+        initRecoder(recorder, grabber);
         recorder.start();
         Frame frame;
-        int endFrame = (int)(startMs * grabber.getFrameRate());
-        int startFrame = (int)(endMs * grabber.getFrameRate());
+        int endFrame = (int) (startMs * grabber.getFrameRate());
+        int startFrame = (int) (endMs * grabber.getFrameRate());
         int frameNumber = -1;
-        while((frame = grabber.grab()) != null){
-            if(frame.image != null){
+        while ((frame = grabber.grab()) != null) {
+            if (frame.image != null) {
                 frameNumber++;
-                if(frameNumber < startFrame && frameNumber > endFrame){
+                if (frameNumber < startFrame && frameNumber > endFrame) {
                     continue;
                 }
                 recorder.record(frame);
             }
-            if(frame.samples != null){
-                if(frameNumber < startFrame && frameNumber > endFrame){
+            if (frame.samples != null) {
+                if (frameNumber < startFrame && frameNumber > endFrame) {
                     continue;
                 }
                 recorder.record(frame);
@@ -183,18 +189,19 @@ public class VideoProcessor {
 
     /**
      * 融合视频画面与声音
+     *
      * @param imageFile
      * @param samplesFile
      * @param outputFile
      * @throws Exception
      */
-    public static void videoMixImageAndSamples(String imageFile, String samplesFile,String outputFile) throws Exception{
+    public static void videoMixImageAndSamples(String imageFile, String samplesFile, String outputFile) throws Exception {
         FFmpegFrameGrabber imageGrabber = new FFmpegFrameGrabber(new File(imageFile));
         imageGrabber.start();
         FFmpegFrameGrabber samplesGrabber = new FFmpegFrameGrabber(new File(samplesFile));
         samplesGrabber.start();
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(new File(outputFile), imageGrabber.getImageWidth(),
-                imageGrabber.getImageHeight(),samplesGrabber.getAudioChannels());
+                imageGrabber.getImageHeight(), samplesGrabber.getAudioChannels());
         recorder.setFormat(imageGrabber.getFormat());
         recorder.setVideoCodec(imageGrabber.getVideoCodec());
         recorder.setVideoBitrate(imageGrabber.getVideoBitrate());
@@ -202,11 +209,11 @@ public class VideoProcessor {
         recorder.setFrameRate(imageGrabber.getFrameRate());
         recorder.setAudioBitrate(samplesGrabber.getAudioBitrate());
         recorder.start();
-        Frame samplesFrame,imageFrame;
-        while((imageFrame = imageGrabber.grabImage()) != null){
+        Frame samplesFrame, imageFrame;
+        while ((imageFrame = imageGrabber.grabImage()) != null) {
             recorder.record(imageFrame);
         }
-        while((samplesFrame = samplesGrabber.grabSamples()) != null ){
+        while ((samplesFrame = samplesGrabber.grabSamples()) != null) {
             recorder.record(samplesFrame);
         }
         recorder.close();
@@ -215,14 +222,14 @@ public class VideoProcessor {
     }
 
     //返回带有地址和时长的音频信息，但是日志列表与版本号不在这里读取
-    public static VideoImf getVideoImf(String path){
+    public static VideoImf getVideoImf(String path) {
         try {
             FFmpegFrameGrabber grabber = FFmpegFrameGrabber.createDefault(path);
             grabber.start();
             // 计算时长
             double durationInSec = grabber.getFormatContext().duration() / 1000000.0;
-            return new VideoImf(path.replace(FileConfig.PROJECT_PATH,FileConfig.RELATIVE_PROJECT_PATH),
-                    durationInSec,-1,null);
+            return new VideoImf(path.replace(FileConfig.PROJECT_PATH, FileConfig.RELATIVE_PROJECT_PATH),
+                    durationInSec, -1, null);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -235,7 +242,7 @@ public class VideoProcessor {
         String video3 = "E:\\project\\test\\video\\luming_i.mp4";
         String video0 = "E:\\project\\test\\video\\luming_t.mp4";
         String video = "E:\\project\\test\\video\\luming_cut.mp4";
-        videoAddText(video,video0,"create by 陈宇豪");
+        videoAddText(video, video0, "create by 陈宇豪");
         //videoGetSamples(video1,video2);
         //videoGetImage(video1,video3);
         //videoMixImageAndSamples(video3,video2,video0);

@@ -68,9 +68,9 @@
                 editDialogVisible : false,
                 baseImf: {
                     username: '无名',
-                    email: '1561739463@qq.com',
+                    email: '',
                     signature: '这个人很懒，什么都没写',
-                    signUpTime: '2001.04.10',
+                    signUpTime: '',
                     headUrl: '../image/defaultHead.png',
                 }
             }
@@ -106,7 +106,6 @@
                     this.baseImf.email = user.email
                     this.baseImf.username = user.username
                     this.baseImf.signUpTime = userDetail.signUpTime.replace('T', ' ')
-
                     this.baseImf.signature = userDetail.signature
                     window.parent.postMessage(this.baseImf, "*")
                 })

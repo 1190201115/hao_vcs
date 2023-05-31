@@ -36,24 +36,24 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
 
 
     /**
-     *
      * @param projectId
      * @param projectName
      * @param file
-     * @param path 带/
+     * @param path        带/
      * @return
      */
     @Override
     public boolean insertFileIntoProject(Long projectId, String projectName, MultipartFile file, String path, Long userId) {
         String projectPath = FileUtil.getProjectPath(projectId, projectName);
-        if(!StringUtils.isNullOrEmpty(path)){
+        if (!StringUtils.isNullOrEmpty(path)) {
             projectPath += path;
         }
-        String fileId = FileUtil.saveFile(projectPath,INIT_VERSION,file);
-        if(!StringUtils.isNullOrEmpty(fileId)){
-            FileBaseImf fileBaseImf = new FileBaseImf(fileId, projectPath,file.getOriginalFilename(), INIT_VERSION,INIT_VERSION,DELETE_SAFE);
+        String fileId = FileUtil.saveFile(projectPath, INIT_VERSION, file);
+        if (!StringUtils.isNullOrEmpty(fileId)) {
+            FileBaseImf fileBaseImf = new FileBaseImf(fileId, projectPath, file.getOriginalFilename(),
+                    INIT_VERSION, INIT_VERSION, DELETE_SAFE);
             FileVersionImf fileVersionImf = new FileVersionImf(fileId, INIT_VERSION, LocalDateTime.now(),
-                    userMapper.selectById(userId).getUsername(),CREATE_FILE);
+                    userMapper.selectById(userId).getUsername(), CREATE_FILE);
             return fileBaseImfMapper.insert(fileBaseImf) == 1 && fileVersionImfMapper.insert(fileVersionImf) == 1;
         }
         return false;
@@ -76,16 +76,18 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
 
     @Override
     public String getFileIdWithCurrentVersion(String filePath) {
-        String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
+        String fileName = filePath.substring(filePath.lastIndexOf('\\') + 1);
         FileBaseImf fileBaseImf = getFileByFilePath(filePath);
-        return fileBaseImf.getFileId()+ VersionUtil.getVersionSuffix(fileBaseImf.getCurrentVersion())+fileName.substring(fileName.lastIndexOf("."));
+        return fileBaseImf.getFileId() + VersionUtil.getVersionSuffix(fileBaseImf.getCurrentVersion())
+                + fileName.substring(fileName.lastIndexOf("."));
     }
 
     @Override
     public String getFileIdWithLatestVersion(String filePath) {
-        String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
+        String fileName = filePath.substring(filePath.lastIndexOf('\\') + 1);
         FileBaseImf fileBaseImf = getFileByFilePath(filePath);
-        return fileBaseImf.getFileId()+ VersionUtil.getVersionSuffix(fileBaseImf.getLatestVersion())+fileName.substring(fileName.lastIndexOf("."));
+        return fileBaseImf.getFileId() + VersionUtil.getVersionSuffix(fileBaseImf.getLatestVersion())
+                + fileName.substring(fileName.lastIndexOf("."));
     }
 
     @Override
@@ -96,6 +98,7 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
 
     /**
      * 用于更新文件时，会同时将latestVersion和currentVersion同步为下一个版本
+     *
      * @param filePath
      * @param updateKind
      * @return
@@ -103,7 +106,7 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
     @Override
     public String updateFileLatestVersion(String filePath, Integer updateKind) {
         FileBaseImf fileBaseImf = getFileByFilePath(filePath);
-        String version = VersionUtil.getNextVersion(fileBaseImf.getLatestVersion(),updateKind);
+        String version = VersionUtil.getNextVersion(fileBaseImf.getLatestVersion(), updateKind);
         fileBaseImf.setLatestVersion(version);
         fileBaseImf.setCurrentVersion(version);
         fileBaseImfMapper.updateById(fileBaseImf);
@@ -111,18 +114,18 @@ public class FileBaseImfServiceImpl implements FileBaseImfService {
     }
 
     @Override
-    public boolean checkCurrentVersion(String filePath, String newVersion){
+    public boolean checkCurrentVersion(String filePath, String newVersion) {
         FileBaseImf fileBaseImf = getFileByFilePath(filePath);
         fileBaseImf.setCurrentVersion(newVersion);
         return fileBaseImfMapper.updateById(fileBaseImf) == 1;
     }
 
     @Override
-    public FileBaseImf getFileByFilePath(String filePath){
-        String fileName = filePath.substring(filePath.lastIndexOf('\\')+1);
+    public FileBaseImf getFileByFilePath(String filePath) {
+        String fileName = filePath.substring(filePath.lastIndexOf('\\') + 1);
         QueryWrapper<FileBaseImf> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("file_name", fileName);
-        queryWrapper.eq("path", filePath.substring(0,filePath.lastIndexOf('\\')));
+        queryWrapper.eq("path", filePath.substring(0, filePath.lastIndexOf('\\')));
         return fileBaseImfMapper.selectOne(queryWrapper);
     }
 

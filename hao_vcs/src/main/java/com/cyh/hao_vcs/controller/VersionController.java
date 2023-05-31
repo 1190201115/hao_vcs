@@ -42,26 +42,36 @@ public class VersionController {
     public R updateText(@RequestParam("projectId") Long projectId, @RequestParam("morePath") String morePath,
                         @RequestParam("content") String content, @RequestParam("updateKind") Integer updateKind,
                         @RequestParam("log") String log, HttpSession session) {
-        fileVersionImfService.updateText(projectId, morePath, content, updateKind, log, (Long) session.getAttribute("user"));
+        fileVersionImfService.updateText(projectId, morePath, content, updateKind, log,
+                (Long) session.getAttribute("user"));
         return R.success("更新成功");
     }
 
     @PostMapping("/updatePic")
     public R updatePic(@RequestParam("projectId") Long projectId, @RequestParam("morePath") String morePath,
-                       @RequestBody MultipartFile file, @RequestParam("log") List<String> logList, HttpSession session) {
-        if(Objects.isNull(logList) || logList.isEmpty()){
+                       @RequestBody MultipartFile file, @RequestParam("log") List<String> logList,
+                       HttpSession session) {
+        if (Objects.isNull(logList) || logList.isEmpty()) {
             return R.warn("没有更新");
         }
-        String path = fileVersionImfService.updatePic(projectId, morePath, file, logList.toString(), (Long) session.getAttribute("user"));
-        if(Objects.isNull(path)){
+        String path = fileVersionImfService.updatePic(projectId, morePath, file, logList.toString(),
+                (Long) session.getAttribute("user"));
+        if (Objects.isNull(path)) {
             return R.error("更新失败");
         }
-        return R.success(PicCombiner.getPicImf(path),"更新成功");
+        PicImf picImf = PicCombiner.getPicImf(path);
+        return R.success(PicCombiner.getPicImf(path), "更新成功");
+    }
+
+    @PostMapping("/deleteOldPic")
+    public void deleteOldPic(@RequestBody Map<String, String> map){
+        fileVersionImfService.deleteOldPic(Long.parseLong(map.get("projectId")), map.get("morePath"));
     }
 
     @PostMapping("/combinePic")
     public R updatePic(@RequestParam("projectId") Long projectId, @RequestParam("morePath") String morePath,
-                       @RequestBody MultipartFile file, @RequestParam("log") String log, @RequestParam("addPath") String addPath,
+                       @RequestBody MultipartFile file, @RequestParam("log") String log,
+                       @RequestParam("addPath") String addPath,
                        HttpSession session) {
         fileVersionImfService.updatePic(projectId, morePath, file, log, (Long) session.getAttribute("user"));
         return R.success("更新成功");
@@ -69,13 +79,13 @@ public class VersionController {
 
     @PostMapping("/addVideoWatermark")
     public R addWatermarkVideo(@RequestBody Map<String, String> map) {
-        String newPath = fileVersionImfService.addWatermark(map.get("content"), map.get("path"), Integer.parseInt(map.get("version")));
+        String newPath = fileVersionImfService.addWatermark(map.get("content"), map.get("path"),
+                Integer.parseInt(map.get("version")));
         return Objects.isNull(newPath) ? R.error("水印添加失败") : R.success(newPath);
     }
 
     @PostMapping("/cutVideo")
     public R cutVideoByDel(@RequestBody Map<String, String> map) {
-        System.out.println(map.get("radio"));
         if ("1".equals(map.get("radio"))) {
             return fileVersionImfService.updateVideoByDel(map.get("path"), Integer.parseInt(map.get("version")),
                     Double.parseDouble(map.get("startTime")), Double.parseDouble(map.get("endTime")));
@@ -115,7 +125,8 @@ public class VersionController {
         if (Objects.equals(0, version)) {
             return R.warn("保存完成(其实没有更新)");
         }
-        fileVersionImfService.updateVideo((Long) session.getAttribute("user"), (String) map.get("path"), version, (List<String>) map.get("log"));
+        fileVersionImfService.updateVideo((Long) session.getAttribute("user"), (String) map.get("path"),
+                version, (List<String>) map.get("log"));
         return R.success("保存完成");
     }
 
@@ -131,7 +142,8 @@ public class VersionController {
     @GetMapping("/checkFileVersion")
     public R checkFileVersion(@RequestParam("projectId") Long projectId, @RequestParam("morePath") String morePath,
                               @RequestParam("version") String newVersion, HttpSession session) {
-        if (fileVersionImfService.checkFileVersion(projectId, morePath, newVersion, (Long) session.getAttribute("user"))) {
+        if (fileVersionImfService.checkFileVersion(projectId, morePath, newVersion,
+                (Long) session.getAttribute("user"))) {
             return R.success("版本切换成功");
         }
         return R.error("版本切换失败");

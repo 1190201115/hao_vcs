@@ -140,8 +140,8 @@
                                     <span v-if="scope.row.version != currentVersion">
                                         <el-button @click="compareTwoFile(scope.row)" type="text">对比</el-button>
                                         <el-button @click="checkFileVersion(scope.row)" type="text">切换</el-button>
-                                        <el-button @click="deleteFileWithVersion(scope.row)" type="text"
-                                                   style="color: red">删除</el-button>
+<!--                                        <el-button @click="deleteFileWithVersion(scope.row)" type="text"-->
+<!--                                                   style="color: red">删除</el-button>-->
                                     </span>
                                     <span v-else style="color: #3a9edc">当前版本</span>
                                 </template>
@@ -153,8 +153,8 @@
                 <div v-show="showProjectSettings">
                     <el-switch
                             v-model="config"
-                            active-text="保留旧版本文件"
-                            inactive-text="存储节约"
+                            active-text="存储节约"
+                            inactive-text="保留旧版本文件"
                     @change="changeConfig()">
                     </el-switch>
                     <el-popover
@@ -216,19 +216,21 @@
                 currentPage: 1, //初始页
                 pageSize: 8,
                 showList: [],
-                dirNum: 5,
-                fileNum: 10,
-                dirList: ['啊', 'ab', 3, 4, 5],
-                allList: ['啊', 'ab', 3, 4, 5, 6, 7, 8, 9, 10],
+                dirNum: 0,
+                fileNum: 0,
+                dirList: [],
+                allList: [],
                 path: '',
                 selectedFile:'',
                 versionLogVisible: false,
-                versionImf: [{
-                    version: '1.0',
-                    saveTime: '2023-02-24T17:40:11',
-                    latestActor: 'cyh',
-                    latestAction: '更新x'
-                },],
+                versionImf: [
+                //     {
+                //     version: '1.0',
+                //     saveTime: '2023-02-24T17:40:11',
+                //     latestActor: 'cyh',
+                //     latestAction: '更新x'
+                // },
+                ],
                 currentVersion: 0,
                 checkProjectSource: 'depot',
                 config: true,
@@ -248,9 +250,12 @@
                       }
               }).then(
                   result => {
+                      console.log(this.config)
                       if(result.data.code !== 20000){
-                          this.$message.warn(result.data.msg)
+                          this.$message.warning(result.data.msg)
+                          this.config = !this.config
                       }
+                      console.log(this.config)
                   }
               )
             },
@@ -394,6 +399,8 @@
                     this.showProjectContent = false
                     axios.get("/config/getCacheStrategy", {params: {projectId: this.selectedProject.projectId}}).then(
                         result=>{
+                            console.log('getCache')
+                            console.log(result)
                             this.config = result.data
                     })
                     this.showProjectSettings = true

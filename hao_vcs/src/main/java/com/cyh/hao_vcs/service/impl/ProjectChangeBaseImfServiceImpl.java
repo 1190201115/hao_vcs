@@ -31,9 +31,11 @@ public class ProjectChangeBaseImfServiceImpl implements ProjectChangeBaseImfServ
     ProjectBaseMapper projectBaseMapper;
 
     @Override
-    public boolean insertProjectChangeBaseImf(Long userID, Long projectID, LocalDateTime latestUpdateTime, String latestAction) {
+    public boolean insertProjectChangeBaseImf(Long userID, Long projectID, LocalDateTime latestUpdateTime,
+                                              String latestAction) {
         String userName = userMapper.selectById(userID).getUsername();
-        return projectChangeBaseImfMapper.insert(new ProjectChangeBaseImf(projectID, latestUpdateTime, latestAction, userName)) == 1;
+        return projectChangeBaseImfMapper.insert(new ProjectChangeBaseImf(projectID, latestUpdateTime, latestAction,
+                userName)) == 1;
     }
 
     @Override
@@ -57,8 +59,8 @@ public class ProjectChangeBaseImfServiceImpl implements ProjectChangeBaseImfServ
         UserProject userProject = user2ProjectMapper.selectOne(queryWrapper);
         if (!Objects.isNull(userProject)) {
             int relation = userProject.getRelation();
-            if (StatusEnum.CREATE_PROJECT.equals(relation)){
-                return  true;
+            if (StatusEnum.CREATE_PROJECT.equals(relation)) {
+                return true;
             }
         }
         return false;
